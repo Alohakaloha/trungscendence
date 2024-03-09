@@ -1,25 +1,22 @@
-let content;
-let matrix;
+
 let header;
 let fontSize;
-let ctx;
 let welcome;
 let drop
 let interval;
 let setDrop;
+let ctx;
+let matrix;
 
 
 
 export function init() {
 	return new Promise((resolve, reject) => {
-		content = document.getElementById('content');
-		matrix = document.createElement('canvas');
 		header = document.getElementById('header-bar');
-		matrix.id = 'matrix';
+		matrix = document.getElementById('matrix');
 		matrix.width = window.innerWidth - 20;
 		matrix.height = window.innerHeight - header.offsetHeight - 100;
 		fontSize = window.innerWidth * 0.05;
-		content.appendChild(matrix);
 		ctx = matrix.getContext('2d');
 		ctx.font = fontSize + 'px arial';
 		window.addEventListener('resize', function() {
@@ -63,27 +60,48 @@ export function init() {
 
 
 
+
+// function unload() {
+// 	return new Promise((resolve, reject) => {
+// 		if (chatWindow) {
+// 			chatWindow = null;
+// 			chatMessage = null;
+// 			sendBtn = null;
+
+// 			console.log("chat unloaded");
+// 			// Resolve the promise if everything is successful
+// 			resolve();
+// 		} else {
+// 			// Reject the promise if the login button is not found
+// 			reject(new Error("chat not found"));
+// 		}
+// 	});
+// }
+
+
+
 export function unload(){
-	clearInterval(interval);
-	clearInterval(setDrop);
-	let matrixCanvas = document.getElementById('matrix');
-	if (matrixCanvas){
-		matrixCanvas.remove();
-	}
-	content = null;
-	matrix = null;
-	header = null;
-	fontSize = null;
-	ctx = null;
-	welcome = null;
-	drop  = null;
-	interval = null;
-	setDrop = null;
+	return new Promise((resolve, reject) => {
+		clearInterval(setDrop);
+		clearInterval(interval);
+		if (matrix){
+			matrix = null;
+			header = null;
+			fontSize = null;
+			welcome = null;
+			drop  = null;
+			interval = null;
+			setDrop = null;
+			ctx = null; // Add this line to define the 'ctx' variable.
+	
+			resolve();
+		}
+		else
+			reject(new Error('welcome.js not found'));
+	})};
 
-	console.log('welcome.js unloaded');
 
-}
-// let information = document.createElement('div');
+	// let information = document.createElement('div');
 // information.id = 'information';
 // information.textContent = 'hello world';
 

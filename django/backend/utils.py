@@ -16,3 +16,4 @@ def validateUsername(username):
 	if len(username) < 3 or ' ' in username:
 		return False
 	return True
+

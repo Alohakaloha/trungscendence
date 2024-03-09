@@ -1,6 +1,13 @@
 <div class="profile">
 	{% if user.is_authenticated %}
 		<h1>Hello, {{ user.username }}!</h1>
+		<h3> These are your current stats: </h3>
+		<ul>
+			<li>Games played: {{ user.games }}</li>
+			<li>Wins: {{ user.wins }}</li>
+			<li>Losses: {{ user.losses }}</li>
+			<li>Draws: {{ user.draws }}</li>
+		</ul>
 	<form action="{% url 'logout' %}" method="post">
 		{% csrf_token %}
 		<button type="submit">Logout</button>

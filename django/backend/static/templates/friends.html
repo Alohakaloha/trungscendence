@@ -6,7 +6,7 @@
 </head>
 <body>
 	<div class="friend_requests">
-		<h1>Friend requests:</h1>
+		<h3>Friend requests:</h3>
 		{% for friend_request in friend_requests %}
 			{{ friend_request.sender }}
 			<form class="friend_request_form" action="accept_friend_request/{{ friend_request.id }}" method="post">
@@ -25,7 +25,7 @@
 	<span id="successMsg" style="color: green;"></span>
 	<span id="declineMsg" style="color: red"></span>
 	<div class="all_users">
-		<h1>All Users:</h1>
+		<h3>All Users:</h3>
 		{% for user in users %}
 		{% if not user.is_superuser %}
 		{% if user not in request.user.friends.all and user != request.user%}
@@ -43,10 +43,28 @@
 	<span id="friend-request-sent" style="color: green;"></span> 
 	<span id="alreadySent" style="color: red;"></span>
 	<div class="friends">
-		<h1>My friends:</h1>
+		<h3>My friends:</h3>
 		{% for user in request.user.friends.all%}
-			<a href="/profile/{{ user }}">{{ user }}</a> <br>
-		{% endfor %}
+			<div class="user-details">
+				<span style="cursor: pointer; text-decoration: underline; color: blue;"> {{ user.username }} </span>
+				<a class="user_id" style="display: none" data-user-id="{{ user.user_id }}"></a>
+				{% if user.is_online %}
+				<img src="{% static 'images/online.png' %}" width="22"/>
+				<a>Online</a>
+				{% elif user.last_online %}
+				<img src="{% static 'images/last_online.png' %}" width="22"/>
+				<a>{{ user.get_online_info }} </a>
+				{% endif %}
+				<form class="unfriend" action="unfriend/{{ user.user_id }}" method="post">
+					{% csrf_token %}
+					<button type="submit" class="unfriend_button" data-user-id="{{ user.user_id }}" style="background-color: red; color: white; width: 100px; height: 30px">Unfriend</button> 
+				</form>
+				<span id="unfriend_msg" style="color: green;"></span>
+				<br>
+				<div class="user-info" style="display: none"></div>
+			</div>
+			<br>
+			{% endfor %}
 	</div>
 <script type='module' src="{% static '/js/friend_request.js' %}"></script>
 </body>

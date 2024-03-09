@@ -1,11 +1,8 @@
+
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login as auth_login, views as auth_views
-from django.contrib.auth.decorators import login_required
-from django.urls import reverse_lazy
 from django.core.files.base import ContentFile
-from django.shortcuts import redirect
-from urllib.parse import urlparse
 from utils import validateEmail, validatePassword, validateUsername
 from .models import AppUser, FriendRequest
 import base64
@@ -22,15 +19,50 @@ def header_view(request):
 def game(request):
 	return render(request,'game.html')
 
-def profile(request):
-	return render(request, 'profile.html')
+def profile(request, **args):
+	if args :
+		if request.user.is_authenticated:
+			friendUser  = AppUser.objects.get(user_id=args['user_id'])
+
+			if request.user.friends.filter(email=friendUser.email).exists():
+				friend_game_history = friendUser.get_game_history()[:5]
+				games_history = []
+				for game in friend_game_history:
+					winner = game.player_one.username if game.player_one_score > game.player_two_score else game.player_two.username 
+					tie = True if game.player_one_score == game.player_two_score else False
+					games_history.append({
+						'game_id': game.game_id,
+						'game_date': game.game_date,
+						'player_one': game.player_one.username,
+						'player_one_score': game.player_one_score,
+						'player_two': game.player_two.username,
+						'player_two_score': game.player_two_score,
+						'winner': winner,
+						'tie': tie
+					})
+				friendUserStats = {
+					'profile_picture': friendUser.profile_picture.url,
+					'games_played': friendUser.games,
+					'wins': friendUser.wins,
+					'losses': friendUser.losses,
+					'draws': friendUser.draws,
+					'games_history': games_history
+					}
+				return JsonResponse({"status": "success", 'stats': friendUserStats})
+			else:
+				return JsonResponse({"status": "error", 'message':'You are not friends with this user.'})
+		return JsonResponse({"status": "error", 'message':'You must be logged in to view this page.'})
+	else:
+		return render(request, 'profile.html')
+
 
 def history(request):
+
 	return render(request, 'history.html')
 
 
 def main(request):
-	return render(request, 'main.html')
+	return render(request, 'welcome.html')
 
 def about(request):
 	return render(request, 'about.html')
@@ -46,7 +78,6 @@ def login_view(request):
 		try:
 			data = json.loads(request.body)
 		except Exception as e:
-			print(request.body)
 			return JsonResponse({'status':'error', 'message':str(request.body)})
 		email = data['email']
 		password = data['password']
@@ -87,7 +118,6 @@ def settings_view(request):
 		return render(request, 'settings.html')
 	
 	elif request.method == 'POST':
-		print("line 92", file=sys.stderr)
 		data = json.loads(request.body)
 		user_id = request.user.user_id
 		user = AppUser.objects.get(user_id=user_id)
@@ -106,9 +136,8 @@ def settings_view(request):
 				user.save()
 		except:
 			return JsonResponse({'status':'error', 'message':'Username already exists.'})
-		eprint("we are outside of the if")
+
 		if 'profile_picture' in data:
-			eprint("we are saving");
 			imgstr = data['profile_picture']
 			image_data = base64.b64decode(imgstr)
 			
@@ -120,7 +149,6 @@ def settings_view(request):
 			new_password = data['password']
 			user.set_password(new_password)
 			user.save()
-		eprint("at the end")
 
 		return JsonResponse({'status':'success', 'message':'Settings updated successfully.'})
 
@@ -134,16 +162,15 @@ def friends_view(request):
 def send_friend_request_view(request, user_id):
 	if request.method == 'POST':
 		from_user = request.user
-		print(request.user, file=sys.stderr)
 		to_user = AppUser.objects.get(user_id=user_id)
-		print(to_user, file=sys.stderr)
-		print(f"user_id: {user_id}", file=sys.stderr)
 
 		friend_requests, created = FriendRequest.objects.get_or_create(sender=from_user, receiver=to_user)
 		if created:
 			return JsonResponse({'status':'success', 'message':'Friend request sent successfully.'})
 		else:
 			return JsonResponse({'status':'error', 'message':'Friend request already sent.'})
+	else:
+		return HttpResponse("Bad request. Don't use the address bar.", status=400)
 	
 def accept_friend_request_view(request, friend_request_id):
 	if request.method == 'POST':
@@ -156,6 +183,8 @@ def accept_friend_request_view(request, friend_request_id):
 			friend_request.accept()
 			friend_request.delete()
 			return JsonResponse({'status':'success', 'message':'Friend request accepted successfully.'})
+	else:
+		return HttpResponse("Bad request. Don't use the address bar.", status=400)
 
 def decline_friend_request_view(request, friend_request_id):
 	if request.method == 'POST':
@@ -167,6 +196,20 @@ def decline_friend_request_view(request, friend_request_id):
 		if friend_request.receiver == request.user:
 			friend_request.delete()
 			return JsonResponse({'status': 'success', 'message':'Friend request declined.'})
+	else:
+		return HttpResponse("Bad request. Don't use the address bar.", status=400)
+
+def unfriend_view(request, user_id):
+	if request.method == 'POST':
+		friend_user = AppUser.objects.get(user_id=user_id)
+		if request.user.friends.filter(email=friend_user.email).exists():
+			request.user.friends.remove(friend_user)
+			friend_user.friends.remove(request.user)
+			return JsonResponse({'status': 'success', 'message':'Unfriended successfully.'})
+		else:
+			return JsonResponse({'status': 'error', 'message':'Unfriend action is not possible. User is not your friend.'})
+	else:
+		return HttpResponse("Bad request. Don't use the address bar.", status=400)
 
 def getUserData_view(request):
 	if request.user.is_authenticated:
@@ -179,7 +222,6 @@ def getUserData_view(request):
 	else:
 		user_data = {'authenticated': False}
 	return JsonResponse({'user': user_data})
-	
 
 class CustomPasswordResetView(auth_views.PasswordResetView):
 	template_name = 'password_reset_form.html'

@@ -103,7 +103,6 @@ async function settings(email, username, profile_picture, password, confirm_pass
 			errorMsg.textContent = 'Invalid profile picture format. Allowed formats are jpg, jpeg, png, gif, bmp.';
 			return;
 		}
-		console.log("before basing");
 		try{
 			const base64 = await new Promise((resolve, reject) => {
 				const reader = new FileReader();
@@ -129,7 +128,6 @@ async function settings(email, username, profile_picture, password, confirm_pass
 		  body: JSON.stringify(data)
 		});
 		const responseData = await response.json();
-		console.log("are we at 128?");
 		if (responseData.status === "success") {
 			errorMsg.textContent = '';
 			successMsg.textContent = responseData.message;

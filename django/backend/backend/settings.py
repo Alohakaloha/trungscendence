@@ -25,7 +25,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'transcendence']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
 
 # Application definition
@@ -35,16 +35,17 @@ STATICFILES_DIRS = [
 ]
 
 INSTALLED_APPS = [
-	'daphne',
-	'channels',
+    'daphne',
     'auth_app',
-	'pongGame',
+    'pongGame',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles'
+    'django.contrib.staticfiles',
+	'django.contrib.humanize',
+	'channels'
 ]
 
 MIDDLEWARE = [
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'auth_app.middleware.UpdateLastOnlineMiddleware'
 ]
 
 CHANNEL_LAYERS = {
@@ -104,11 +106,14 @@ TEMPLATES = [
     },
 ]
 
+WSGI_APPLICATION = 'backend.wsgi.application'
+
 # WSGI_APPLICATION = 'backend.wsgi.application'
 ASGI_APPLICATION = 'backend.asgi.application'
 
 #For redis within docker compose
 CELERY_BROKER_URL = 'redis://redis:6379/0'
+
 
 
 # Database

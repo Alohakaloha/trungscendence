@@ -1,7 +1,9 @@
 // on refresh handle the routing
-
 const content = document.getElementById('content');
 let jsFile;
+let welcome = document.createElement('script');
+welcome.src = '% static js/settings.js %';
+document.body.appendChild(welcome);
 
 
 window.onpopstate = function(event) {
@@ -32,16 +34,18 @@ function changeURL(path, title, stateObject) {
 function unloadEvents(str) {
 	import(str)
 		.then((module) => {
-			if (module.unload)
+			if (module.unload){
 				module.unload().then(() => {
-					console.log("Unloading successful");
+					console.log("All good");
 				}).catch((error) => {
 					console.error("Unloading failed:", error);
 				});
+			}
 		})
 		.catch((err) => {
 			// Handle the error
-			console.error('Failed to unload module', err);
+			console.log(str);
+			console.error('=Failed to unload module', err);
 		});
 }
 
@@ -71,13 +75,8 @@ async function handleRouting() {
 
 		switch (page) {
 			case '/':
-				document.getElementById('content').innerHTML = '';
-				console.log('Main page');
-				jsFile='./welcome.js';
-				let content = document.getElementById('content');
-				let filler = document.createElement('div');
-				filler.id = 'filler';
-				content.appendChild(filler);
+				jsFile = './welcome.js';
+				showPage("main/welcome.html");
 				break;
 			case '/chat':
 				jsFile = './chat.js';
@@ -103,7 +102,6 @@ async function handleRouting() {
 				} 
 				else{
 					changeURL('/login', 'Login Page', {main : true});
-					showPage('/login');
 					break;
 				}
 				break;
@@ -111,13 +109,12 @@ async function handleRouting() {
 				if (user.authenticated){
 					jsFile='./friend_request.js';
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
 				}
 				else{
 					changeURL('/login', 'Login Page', {main : true});
-					showPage('/login');
 					break;
 				}
-				break;
 			case '/register':
 				jsFile = './register.js';
 				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
@@ -125,7 +122,6 @@ async function handleRouting() {
 			case '/login':
 				if (user.authenticated){
 					changeURL('/', 'Main Page', {main : true});
-					showPage('main.html');
 					break;
 				}
 				jsFile = './login.js';
@@ -147,8 +143,6 @@ async function currentJS() {
 	switch (page) {
 		case '/':
 			unloadEvents('./welcome.js');
-			document.getElementById('filler').remove();
-			document.getElementById('content').innerHTML = '';
 			break;
 		case '/game':
 			break;
