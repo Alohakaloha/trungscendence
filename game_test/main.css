@@ -1,0 +1,56 @@
+
+
+body {
+	font-family: 'Lora', serif;
+	background-image: none;
+	background-size: 100% auto;
+}
+
+.text-colors {
+	color:rgb(200, 200, 200);
+}
+
+.text-colors:hover {
+	color:rgb(249, 249, 249); /* replace with your desired color */
+  }
+
+  .navbar-nav li {
+	padding: 5px 10px; /* adjust as needed */
+  }
+
+.dark-icon{
+	color: rgb(70, 70, 70);
+}
+.dark-icon:hover{
+	color: rgb(10, 10, 10);
+}
+
+.span-container{
+	display: flex;
+	justify-content: center;
+}
+
+.span-container span{
+	margin: 1em;
+}
+
+#content{
+	display: flex;
+	justify-content: center;
+}
+input[type="username"]{
+	width: 100%;
+}
+
+input[type="password"]{
+	width: 100%;
+}
+
+input[type="email"]{
+	width: 100%;
+}
+
+#matrix{
+	flex: auto;
+	justify-content: center;
+}

@@ -1,0 +1,19 @@
+#options{
+	display: flex;
+	justify-content: center;
+	background-color:#1f1f1f;
+	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+
+.carousel-item img {
+    height: 70vh;
+    object-fit: contain; /* This will cover the whole area of the div without distorting the image */
+}
+
+.carousel-item {
+    width: 100%; /* or any specific width */
+    height:80vh; /* or any specific height */
+	text-align: center;
+	color: aliceblue
+}

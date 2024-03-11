@@ -83,7 +83,7 @@ async function handleRouting() {
 				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 				break;
 			case '/game':
-				jsFile = './game/tmpGame.js';
+				// jsFile = './game/tmpGame.js';
 				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 				break;
 			case '/profile':
