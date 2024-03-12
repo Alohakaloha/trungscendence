@@ -63,6 +63,7 @@ function loadModule(str) {
 		console.error('Failed to load module', err);
 	});
 }
+
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
