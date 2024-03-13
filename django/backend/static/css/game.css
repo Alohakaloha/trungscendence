@@ -20,6 +20,10 @@
 	color: aliceblue
 }
 
+.carousel-inner{
+	padding-top: 10vh;
+}
+
 button.carousel-control-prev, button.carousel-control-next{
 	position: absolute;
 }
