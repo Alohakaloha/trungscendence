@@ -5,72 +5,61 @@ let welcome = document.createElement('script');
 welcome.src = '% static js/settings.js %';
 document.body.appendChild(welcome);
 
-const routes = {
-	'/profile': () => {
-		showPage("profile/profile.html");
-	},
+// const routes = {
+// 	'profile': () => {
+// 		showPage("main/profile.html");
+// 	},
+// 	'/': () =>{
+// 		jsFile = './welcome.js';
+// 		showPage("main/welcome.html");
+// 	},
+// 	'games': () => {
+// 		showPage("game/game.html");
+// 	},
+// 	'friends': () => {
+// 		if (user.authenticated){
+// 			showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+// 		}
+// 		else{
+// 			changeURL('/login', 'Login Page', {main : true});
+// 		}
+// 	},
+// 	'chat': () => {
+// 		jsFile = './chat.js';
+// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+// 	},
+// 	'history': () => {
+// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+// 	},
 
-	'/': () =>{
-		jsFile = './welcome.js';
-		showPage("main/welcome.html");
-	},
+// 	'about': () => {
+// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+// 	},
+// 	'settings': () => {
+// 		if (user.authenticated){
+// 			jsFile='./settings.js';
+// 			showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+// 		} 
+// 		else{
+// 			changeURL('/login', 'Login Page', {main : true});
+// 		}
+// 	},
+// 	'register': () => {
+// 		if (user.authenticated){
+// 			changeURL('/', 'Main Page', {main : true});
+// 		}
+// 		jsFile = './register.js';
+// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+// 	},
+// 	'login': () => {
+// 		if (user.authenticated){
+// 			changeURL('/', 'Main Page', {main : true});
+// 		}
+// 		jsFile = './login.js';
+// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+// 	}
 
-	'/game': () => {
-		showPage("game/game.html");
-	},
-
-	'/friends': () => {
-		const user = fetchUserData();
-		if (user.authenticated){
-			jsFile='./friend_request.js';
-			showPage(`friends/friends.html`);
-		}
-		else{
-			changeURL('/login', 'Login Page', {main : true});
-		}
-	},
-
-	'/chat': () => {
-		jsFile = './chat.js';
-		showPage(`chat/chat.html`);
-	},
-
-	'/history': () => {
-		showPage(`history/history.html`);
-	},
-
-	'/about': () => {
-		showPage(`about/about.html`);
-	},
-	'/settings': () => {
-		const user = fetchUserData();
-		if (user.authenticated){
-			jsFile='./settings.js';
-			showPage(`settings/settings.html`);
-		} 
-		else{
-			changeURL('/login', 'Login Page', {main : true});
-		}
-	},
-	'/register': () => {
-		const user = fetchUserData();
-		if (user.authenticated){
-			changeURL('/', 'Main Page', {main : true});
-		}
-		jsFile = './register.js';
-		showPage(`register/register.html`);
-	},
-
-	'/login': () => {
-		const user = fetchUserData();
-		if (user.authenticated){
-			changeURL('/', 'Main Page', {main : true});
-		}
-		jsFile = './login.js';
-		showPage(`login/login.html`);
-	}
-
-};
+// };
 
 
 window.onpopstate = function(event) {
@@ -136,19 +125,85 @@ async function handleRouting() {
 	let page = window.location.pathname;
 	try{
 		const user = await fetchUserData();
+		
 		if (user.authenticated){
 			document.getElementById('profile_picture').src = user.profile_picture;
 		}
-		if (routes[page] !== undefined){
-			routes[page]();
-		}
-		else
-			console.log('Page not found in routes ', page);
-	}
-	catch (error) {
+	
+		switch (page) {
+			case '/':
+				jsFile = './welcome.js';
+				showPage("main/welcome.html");
+				break;
+
+			case '/chat':
+				jsFile = './chat.js';
+				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
+
+			case '/game':
+				// jsFile = './game/tmpGame.js';
+				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
+
+			case '/profile':
+				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
+
+			case '/history':
+				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
+
+			case '/about':
+				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
+
+			case '/settings':
+				if (user.authenticated){
+					jsFile='./settings.js';
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				} 
+				else{
+					changeURL('/login', 'Login Page', {main : true});
+					break;
+				}
+
+				break;
+			case '/friends':
+				if (user.authenticated){
+					jsFile='./friend_request.js';
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+				}
+				else{
+					changeURL('/login', 'Login Page', {main : true});
+					break;
+				}
+
+			case '/register':
+				jsFile = './register.js';
+				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
+
+			case '/login':
+				if (user.authenticated){
+					changeURL('/', 'Main Page', {main : true});
+					break;
+				}
+
+				jsFile = './login.js';
+				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
+
+			default:
+				console.log('Page not found');
+				console.log(window.location.pathname);
+				break;
+			}
+	} catch (error) {
 		console.error('Error handling routing: ', error);
 	}
-};
+}
 
 async function currentJS() {
 	let page = window.location.pathname;
@@ -193,7 +248,7 @@ async function showPage(path) {
 		.then(data => {
 			document.getElementById('content').innerHTML = data;
 		})
-		.catch(error => console.log(error ));
+		.catch(error => console.log(error));
 }
 
 // part for background change in settings
