@@ -1,9 +1,9 @@
 // on refresh handle the routing
 const content = document.getElementById('content');
 let jsFile;
-let welcome = document.createElement('script');
-welcome.src = '% static js/settings.js %';
-document.body.appendChild(welcome);
+// let welcome = document.createElement('script');
+// welcome.src = '% static js/settings.js %';
+// document.body.appendChild(welcome);
 
 // const routes = {
 // 	'profile': () => {
@@ -143,7 +143,7 @@ async function handleRouting() {
 
 			case '/game':
 				// jsFile = './game/tmpGame.js';
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				showPage(`game/gameSetup.html`);
 				break;
 
 			case '/profile':
@@ -272,6 +272,37 @@ const observer = new MutationObserver(() => {
 		jsFile = null;
 	}
 });
+
+
+async function callSettings(path) {
+	return await fetch("game/"+path+".html")
+		.then(response => response.text())
+		.then(data => {
+			let contentElement = document.getElementById('game-options');
+			if (contentElement)
+				contentElement.innerHTML = data;
+		})
+		.catch(error => console.log(error));
+}
+
+async function startLocal() {
+	return await fetch("localmatch")
+		.then(response => response.text())
+		.then(data => {
+			let localSettings = {
+				"game": "pong",
+				"gameMode": "local",
+				"player1": document.getElementById('player1Name').value,
+				"player2": document.getElementById('player2Name').value,
+				"rounds": document.querySelector('input[name="roundsToWin"]:checked').value,
+				"score": document.querySelector('input[name="score"]:checked').value,
+			};
+			console.log(localSettings);
+			console.log("server returns = ",data);
+		})
+		.catch(error => console.log(error));
+
+}
 
 
 observer.observe(content, {childList: true});

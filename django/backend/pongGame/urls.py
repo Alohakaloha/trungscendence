@@ -4,6 +4,7 @@ from . import views
 
 
 urlpatterns = [
-	path('game/game.html', views.game, name='game'),
-	path('game/local.html', views.menu, name='local'),
+	path('game/gameSetup.html', views.game, name='gameSetup'),
+	path('game/local.html', views.localSetup, name='local'),
+	path('localmatch', views.localMatch, name='localmatch'),
 ]

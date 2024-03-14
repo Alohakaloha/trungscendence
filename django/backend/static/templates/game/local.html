@@ -1,0 +1,63 @@
+<div>
+	<form>
+		<div class="mb-3" id="nameField">
+			<label for="Player 1" class="form-label"><h5>Player 1</h5></label>
+			<input type="name1" class="form-control" id="player1Name" value="Player1">
+		</div>
+		<div class="mb-3" id="nameField">
+			<label for="Player 2" class="form-label"><h5>Player 2</h5></label>
+			<input type="name2" class="form-control" id="player2Name" value="Player2">
+		</div>
+		<div id="inline-options">
+			<h5 class="input-description">SCORE TO WIN</h5>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="score" id="score1" value="1">
+				<label class="form-check-label" for="score">1</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="score" id="score2" value="2">
+				<label class="form-check-label" for="score">2</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="score" id="score3" value="3" checked>
+				<label class="form-check-label" for="score">3</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="score" id="score4" value="4">
+				<label class="form-check-label" for="score">4</label>
+			  </div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="score" id="score5" value="5">
+				<label class="form-check-label" for="score">5</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="score" id="score6" value="6">
+				<label class="form-check-label" for="score">6</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="score" id="score7" value="7">
+				<label class="form-check-label" for="score">7</label>
+			</div>
+		</div>
+		<h5 class="input-description">ROUNDS TO WIN</h5>
+		<div class="form-check form-check-inline" >
+			<input class="form-check-input" type="radio" name="roundsToWin" id="roundsToWin" value="1" checked>
+			<label class="form-check-label" for="roundsToWin">1</label>
+		</div>
+		<div class="form-check form-check-inline">
+			<input class="form-check-input" type="radio" name="roundsToWin" id="roundsToWin" value="2">
+			<label class="form-check-label" for="roundsToWin">2</label>
+		</div>
+		<div class="form-check form-check-inline">
+			<input class="form-check-input" type="radio" name="roundsToWin" id="roundsToWin" value="3">
+			<label class="form-check-label" for="roundsToWin">3</label>
+		</div>
+
+		<h5 class="input-description">MIRRORED START</h5>
+			<div class="mb-3 form-check">
+				<input type="checkbox" class="form-check-input" id="mirrorStart">
+				<label for="mirrorStart">PLAYER 1 STARTS ON THE RIGHT SIDE</label>
+			</div>
+		</form>
+	<button type="button" onclick="startLocal()" class="btn btn-dark">Let's Play!</button>
+</div>
