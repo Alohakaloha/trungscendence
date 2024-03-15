@@ -296,9 +296,10 @@ async function startLocal() {
 				"player2": document.getElementById('player2Name').value,
 				"rounds": document.querySelector('input[name="roundsToWin"]:checked').value,
 				"score": document.querySelector('input[name="score"]:checked').value,
+
 			};
-			console.log(localSettings);
 			console.log("server returns = ",data);
+			initializeGame(localSettings);
 		})
 		.catch(error => console.log(error));
 
@@ -306,3 +307,8 @@ async function startLocal() {
 
 
 observer.observe(content, {childList: true});
+
+
+function initializeGame(settings) {
+	console.log(" init settings = ", settings);
+}
