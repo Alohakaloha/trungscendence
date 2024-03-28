@@ -1,6 +1,8 @@
 // on refresh handle the routing
 const content = document.getElementById('content');
 let jsFile;
+
+
 // let welcome = document.createElement('script');
 // welcome.src = '% static js/settings.js %';
 // document.body.appendChild(welcome);
@@ -129,7 +131,7 @@ async function handleRouting() {
 		if (user.authenticated){
 			document.getElementById('profile_picture').src = user.profile_picture;
 		}
-	
+
 		switch (page) {
 			case '/':
 				jsFile = './welcome.js';
@@ -145,6 +147,10 @@ async function handleRouting() {
 				// jsFile = './game/tmpGame.js';
 				showPage(`game/gameSetup.html`);
 				break;
+
+			case '/pong':
+				// jsFile = './game/pong.js';
+				showPage(`game/pong.html`);
 
 			case '/profile':
 				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
@@ -290,15 +296,14 @@ async function startLocal() {
 		.then(response => response.text())
 		.then(data => {
 			let localSettings = {
-				"game": "pong",
-				"gameMode": "local",
+				"settings": "change",
 				"player1": document.getElementById('player1Name').value,
 				"player2": document.getElementById('player2Name').value,
 				"rounds": document.querySelector('input[name="roundsToWin"]:checked').value,
 				"score": document.querySelector('input[name="score"]:checked').value,
-
+				"mirror": document.getElementById('mirror').checked,
 			};
-			console.log("server returns = ",data);
+			console.log(localSettings);
 			initializeGame(localSettings);
 		})
 		.catch(error => console.log(error));
@@ -309,6 +314,122 @@ async function startLocal() {
 observer.observe(content, {childList: true});
 
 
+// G A M I N G   S E C T I O N
+
+let gameSocket;
+
 function initializeGame(settings) {
-	console.log(" init settings = ", settings);
+		connectGame(settings);
+
+}
+
+
+function connectGame(settings){
+	fetch('/game/pong.html')
+		.then(response => response.text())
+		.then(data => {
+			document.getElementById('content').innerHTML = data;
+		})
+		.catch(error => console.log(error));
+	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/local/'); //wss only
+	gameSocket.onopen = function(e){
+		gameSocket.send(JSON.stringify(settings));
+	}
+
+	window.addEventListener('keydown', playerMove);
+
+    setInterval(function() {
+		let update;
+		update = {
+			"update" : "update"
+		}
+        gameSocket.send(JSON.stringify(update));
+    }, 60);
+
+	gameSocket.onmessage = function(event){
+		console.log(event.data);
+		displayPong(event);
+	}
+
+	gameSocket.onclose = function(event){
+		if (event.code === 1000) {
+			console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+		} else {
+			console.log('Connection died');
+		}
+	}
+
+	gameSocket.onerror = function(error) {
+		console.log(`Error: ${error.message}`);
+	};
+}
+
+
+function playerMove(event){
+	let action;
+
+		if (event.key == 'ArrowUp') {
+			action = {
+				"movement"	: "up",
+				"increment" : "player1"
+			}
+		} else if (event.key == 'ArrowDown') {
+			action = {
+				"movement"	: "down",
+				"decrement" : "player1"
+			}
+		}
+		else if (event.key == 'w') {
+			action = {
+				"movement"	: "up",
+				"increment" : "player2"
+			}
+		} else if (event.key == 's') {
+			action = {
+				"movement"	: "down",
+				"decrement" : "player2"
+			}
+		}
+	if (action)
+		gameSocket.send(JSON.stringify(action));
+}
+
+
+function displayPong(event)
+{
+	let data = JSON.parse(event.data);
+
+
+	let player1x = data.x1;
+	let player1y = data.y1;
+
+	let player2x = data.x2;
+	let player2y = data.y2;
+
+	let ball = document.getElementById('ball');
+	let game = document.getElementById('pongGame');
+	let headerbar = document.getElementById('header-bar');
+	if('player_1_name' in data){
+		let name1 = document.getElementById('player1-name');
+		let name2 = document.getElementById('player2-name');
+		name1.innerHTML = data.player_1_name;
+		name2.innerHTML = data.player_2_name;
+	}
+		game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
+
+	ball.style.position = 'absolute';
+	ball.style.left = data.ballx + '%';
+	ball.style.top = data.bally + '%';
+
+	let player1 = document.getElementById('player1');
+	let player2 = document.getElementById('player2');
+
+	player1.style.position = 'absolute';
+	player1.style.left = player1x + '%';
+	player1.style.top = player1y + '%';
+
+	player2.style.position = 'absolute';
+	player2.style.left = player2x + '%';
+	player2.style.top = player2y + '%';
+
 }

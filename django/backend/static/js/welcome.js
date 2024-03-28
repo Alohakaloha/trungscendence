@@ -19,13 +19,7 @@ export function init() {
 		fontSize = window.innerWidth * 0.05;
 		ctx = matrix.getContext('2d');
 		ctx.font = fontSize + 'px arial';
-		window.addEventListener('resize', function() {
-			matrix.width = window.innerWidth - 20;
-			matrix.height = window.innerHeight - header.offsetHeight - 100;
-			fontSize = window.innerWidth * 0.05;
-			ctx.font = fontSize + 'px arial';
-			ctx.fillStyle = '#FF0000';
-		});
+		window.addEventListener('resize', resizeWelcome);
 		welcome = ['Bienvenue', 'Willkommen', 'Chào mừng', 'Witaj', 'Добро пожаловать', 'Welcome', '환영합니다', '欢迎', 'Vítejte', 'Laipni lūdzam', 'Benvenuto', 'Bienvenido', 'Bem-vindo', 'Velkommen', 'Tervetuloa', 'Καλώς ήρθες', 'Hoş geldiniz', 'ยินดีต้อนรับ', 'Selamat datang', 'ようこそ', 'Välkommen'];
 		drop = {
 			x: Math.random() * matrix.width,
@@ -48,7 +42,6 @@ export function init() {
 				drop.text = welcome[Math.floor(Math.random() * welcome.length)];
 			}
 		}
-
 		setDrop = setInterval(moveDrop, 100);
 		interval = setInterval(draw,50);
 		console.log('welcome.js loaded');
@@ -84,6 +77,7 @@ export function unload(){
 	return new Promise((resolve, reject) => {
 		clearInterval(setDrop);
 		clearInterval(interval);
+		window.removeEventListener('resize',resizeWelcome );
 		if (matrix){
 			matrix = null;
 			header = null;
@@ -92,13 +86,21 @@ export function unload(){
 			drop  = null;
 			interval = null;
 			setDrop = null;
-			ctx = null; // Add this line to define the 'ctx' variable.
-	
+			ctx = null;
 			resolve();
 		}
 		else
 			reject(new Error('welcome.js not found'));
 	})};
+
+
+	function resizeWelcome() {
+		matrix.width = window.innerWidth - 20;
+		matrix.height = window.innerHeight - header.offsetHeight - 100;
+		fontSize = window.innerWidth * 0.05;
+		ctx.font = fontSize + 'px arial';
+		ctx.fillStyle = '#FF0000';
+	}
 
 
 	// let information = document.createElement('div');

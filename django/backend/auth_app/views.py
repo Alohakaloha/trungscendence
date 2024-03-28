@@ -57,7 +57,6 @@ def profile(request, **args):
 
 
 def history(request):
-
 	return render(request, 'history.html')
 
 

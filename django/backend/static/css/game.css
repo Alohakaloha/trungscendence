@@ -52,3 +52,61 @@ button.carousel-control-prev, button.carousel-control-next{
 #game-mode{
 	padding-top: 1vh;
 }
+
+#pongGame{
+	position: relative;
+	display: flex;
+	background-color: #0e0e0e;
+	width: 100vw;
+}
+
+#player1, #player2{
+	position:absolute;
+	display: block;
+	background-color: #747474;
+	width: 1vw;
+	height: 15vh;
+}
+
+
+#player1-score{
+	position: absolute;
+    top: 10vh;
+	font-size: xx-large;
+	right: 10vh;
+	color: rgba(240, 248, 255, 0.2);
+	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+
+#player2-score{
+	position: absolute;
+	top: 10vh;
+	font-size: xx-large;
+	left: 10vh;
+	color: rgba(240, 248, 255, 0.2);
+	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+#player1-name{
+	position: absolute;
+    top: 0;
+    left: 0;
+	color: rgba(240, 248, 255, 0.5);
+	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+#player2-name{
+	position: absolute;
+    top: 0;
+	right: 0;
+	color: rgba(240, 248, 255, 0.5);
+	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+#ball{
+	display: block;
+	background-color: #ffffff;
+	width: 2vw;
+	height: 2vw;
+	border-radius: 50%;
+}
