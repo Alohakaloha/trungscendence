@@ -1,9 +1,14 @@
-
+html, body {
+    height: 100%;
+}
 
 body {
 	font-family: 'Lora', serif;
 	background-image: none;
 	background-size: 100% auto;
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
 }
 
 .text-colors {
@@ -37,6 +42,7 @@ body {
 #content{
 	display: flex;
 	justify-content: center;
+	flex-grow : 1;
 }
 input[type="username"]{
 	width: 100%;

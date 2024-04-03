@@ -112,7 +112,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 ASGI_APPLICATION = 'backend.asgi.application'
 
 #For redis within docker compose
-CELERY_BROKER_URL = 'redis://redis:6379/0'
+# CELERY_BROKER_URL = 'redis://redis:6379/0'
 
 
 

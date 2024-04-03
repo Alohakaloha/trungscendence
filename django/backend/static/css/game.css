@@ -3,8 +3,10 @@
 	background-color:#0e0e0e;
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 	width: 100%;
+	flex-grow: 1;
 	position: relative;
 	color: aliceblue;
+	background-size: 100% auto;
 }
 #game-options{
 	display: block;
@@ -13,7 +15,7 @@
 	width: 100%;
 	position: relative;
 	color: aliceblue;
-	padding-top : 10vh;
+	padding-top : 1vh;
 	padding-left: 5vw;
 }
 
@@ -26,13 +28,13 @@
 }
 
 .carousel-item img {
-    height: 50vh;
+    height: 48vh;
     object-fit: contain; /* This will cover the whole area of the div without distorting the image */
 }
 
 .carousel-item {
-    width: 100%; /* or any specific width */
-    height:80vh; /* or any specific height */
+    width: 100%;
+    height:75vh;
 	text-align: center;
 	color: aliceblue
 }
@@ -58,14 +60,30 @@ button.carousel-control-prev, button.carousel-control-next{
 	display: flex;
 	background-color: #0e0e0e;
 	width: 100vw;
+	overflow: hidden;
+	scrollbar-width: none;
+    box-sizing: border-box;
+    border: rgba(240, 248, 255, 0.2) solid 4px;
 }
 
-#player1, #player2{
+
+
+#player1{
 	position:absolute;
 	display: block;
 	background-color: #747474;
-	width: 1vw;
+	width: 1.5vw;
 	height: 15vh;
+	border-radius: 10px;
+}
+
+#player2{
+	position:absolute;
+	display: block;
+	background-color: #747474;
+	width: 1.5vw;
+	height: 15vh;
+	border-radius: 10px;
 }
 
 
@@ -106,7 +124,10 @@ button.carousel-control-prev, button.carousel-control-next{
 #ball{
 	display: block;
 	background-color: #ffffff;
-	width: 2vw;
-	height: 2vw;
-	border-radius: 50%;
+	width: 1.25vw;
+	height: 1.25vh;
+	min-width: 15px;
+	min-height: 15px;
+	/* border-radius: 50%; */
+	top: 0;
 }

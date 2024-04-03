@@ -307,7 +307,6 @@ async function startLocal() {
 			initializeGame(localSettings);
 		})
 		.catch(error => console.log(error));
-
 }
 
 
@@ -317,6 +316,7 @@ observer.observe(content, {childList: true});
 // G A M I N G   S E C T I O N
 
 let gameSocket;
+let keysPressed = {};
 
 function initializeGame(settings) {
 		connectGame(settings);
@@ -336,22 +336,40 @@ function connectGame(settings){
 		gameSocket.send(JSON.stringify(settings));
 	}
 
-	window.addEventListener('keydown', playerMove);
-
-    setInterval(function() {
-		let update;
-		update = {
-			"update" : "update"
+	let checkInput = setInterval(() => {
+		if (keysPressed['w']) {
+			player1up();
 		}
-        gameSocket.send(JSON.stringify(update));
-    }, 60);
+		if (keysPressed['s']) {
+			player1down();
+		}
+		if (keysPressed['ArrowUp']) {
+			player2up();
+		}
+		if (keysPressed['ArrowDown']) {
+			player2down();
+		}
+	}, 20);
+
+	document.addEventListener("keydown", e => {
+		keysPressed[e.key] = true;
+	});
+
+
+	document.addEventListener("keyup", e => {
+		keysPressed[e.key] = false;
+	});
+
 
 	gameSocket.onmessage = function(event){
-		console.log(event.data);
+		if (event.data === 'gameover'){
+			gameSocket.close();
+		}
 		displayPong(event);
 	}
 
 	gameSocket.onclose = function(event){
+		clearInterval(checkInput);
 		if (event.code === 1000) {
 			console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
 		} else {
@@ -365,34 +383,45 @@ function connectGame(settings){
 }
 
 
-function playerMove(event){
-	let action;
-
-		if (event.key == 'ArrowUp') {
-			action = {
-				"movement"	: "up",
-				"increment" : "player1"
-			}
-		} else if (event.key == 'ArrowDown') {
-			action = {
-				"movement"	: "down",
-				"decrement" : "player1"
-			}
-		}
-		else if (event.key == 'w') {
-			action = {
-				"movement"	: "up",
-				"increment" : "player2"
-			}
-		} else if (event.key == 's') {
-			action = {
-				"movement"	: "down",
-				"decrement" : "player2"
-			}
-		}
-	if (action)
-		gameSocket.send(JSON.stringify(action));
+function player1up() {
+	gameSocket.send(JSON.stringify({ "movement": "up", "player": "player1" }));
 }
+
+function player1down() {
+	gameSocket.send(JSON.stringify({ "movement": "down", "player": "player1" }));
+}
+
+function player2up() {
+	gameSocket.send(JSON.stringify({ "movement": "up", "player": "player2" }));
+}
+
+function player2down() {
+	gameSocket.send(JSON.stringify({ "movement": "down", "player": "player2" }));
+}
+
+// function playerMove1() {
+// 	const players = [
+// 		{ "movement": "", "player": "player1", "keys": { 'ArrowUp': 'up', 'ArrowDown': 'down' } },
+// 		{ "movement": "", "player": "player2", "keys": { 'w': 'up', 's': 'down' } }
+// 	];
+
+// 	players.forEach(player => {
+// 		Object.keys(player.keys).some(key => {
+// 			if (keysPressed[key]) {
+// 				player.movement = player.keys[key];
+// 				return true;
+// 			}
+// 		});
+// 	});
+
+// 	// filter out player who have no movement
+// 	const actions = players.filter(player => player.movement !== "");
+
+// 	if (actions.length > 0) {
+// 		console.log(actions);
+// 		gameSocket.send(JSON.stringify(actions));
+// 	}
+// }
 
 
 function displayPong(event)
@@ -425,7 +454,7 @@ function displayPong(event)
 	let player2 = document.getElementById('player2');
 
 	player1.style.position = 'absolute';
-	player1.style.left = player1x + '%';
+	player1.style.left = player1x - 1 +'%';
 	player1.style.top = player1y + '%';
 
 	player2.style.position = 'absolute';
