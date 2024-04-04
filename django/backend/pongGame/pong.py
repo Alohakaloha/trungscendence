@@ -58,11 +58,11 @@ class Player:
 class Ball:
 	def __init__(self):
 		self.x = 50
-		self.y = 20
+		self.y = 50
 		self.radius = 1.25
-		self.speed = 1
-		self.direction_x = 1
-		self.direction_y = 1
+		self.speed = 0.3
+		self.direction_x = random_number = random.choice([-1, 1])
+		self.direction_y = random_number = random.choice([-1,0, 1])
 
 	def ball_position(self):
 		ball_data = {
@@ -111,10 +111,10 @@ class Ball:
 
 	def reset_ball(self, score):
 		self.x = 50
-		self.y = 20
-		self.direction_x = 1
-		self.direction_y = 1
-		self.speed = 1
+		self.y = 50
+		self.direction_x = random_number = random.choice([-1, 1])
+		self.direction_y = random_number = random.choice([-1,0, 1])
+		self.speed = 0.3
 	
 
 class Rules:
