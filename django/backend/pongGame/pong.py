@@ -40,17 +40,17 @@ class Player:
 		if data['movement'] == 'up':
 			if data['player'] == 'player1':
 				if self.y1 > 2:
-					self.y1 = self.y1 - 3
+					self.y1 = self.y1 - 2
 			elif data['player'] == 'player2':
 				if self.y2 > 2:
-					self.y2 = self.y2 - 3
+					self.y2 = self.y2 - 2
 		elif data['movement'] == 'down':
 			if data['player'] == 'player1':
 				if self.y1 < 82:
-					self.y1 = self.y1 + 3
+					self.y1 = self.y1 + 2
 			elif data['player'] == 'player2':
 				if self.y2 < 82:
-					self.y2 = self.y2 + 3
+					self.y2 = self.y2 + 2
 
 
 
@@ -58,11 +58,11 @@ class Player:
 class Ball:
 	def __init__(self):
 		self.x = 50
-		self.y = 50
+		self.y = 20
 		self.radius = 1.25
 		self.speed = 1
 		self.direction_x = 1
-		self.direction_y = 0
+		self.direction_y = 1
 
 	def ball_position(self):
 		ball_data = {
@@ -81,6 +81,8 @@ class Ball:
 					self.direction_y -= 0.3
 				elif self.x + self.radius < player.y1 + 2:
 					self.direction_y += 0.3
+				if self.x + self.radius >= player.x1  and self.x + self.radius <= player.x1 + 2:
+					self.x += self.radius 
 				return True
 		if self.y + self.radius > player.y2 and self.y + self.radius <= player.y2 + player.height2:
 			if self.x + self.radius < player.x2 + player.width2 and self.x + self.radius > player.x2:
@@ -88,6 +90,8 @@ class Ball:
 					self.direction_y -= 0.3
 				elif self.x + self.radius < player.y2 + 2:
 					self.direction_y += 0.3
+				if self.x + self.radius >= player.x2  and self.x + self.radius <= player.x2 + 2:
+					self.x -= self.radius 
 				return True
 		return False
 	
@@ -107,7 +111,7 @@ class Ball:
 
 	def reset_ball(self, score):
 		self.x = 50
-		self.y = 50
+		self.y = 20
 		self.direction_x = 1
 		self.direction_y = 1
 		self.speed = 1
@@ -126,9 +130,9 @@ class Rules:
 	def scoring(self, gamePos):
 
 		if gamePos['ballx'] < 1.5:
-			self.player_2_score += 1
-		elif gamePos['ballx'] > 98.5:
 			self.player_1_score += 1
+		elif gamePos['ballx'] > 98.5:
+			self.player_2_score += 1
 
 	def game_end(self):
 		if self.player_1_score == self.score_to_win or self.player_2_score == self.score_to_win:

@@ -444,7 +444,13 @@ function displayPong(event)
 		name1.innerHTML = data.player_1_name;
 		name2.innerHTML = data.player_2_name;
 	}
-		game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
+	if ('score1' in data){
+		let p1score = document.getElementById('player1-score');
+		let p2score = document.getElementById('player2-score');
+		p1score.innerHTML = data.score1;
+		p2score.innerHTML = data.score2;
+	}
+	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
 
 	ball.style.position = 'absolute';
 	ball.style.left = data.ballx + '%';

@@ -46,7 +46,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 				self.player.score.scoring(self.player.gamePos())
 				self.player.ball.reset_ball(self.player.score)
 			await self.send(json.dumps(self.player.gamePos()))
-			await asyncio.sleep(0.02)
+			await asyncio.sleep(0.01)
 
 
 	async def disconnect(self, close_code):
