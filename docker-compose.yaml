@@ -43,6 +43,7 @@ services:
       - postgres
     env_file:
       - .env
+      - oauth.env
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail localhost:7000 || exit 1"]
       interval: 10s
