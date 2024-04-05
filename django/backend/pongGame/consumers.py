@@ -40,11 +40,12 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		while self.game_active:
 			if self.player.ball.collision(self.player) is True:
 				if self.player.ball.speed < 1.5:
-					self.player.ball.speed += 0.05
+					self.player.ball.speed += 0.02
 				self.player.ball.direction_x = -self.player.ball.direction_x
 			if(self.player.ball.move_ball() == False):
 				self.player.score.scoring(self.player.gamePos())
 				self.player.ball.reset_ball(self.player.score)
+				await self.send(json.dumps(self.player.score.current_rules()))
 			await self.send(json.dumps(self.player.gamePos()))
 			await asyncio.sleep(0.01)
 

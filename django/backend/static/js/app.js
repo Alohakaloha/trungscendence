@@ -219,6 +219,8 @@ async function currentJS() {
 			unloadEvents('./welcome.js');
 			break;
 		case '/game':
+			if (gameSocket)
+				gameSocket.close();
 			break;
 		case '/profile':
 			break;
@@ -428,7 +430,6 @@ function displayPong(event)
 {
 	let data = JSON.parse(event.data);
 
-
 	let player1x = data.x1;
 	let player1y = data.y1;
 
@@ -449,6 +450,8 @@ function displayPong(event)
 		let p2score = document.getElementById('player2-score');
 		p1score.innerHTML = data.score1;
 		p2score.innerHTML = data.score2;
+		let matchRounds = document.getElementById('match-round');
+		matchRounds.innerHTML = data.current_rounds;
 	}
 	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
 
@@ -466,5 +469,4 @@ function displayPong(event)
 	player2.style.position = 'absolute';
 	player2.style.left = player2x + '%';
 	player2.style.top = player2y + '%';
-
 }

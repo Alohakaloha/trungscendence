@@ -28,13 +28,13 @@
 }
 
 .carousel-item img {
-    height: 48vh;
-    object-fit: contain; /* This will cover the whole area of the div without distorting the image */
+	height: 48vh;
+	object-fit: contain; /* This will cover the whole area of the div without distorting the image */
 }
 
 .carousel-item {
-    width: 100%;
-    height:75vh;
+	width: 100%;
+	height:75vh;
 	text-align: center;
 	color: aliceblue
 }
@@ -58,12 +58,13 @@ button.carousel-control-prev, button.carousel-control-next{
 #pongGame{
 	position: relative;
 	display: flex;
+	justify-content: center;
 	background-color: #0e0e0e;
 	width: 100vw;
 	overflow: hidden;
 	scrollbar-width: none;
-    box-sizing: border-box;
-    border: rgba(240, 248, 255, 0.2) solid 4px;
+	box-sizing: border-box;
+	border: rgba(240, 248, 255, 0.2) solid 4px;
 }
 
 
@@ -89,13 +90,32 @@ button.carousel-control-prev, button.carousel-control-next{
 
 #player1-score{
 	position: absolute;
-    top: 10vh;
+	top: 10vh;
 	font-size: xx-large;
 	right: 10vh;
 	color: rgba(240, 248, 255, 0.2);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
 
+#round{
+	top: 0%;
+	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+	color: rgba(240, 248, 255, 0.2);
+	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#match-round{
+	top: 10%;
+	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+	color: rgba(240, 248, 255, 0.2);
+	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
 
 #player2-score{
 	position: absolute;
@@ -107,15 +127,15 @@ button.carousel-control-prev, button.carousel-control-next{
 }
 #player1-name{
 	position: absolute;
-    top: 0;
-    left: 0;
+	top: 0;
+	left: 0;
 	color: rgba(240, 248, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
 
 #player2-name{
 	position: absolute;
-    top: 0;
+	top: 0;
 	right: 0;
 	color: rgba(240, 248, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;

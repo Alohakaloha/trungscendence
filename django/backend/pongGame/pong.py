@@ -33,6 +33,7 @@ class Player:
 			"bally": self.ball.y,
 			"score1": self.score.player_1_score,
 			"score2": self.score.player_2_score,
+			"current_rounds": self.score.current_rounds,
 		}
 		return game_data
 
@@ -77,18 +78,18 @@ class Ball:
 		#ball > player height && ball height + radius <= player.height + 8.5 (paddle radius)
 		if self.y + self.radius > player.y1 and self.y + self.radius <= player.y1 + player.height1:
 			if self.x + self.radius < player.x1 + player.width1 and self.x + self.radius > player.x1:
-				if self.y + self.radius > player.y1 + 2:
+				if self.y + self.radius > player.y1 + 4:
 					self.direction_y -= 0.3
-				elif self.x + self.radius < player.y1 + 2:
+				elif self.x + self.radius < player.y1 + 11:
 					self.direction_y += 0.3
 				if self.x + self.radius >= player.x1  and self.x + self.radius <= player.x1 + 2:
 					self.x += self.radius 
 				return True
 		if self.y + self.radius > player.y2 and self.y + self.radius <= player.y2 + player.height2:
 			if self.x + self.radius < player.x2 + player.width2 and self.x + self.radius > player.x2:
-				if self.x + self.radius > player.y2 + 2:
+				if self.x + self.radius > player.y2 + 4:
 					self.direction_y -= 0.3
-				elif self.x + self.radius < player.y2 + 2:
+				elif self.x + self.radius < player.y2 + 11:
 					self.direction_y += 0.3
 				if self.x + self.radius >= player.x2  and self.x + self.radius <= player.x2 + 2:
 					self.x -= self.radius 
@@ -121,6 +122,7 @@ class Rules:
 	def __init__(self):
 		self.score_to_win = 3
 		self.rounds_to_win = 1
+		self.current_rounds = 1
 		self.player_1_name = "Player 1"
 		self.player_2_name = "Player 2"
 		self.player_1_score = 0
@@ -133,6 +135,7 @@ class Rules:
 			self.player_1_score += 1
 		elif gamePos['ballx'] > 98.5:
 			self.player_2_score += 1
+		self.current_rounds += 1
 
 	def game_end(self):
 		if self.player_1_score == self.score_to_win or self.player_2_score == self.score_to_win:
@@ -156,6 +159,7 @@ class Rules:
 		score_data = {
 			'player1-score' : self.player_1_score,
 			'player2-score' : self.player_2_score,
+			'current_rounds' : self.current_rounds,
 		}
 		return score_data
 	
@@ -165,6 +169,7 @@ class Rules:
 			'rounds_to_win' : self.rounds_to_win,
 			'player_1_name' : self.player_1_name,
 			'player_2_name' : self.player_2_name,
+			'current_rounds' : self.current_rounds,
 			'mirror' : self.mirror,
 		}
 		return rules_data
