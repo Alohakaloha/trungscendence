@@ -27,7 +27,12 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
-
+AUTHENTICATION_BACKENDS = [
+# auth_backend.py implementing Class PasswordlessAuthBackend inside yourapp folder
+    'oauth2.auth_backend.PasswordlessAuthBackend', 
+# Default authentication of Django
+    'django.contrib.auth.backends.ModelBackend',
+]
 # Application definition
 
 STATICFILES_DIRS = [

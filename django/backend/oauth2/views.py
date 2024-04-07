@@ -7,6 +7,7 @@ from auth_app.views import register_view
 import logging
 import http.client as http_client
 from auth_app.models import AppUser
+import secrets
 
 http_client.HTTPConnection.debuglevel = 1
 
@@ -26,7 +27,7 @@ CLIENT_SECRET =os.getenv("OAUTH_CLIENT_SECRET")
 REDIRECT_URI="https://localhost/oauth2/redirect/"
 BASE_URL = "https://api.intra.42.fr/oauth/authorize"
 USERDATA_ENDPOINT = "https://api.intra.42.fr/v2/me"
-OAUTH_PASSWORD="123QWEasd..."
+OAUTH_PASSWORD_LENGTH=16
 
 redirect_url = f"{BASE_URL}?client_id={CLIENT_ID}&redirect_uri={urllib.parse.quote_plus(REDIRECT_URI)}&response_type=code"
 # Create your views here.
@@ -55,17 +56,18 @@ def oauth_redirect(request):
             # for k in user_data.keys():
             #     result += f"<b>{k}</b>: " + str(user_data[k])  + "<hr>"
 
-            user = authenticate(request, email=user_data["email"], password=OAUTH_PASSWORD)
+            user = authenticate(request, email=user_data["email"])
             if user is not None:
-                auth_login(request, user)
+                auth_login(request, user, backend='oauth2.auth_backend.PasswordlessAuthBackend')
                 return redirect("/profile")
             else:
                 user = AppUser.objects.create_user(
                     email=user_data["email"],
                     username = user_data["login"],
-                    password=OAUTH_PASSWORD
+                    password=secrets.token_urlsafe(OAUTH_PASSWORD_LENGTH),
+                    oauth=True
                 )
-                auth_login(request, user)
+                auth_login(request, user, backend='oauth2.auth_backend.PasswordlessAuthBackend')
                 # return JsonResponse({'status':'success: reg, login'})
                 return redirect("/profile")
         else:
