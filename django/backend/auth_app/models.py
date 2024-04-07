@@ -13,12 +13,11 @@ class AppUserManager(BaseUserManager):
             raise ValueError('A username is required.')
         if not oauth and not password:
             raise ValueError('A password is required for non-oauth users.')
-        # if oauth:
-        #     user.oauth_created = True
         email = self.normalize_email(email)
         user = self.model(email=email)
         user.username = username
         user.set_password(password)
+        user.oauth_created = oauth
         user.profile_picture = "images/default.jpg"
         user.save(using=self._db)
         return user
@@ -47,7 +46,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     last_online = models.DateTimeField(blank=True, null=True)
-    # oauth_created = models.BooleanField(default=False)
+    oauth_created = models.BooleanField(default=False)
 
 # returns a queryset of History instances where the user is either player_one or player_two
     def get_game_history(self):
