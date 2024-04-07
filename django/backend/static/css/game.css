@@ -8,14 +8,18 @@
 	color: aliceblue;
 	background-size: 100% auto;
 }
+
+#mode h2{
+	text-align: center;
+}
+
 #game-options{
-	display: block;
 	background-color:#0e0e0e;
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 	width: 100%;
 	position: relative;
 	color: aliceblue;
-	padding-top : 1vh;
+	padding-top : 19vh;
 	padding-left: 5vw;
 }
 
