@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('auth_app.urls')),
     path('', include('pongGame.urls')),
-	path('', include('chat.urls'))
+	path('', include('chat.urls')),
+    path('oauth2/', include('oauth2.urls')),
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
