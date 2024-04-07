@@ -1,5 +1,6 @@
 #!/bin/sh
 
+sleep 10
 python3 manage.py migrate
 # runstatic files
 python3 manage.py collectstatic --noinput
