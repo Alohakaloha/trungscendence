@@ -65,7 +65,8 @@ def oauth_redirect(request):
                     email=user_data["email"],
                     username = user_data["login"],
                     password=secrets.token_urlsafe(OAUTH_PASSWORD_LENGTH),
-                    oauth=True
+                    oauth=True,
+                    pic_url=user_data['image']['versions']['small']
                 )
                 auth_login(request, user, backend='oauth2.auth_backend.PasswordlessAuthBackend')
                 # return JsonResponse({'status':'success: reg, login'})

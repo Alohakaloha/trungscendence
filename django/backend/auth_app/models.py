@@ -6,7 +6,7 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.db.models import Q
 
 class AppUserManager(BaseUserManager):
-    def create_user(self, email, username, password, oauth: bool=False):
+    def create_user(self, email, username, password, oauth: bool=False, pic_url: str=""):
         if not email:
             raise ValueError('An email is required.')
         if not username:
@@ -19,6 +19,7 @@ class AppUserManager(BaseUserManager):
         user.set_password(password)
         user.oauth_created = oauth
         user.profile_picture = "images/default.jpg"
+        user.oauth_pic_url = pic_url
         user.save(using=self._db)
         return user
 
@@ -47,6 +48,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     last_online = models.DateTimeField(blank=True, null=True)
     oauth_created = models.BooleanField(default=False)
+    oauth_pic_url = models.URLField(blank=True, null=True)
 
 # returns a queryset of History instances where the user is either player_one or player_two
     def get_game_history(self):
