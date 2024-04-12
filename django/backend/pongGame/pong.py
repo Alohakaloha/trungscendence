@@ -61,9 +61,9 @@ class Ball:
 		self.x = 50
 		self.y = 50
 		self.radius = 1.25
-		self.speed = 0.3
-		self.direction_x = random_number = random.choice([-1, 1])
-		self.direction_y = random_number = random.choice([-1,0, 1])
+		self.speed = 0.2
+		self.direction_x = random.choice([-1, 1])
+		self.direction_y = random.choice([-1,0, 1])
 
 	def ball_position(self):
 		ball_data = {
@@ -113,9 +113,9 @@ class Ball:
 	def reset_ball(self, score):
 		self.x = 50
 		self.y = 50
-		self.direction_x = random_number = random.choice([-1, 1])
-		self.direction_y = random_number = random.choice([-1,0, 1])
-		self.speed = 0.3
+		self.direction_x = random.choice([-1, 1])
+		self.direction_y = random.choice([-1,0, 1])
+		self.speed = 0.2
 	
 
 class Rules:
@@ -135,13 +135,17 @@ class Rules:
 			self.player_1_score += 1
 		elif gamePos['ballx'] > 98.5:
 			self.player_2_score += 1
-		self.current_rounds += 1
+		if self.player_1_score == self.score_to_win or self.player_2_score == self.score_to_win:
+			self.current_rounds += 1
+			self.player_1_score = 0
+			self.player_2_score = 0
 
 	def game_end(self):
 		if self.player_1_score == self.score_to_win or self.player_2_score == self.score_to_win:
 			return True
 		else:
 			return False
+		
 
 #updating settings
 	def settings(self, data):
@@ -168,7 +172,9 @@ class Rules:
 			'score_to_win' : self.score_to_win,
 			'rounds_to_win' : self.rounds_to_win,
 			'player_1_name' : self.player_1_name,
+			'player1_score' : self.player_1_score,
 			'player_2_name' : self.player_2_name,
+			'player2_score' : self.player_2_score,
 			'current_rounds' : self.current_rounds,
 			'mirror' : self.mirror,
 		}
