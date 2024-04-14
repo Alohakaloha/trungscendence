@@ -33,7 +33,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			return
 
 		self.game_active = True
-		asyncio.create_task(self.game_loop())
+		gaming = asyncio.create_task(self.game_loop())
 
 
 	async def game_loop(self):
@@ -41,10 +41,10 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 			if self.player.ball.collision(self.player) is True:
 				if self.player.ball.speed < 1.2:
 					self.player.ball.speed += 0.02
-					logprint("Speed: ", self.player.ball.speed)
 				self.player.ball.direction_x = -self.player.ball.direction_x
 			if(self.player.ball.move_ball() == False):
 				self.player.score.scoring(self.player.gamePos())
+				self.player.score.next_round()
 				self.player.ball.reset_ball(self.player.score)
 				await self.send(json.dumps(self.player.score.current_rules()))
 			await self.send(json.dumps(self.player.gamePos()))

@@ -1,8 +1,11 @@
 from django.http import JsonResponse
 import string
+import sys
 import random
 import json
 
+def logprint(*args, **kwargs):		
+	print(*args, file=sys.stderr, **kwargs)
 
 class Player:
 	def __init__(self):
@@ -111,6 +114,7 @@ class Ball:
 
 
 	def reset_ball(self, score):
+		
 		self.x = 50
 		self.y = 50
 		self.direction_x = random.choice([-1, 1])
@@ -123,22 +127,39 @@ class Rules:
 		self.score_to_win = 3
 		self.rounds_to_win = 1
 		self.current_rounds = 1
+
 		self.player_1_name = "Player 1"
-		self.player_2_name = "Player 2"
 		self.player_1_score = 0
+		self.player_1_rounds = 0
+
+		self.player_2_name = "Player 2"
+		self.player_2_rounds = 0
 		self.player_2_score = 0
 		self.mirror = False
 
 	def scoring(self, gamePos):
-
 		if gamePos['ballx'] < 1.5:
 			self.player_1_score += 1
 		elif gamePos['ballx'] > 98.5:
 			self.player_2_score += 1
-		if self.player_1_score == self.score_to_win or self.player_2_score == self.score_to_win:
+
+	def next_round(self):
+		self.player_1_score = int(self.player_1_score)
+		self.player_2_score = int(self.player_2_score)
+		self.score_to_win = int(self.score_to_win)
+		if self.player_1_score == self.score_to_win:
+			logprint("Player 1 rounds")
 			self.current_rounds += 1
+			self.player_1_rounds += 1
 			self.player_1_score = 0
 			self.player_2_score = 0
+		elif self.player_2_score == self.score_to_win:
+			logprint("Player 2 rounds")
+			self.current_rounds += 1
+			self.player_2_rounds += 1
+			self.player_1_score = 0
+			self.player_2_score = 0
+
 
 	def game_end(self):
 		if self.player_1_score == self.score_to_win or self.player_2_score == self.score_to_win:
