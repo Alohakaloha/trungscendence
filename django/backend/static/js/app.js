@@ -492,4 +492,4 @@ function displayPong(event)
 
 let tournamentSocket;
 
-tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
+// tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only

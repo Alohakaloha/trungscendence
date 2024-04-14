@@ -6,8 +6,8 @@ COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install channels_redis
-RUN pip install Twisted[http2,tls]
+# RUN pip install channels_redis
+# RUN pip install Twisted[http2,tls]
 
 # Make port 7000 available to the world outside this container
 EXPOSE 7000

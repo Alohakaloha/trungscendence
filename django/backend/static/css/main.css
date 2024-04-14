@@ -11,6 +11,7 @@ body {
 	flex-grow: 1;
 }
 
+
 #loginBtn{
 	margin-top: 10px;
 }
@@ -24,9 +25,7 @@ body {
 	color:rgb(249, 249, 249); /* replace with your desired color */
 }
 
-.navbar-nav li {
-	padding: 5px 10px; /* adjust as needed */
-}
+
 
 .dark-icon{
 	color: rgb(70, 70, 70);

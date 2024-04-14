@@ -1,6 +1,7 @@
 #!/bin/sh
 
-sleep 10
+# sleep 10
+python3 manage.py makemigrations auth_app chat oauth2 pongGame
 python3 manage.py migrate
 # runstatic files
 python3 manage.py collectstatic --noinput
