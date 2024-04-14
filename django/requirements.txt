@@ -7,5 +7,5 @@ sqlparse==0.4.4
 typing_extensions==4.8.0
 channels==4.0.0
 daphne==4.0.0
-django-redis
+channels_redis
 requests

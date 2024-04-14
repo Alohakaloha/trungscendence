@@ -48,6 +48,7 @@ body {
 	justify-content: center;
 	flex-grow : 1;
 }
+
 input[type="username"]{
 	width: 100%;
 }
