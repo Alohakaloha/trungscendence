@@ -1,0 +1,70 @@
+{% load static %}
+<div id="mode">
+	<h2>CHOOSE GAME MODE</h2>
+	<div>
+		<div id="carouselExampleIndicators" class="carousel slide">
+			<div class="carousel-indicators">
+				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1" onclick="removeOptions()"></button>
+				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2" onclick="removeOptions()"></button>
+				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3" onclick="removeOptions()"></button>
+				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="3" aria-label="Slide 4" onclick="removeOptions()"></button>
+				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="4" aria-label="Slide 5" onclick="removeOptions()"></button>
+			</div>
+			<div class="carousel-inner">
+				<div class="carousel-item active">
+					<button class="btn btn-dark" onclick="callSettings('local')">
+						<img src="{% static 'images/pong1.jpeg' %}" class="d-block w-100" >
+						<h4 id="game-mode">
+							LOCAL MATCH
+						</h4>
+					</button>
+				</div>
+				<div class="carousel-item">
+					<button class="btn btn-dark" onclick="callSettings('lTournamentSetup')">
+						<img src="{% static 'images/pong2.jpeg' %}"class="d-block w-100">
+						<h4 id="game-mode">
+							LOCAL TOURNAMENT MODE
+						</h4>
+					</button>
+				</div>
+				<div class="carousel-item">
+					<button class="btn btn-dark" onclick="callSettings('rTournamentSetup')">
+						<img src="{% static 'images/pong2b.jpeg' %}"class="d-block w-100">
+						<h4 id="game-mode">
+							REMOTE TOURNAMENT MODE
+						</h4>
+					</button>
+				</div>
+				<div class="carousel-item">
+					<button class="btn btn-dark" onclick="callSettings('versusSetup')">
+						
+						<img src="{% static 'images/pong3.jpeg' %}" class="d-block w-100">
+						<h4 id="game-mode">
+							VERSUS MODE
+						</h4>
+					</button>
+				</div>
+				<div class="carousel-item">
+					<button class="btn btn-dark">
+						
+						<img src="{% static 'images/pong4.jpeg' %}" class="d-block w-100">
+						<h4 id="game-mode">
+							SPECTATOR MODE
+						</h4>
+					</div>
+				</div>
+			</button>
+		</div>
+		<button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev" onclick="removeOptions()">
+			<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+			<span class="visually-hidden">Previous</span>
+		</button>
+		<button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next" onclick="removeOptions()">
+			<span class="carousel-control-next-icon" aria-hidden="true"></span>
+			<span class="visually-hidden">Next</span>
+		</button>
+	</div>
+</div>
+<div id="game-options">
+
+</div>

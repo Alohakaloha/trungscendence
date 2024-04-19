@@ -15,7 +15,7 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		self.room_group_name = "game_"+ self.room_name
 
 		self.connections = 0
-
+		logprint("Room name: \n", self.room_name, "\nRoom group name: \n", self.room_group_name, "\n")
 
 		await self.channel_layer.group_add(
 			self.room_group_name,
@@ -26,24 +26,25 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 		self.player = pong.Player()
 
 		# change this for testing purposes
-		if (self.connections < 2):
+		if (self.connections < 1):
 			await self.accept()
 			self.connections += 1
 		else:
 			return
 
 		self.game_active = True
-		asyncio.create_task(self.game_loop())
+		gaming = asyncio.create_task(self.game_loop())
 
 
 	async def game_loop(self):
 		while self.game_active:
 			if self.player.ball.collision(self.player) is True:
-				if self.player.ball.speed < 1.5:
+				if self.player.ball.speed < 1.2:
 					self.player.ball.speed += 0.02
 				self.player.ball.direction_x = -self.player.ball.direction_x
 			if(self.player.ball.move_ball() == False):
 				self.player.score.scoring(self.player.gamePos())
+				self.player.score.next_round()
 				self.player.ball.reset_ball(self.player.score)
 				await self.send(json.dumps(self.player.score.current_rules()))
 			await self.send(json.dumps(self.player.gamePos()))
@@ -75,3 +76,17 @@ class PongGameConsumer(AsyncWebsocketConsumer):
 					await self.send(json.dumps(self.player.gamePos()))
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data}")
+
+
+class tournament(AsyncWebsocketConsumer):
+
+	async def connect(self):
+		self.room_name = pong.randomCode()
+		self.room_group_name = "tournament_"+ self.room_name
+
+		self.connections = 0
+		if (self.connections < 6):
+			await self.accept()
+			self.connections += 1
+		else:
+			return

@@ -145,7 +145,7 @@ async function handleRouting() {
 
 			case '/game':
 				// jsFile = './game/tmpGame.js';
-				showPage(`game/gameSetup.html`);
+				showPage(`game/setupGameMode.html`);
 				break;
 
 			case '/pong':
@@ -153,7 +153,10 @@ async function handleRouting() {
 				showPage(`game/pong.html`);
 
 			case '/profile':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				if(user.authenticated)
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				else
+					changeURL('/login', 'Login Page', {main : true});
 				break;
 
 			case '/history':
@@ -224,98 +227,124 @@ async function currentJS() {
 			break;
 		case '/profile':
 			break;
-		case '/chat':
-			unloadEvents('./chat.js');
-			break;
-		case '/history':
-			break;
+			case '/chat':
+				unloadEvents('./chat.js');
+				break;
+				case '/history':
+					break;
 		case '/about':
 			break;
-		case '/settings':
-			break;
+			case '/settings':
+				break;
 		case '/friends':
 			if (user.authenticated)
 			unloadEvents('./friend_request.js');
-			break;
+		break;
 		case '/register':
 			unloadEvents('./register.js');
 			break;
-		case '/login':
-			if (!user.authenticated)
-			unloadEvents('./login.js');
+			case '/login':
+				if (!user.authenticated)
+				unloadEvents('./login.js');
 			break;
-		default:
-			break;
-	}
-}
-
-
-async function showPage(path) {
-	return await fetch(path)
+			default:
+				break;
+			}
+		}
+		
+		
+		async function showPage(path) {
+			return await fetch(path)
 		.then(response => response.text())
 		.then(data => {
 			document.getElementById('content').innerHTML = data;
 		})
 		.catch(error => console.log(error));
-}
-
-// part for background change in settings
-let background = ["none", "/staticstuff/images/background.jpg", "/staticstuff/images/black.jpg" ];
-let i = 0;
-
-function changeBg() {
-	i = (i + 1) % background.length; 
-	if (background[i] === "none") {
-	document.body.style.backgroundImage = background[i];
-	} else {
-	document.body.style.backgroundImage = `url(${background[i]})`;
 	}
-	console.log(document.body.style.backgroundImage);
-}
-
-
-const observer = new MutationObserver(() => {
-	if (jsFile) {
-		loadModule(jsFile);
-		jsFile = null;
+	
+	// part for background change in settings
+	let background = ["none", "/staticstuff/images/background.jpg", "/staticstuff/images/black.jpg" ];
+	let i = 0;
+	
+	function changeBg() {
+		i = (i + 1) % background.length; 
+		if (background[i] === "none") {
+			document.body.style.backgroundImage = background[i];
+		} else {
+			document.body.style.backgroundImage = `url(${background[i]})`;
+		}
+		console.log(document.body.style.backgroundImage);
 	}
-});
 
 
-async function callSettings(path) {
-	return await fetch("game/"+path+".html")
+	const observer = new MutationObserver(() => {
+		if (jsFile) {
+			loadModule(jsFile);
+			jsFile = null;
+		}
+	});
+	
+	
+	async function callSettings(path) {
+		return await fetch("game/"+path+".html")
 		.then(response => response.text())
 		.then(data => {
 			let contentElement = document.getElementById('game-options');
 			if (contentElement)
-				contentElement.innerHTML = data;
-		})
-		.catch(error => console.log(error));
+			contentElement.innerHTML = data;
+	})
+	.catch(error => console.log(error));
 }
 
 async function startLocal() {
 	return await fetch("localmatch")
-		.then(response => response.text())
-		.then(data => {
-			let localSettings = {
-				"settings": "change",
-				"player1": document.getElementById('player1Name').value,
-				"player2": document.getElementById('player2Name').value,
-				"rounds": document.querySelector('input[name="roundsToWin"]:checked').value,
-				"score": document.querySelector('input[name="score"]:checked').value,
-				"mirror": document.getElementById('mirror').checked,
-			};
-			console.log(localSettings);
-			initializeGame(localSettings);
-		})
-		.catch(error => console.log(error));
+	.then(response => response.text())
+	.then(data => {
+		let localSettings = {
+			"settings": "change",
+			"player1": document.getElementById('player1Name').value,
+			"player2": document.getElementById('player2Name').value,
+			"rounds": document.querySelector('input[name="roundsToWin"]:checked').value,
+			"score": document.querySelector('input[name="score"]:checked').value,
+			"mirror": document.getElementById('mirror').checked,
+		};
+		console.log(localSettings);
+		initializeGame(localSettings);
+	})
+	.catch(error => console.log(error));
 }
 
+async function enterLocalTournament(){
+	return fetch("game/enterLocalTournament.html")
+	.then(response => response.text())
+	.then(data => {
+		let localSettings = {
+			"settings": "localTournament",
+			"rounds": document.querySelector('input[name="roundsToWin"]:checked').value,
+			"score": document.querySelector('input[name="score"]:checked').value,
+		}
+		let contentElement = document.getElementById('game-options');
+		if (contentElement)
+			contentElement.innerHTML = data;
+	})
+	.catch(error => console.log(error));
+
+}
+
+function removeOptions(){
+	let contentElement = document.getElementById('game-options');
+	if (contentElement)
+		contentElement.innerHTML = '';
+}
 
 observer.observe(content, {childList: true});
 
-
-// G A M I N G   S E C T I O N
+//  '██████'''█████''███''''███'██'███''''█'█'██████'''''█████████'█████'███████'████████'█'██████'███''''██'
+//  ██'''''''██'''██'████''████'██'████'''█'█'██''''''''''██'''''''█'''''██'''''''''██''''████''''██████'''██'
+//  ██'''███'███████'██'████'██'██'██'██''█'█'██'''███''''████████'████''██'''''''''██''''████''''████'██''██'
+//  ██''''██'██'''██'██''██''██'██'██''██'█'█'██''''██'''''''''███'█'''''██'''''''''██''''████''''████''██'██'
+//  '██████''██'''██'██''''''██'██'██'''███'█''██████'''''████████'█████'███████''''██''''██'██████'██'''████'
+//  ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 let gameSocket;
 let keysPressed = {};
@@ -334,6 +363,7 @@ function connectGame(settings){
 		})
 		.catch(error => console.log(error));
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/local/'); //wss only
+	console.log("'wss://' "+ window.location.host + "'/ws/local/'");
 	gameSocket.onopen = function(e){
 		gameSocket.send(JSON.stringify(settings));
 	}
@@ -385,6 +415,7 @@ function connectGame(settings){
 }
 
 
+
 function player1up() {
 	gameSocket.send(JSON.stringify({ "movement": "up", "player": "player1" }));
 }
@@ -401,35 +432,13 @@ function player2down() {
 	gameSocket.send(JSON.stringify({ "movement": "down", "player": "player2" }));
 }
 
-// function playerMove1() {
-// 	const players = [
-// 		{ "movement": "", "player": "player1", "keys": { 'ArrowUp': 'up', 'ArrowDown': 'down' } },
-// 		{ "movement": "", "player": "player2", "keys": { 'w': 'up', 's': 'down' } }
-// 	];
 
-// 	players.forEach(player => {
-// 		Object.keys(player.keys).some(key => {
-// 			if (keysPressed[key]) {
-// 				player.movement = player.keys[key];
-// 				return true;
-// 			}
-// 		});
-// 	});
-
-// 	// filter out player who have no movement
-// 	const actions = players.filter(player => player.movement !== "");
-
-// 	if (actions.length > 0) {
-// 		console.log(actions);
-// 		gameSocket.send(JSON.stringify(actions));
-// 	}
-// }
 
 
 function displayPong(event)
 {
 	let data = JSON.parse(event.data);
-
+	console.log(data);
 	let player1x = data.x1;
 	let player1y = data.y1;
 
@@ -470,3 +479,17 @@ function displayPong(event)
 	player2.style.left = player2x + '%';
 	player2.style.top = player2y + '%';
 }
+
+
+/*
+ _                 _   _                                                    _   
+| |               | | | |                                                  | |  
+| | ___   ___ __ _| | | |_ ___  _   _ _ __ _ __   __ _ _ __ ___   ___ _ __ | |_ 
+| |/ _ \ / __/ _` | | | __/ _ \| | | | '__| '_ \ / _` | '_ ` _ \ / _ \ '_ \| __|
+| | (_) | (_| (_| | | | || (_) | |_| | |  | | | | (_| | | | | | |  __/ | | | |_ 
+|_|\___/ \___\__,_|_|  \__\___/ \__,_|_|  |_| |_|\__,_|_| |_| |_|\___|_| |_|\__|
+*/
+
+let tournamentSocket;
+
+// tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
