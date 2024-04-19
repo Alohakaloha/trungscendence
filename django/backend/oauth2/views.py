@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login as auth_login, views as auth_views
-import requests
-import urllib.parse, os
+import urllib.parse, json, os
 from auth_app.views import register_view
 import logging
 import http.client as http_client
@@ -13,13 +12,13 @@ http_client.HTTPConnection.debuglevel = 1
 
 logger = logging.getLogger('mylogger')
 
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.CRITICAL)
 logger.propagate = True
 
 logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.CRITICAL)
 requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.DEBUG)
+requests_log.setLevel(logging.CRITICAL)
 requests_log.propagate = True
 
 CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
@@ -43,18 +42,24 @@ def oauth_redirect(request):
         "redirect_uri": REDIRECT_URI,
         "code": code
     }
+    databytes = json.dumps(data).encode('utf-8')
+    # return HttpResponse(str(databytes))
     try:
-        r = requests.post("https://api.intra.42.fr/oauth/token", data=data)
-        access_token = r.json()["access_token"]
-        headers = {"Authorization": f"Bearer {access_token}"}
-        if r.status_code == 200:
-            user_data_res = requests.get(USERDATA_ENDPOINT, headers=headers)
-            user_data = user_data_res.json()
-            # result = "<br>"
-            # result += str(user_data["login"]) + "<br>"
-            # result += str(user_data["email"]) + "<br>"
-            # for k in user_data.keys():
-            #     result += f"<b>{k}</b>: " + str(user_data[k])  + "<hr>"
+        req = urllib.request.Request("https://api.intra.42.fr/oauth/token", method="POST")
+        # access_token = r.json()["access_token"]
+        req.add_header('Content-Type', 'application/json')
+        with urllib.request.urlopen(req, databytes) as response:
+            response_data = response.read()
+            response_code = response.getcode()
+        
+        if response_code == 200:
+            response_dict = json.loads(response_data)
+            access_token = response_dict["access_token"]
+            headers = {"Authorization": f"Bearer {access_token}"}
+            user_data_req = urllib.request.Request(USERDATA_ENDPOINT, headers=headers)
+            with urllib.request.urlopen(user_data_req) as response:
+                user_json = response.read()
+            user_data = json.loads(user_json)
 
             user = authenticate(request, email=user_data["email"])
             if user is not None:

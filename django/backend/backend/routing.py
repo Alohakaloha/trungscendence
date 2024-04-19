@@ -9,5 +9,6 @@ from pongGame import consumers as game
 websocket_urlpatterns = [
     re_path(r'ws/chatting/$', consumers.chatConsumer.as_asgi()),
 	re_path(r'ws/local/$', game.PongGameConsumer.as_asgi()),
+	re_path(r'ws/tournament/$', game.PongGameConsumer.as_asgi()),
 ]
 

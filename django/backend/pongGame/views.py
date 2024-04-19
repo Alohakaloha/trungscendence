@@ -10,10 +10,22 @@ def menu(request):
 	return render(request,'game/menu.html')
 
 def game(request):
-	return render(request,'game/gameSetup.html')
+	return render(request,'game/setupGameMode.html')
 
 def localSetup(request):
 	return render(request,'game/local.html')
+
+def tournamentSetup(request):
+	return render(request,'game/setupLocalTournament.html')
+
+def enterLocalTournament(request):
+	return render(request,'game/enterLocalTournament.html')
+
+def rtournamentSetup(request):
+	return render(request,'game/setupRemoteTournament.html')
+
+def versusSetup(request):
+	return render(request,'game/setupVersus.html')
 
 def pong_view(request):
 	return render(request,'game/pong.html')
@@ -21,5 +33,5 @@ def pong_view(request):
 def localMatch(request):
 	return HttpResponse(request, status=200)
 
-def startGame(request):
-	return pong.startGame(request)
+def match(request):
+	return render(request,'game/match.html')

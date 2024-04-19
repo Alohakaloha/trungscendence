@@ -7,6 +7,7 @@
 	position: relative;
 	color: aliceblue;
 	background-size: 100% auto;
+	height: 100%;
 }
 
 #mode h2{
@@ -19,7 +20,7 @@
 	width: 100%;
 	position: relative;
 	color: aliceblue;
-	padding-top : 19vh;
+	padding-top : 15vh;
 	padding-left: 5vw;
 }
 
@@ -28,6 +29,10 @@
 }
 
 #nameField{
+	width: 12vw ;
+}
+
+#TournamentID{
 	width: 12vw ;
 }
 

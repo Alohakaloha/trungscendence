@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'daphne',
     'auth_app',
     'pongGame',
+    'chat',
+    'oauth2',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

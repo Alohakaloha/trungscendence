@@ -1,0 +1,1 @@
+wscat/websocat: wscat -c wss://localhost/ws/local --no-check
