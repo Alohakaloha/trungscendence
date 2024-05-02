@@ -1,3 +1,16 @@
+
+<h3>Set a minimum of 2 Players!</h3>
+<button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+	Settings
+  </button>
+<div class="collapse" id="collapseExample">
+	<div>Score to win:
+		<div id="lt-score"></div>
+	</div>
+	<div>Rounds to win:
+		<div id="lt-rounds"></div>
+	</div>
+</div>
 <div class="mb-3" id="nameField">
 	<label for="player1Name" class="form-label"><h5>Player 1</h5></label>
 	<input type="name1" class="form-control" id="player1Name" value="">
@@ -8,7 +21,7 @@
 </div>
 <div class="mb-3" id="nameField">
 	<label for="player3Name" class="form-label"><h5>Player 3</h5></label>
-	<input type="name3" class="form-control" id="player2Name" value="">
+	<input type="name3" class="form-control" id="player3Name" value="">
 </div>
 <div class="mb-3" id="nameField">
 	<label for="player4Name" class="form-label"><h5>Player 4</h5></label>
@@ -22,11 +35,12 @@
 	<label for="player6Name" class="form-label"><h5>Player 6</h5></label>
 	<input type="name6" class="form-control" id="player6Name" value="">
 </div>
+<span id="localError" style="color:rgb(110, 42, 42)"></span>
 <div>
-	<button class="btn btn-dark"><h3>START TOURNAMENT</h3></button>
+	<button class="btn btn-dark" onclick="startLocalTournament()"><h3>Next</h3></button>
 </div>
 <div>
-	<button class="btn btn-dark" onclick="callSettings('lTournamentSetup')" style="margin-top: 20px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16" width="32">
+	<button class="btn btn-dark" onclick="callSettings('lTournamentSetup')"" style="margin-top: 15px;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16" width="32">
 		<path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z"/>
-	</svg>Back to settings</button>
+	</svg></button>
 </div>

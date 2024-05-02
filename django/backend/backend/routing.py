@@ -8,7 +8,7 @@ from pongGame import consumers as game
 #the re_path is a function that takes a regular expression and a consumer
 websocket_urlpatterns = [
     re_path(r'ws/chatting/$', consumers.chatConsumer.as_asgi()),
-	re_path(r'ws/local/$', game.PongGameConsumer.as_asgi()),
-	re_path(r'ws/tournament/$', game.PongGameConsumer.as_asgi()),
+	re_path(r'ws/local/$', game.localPongGameConsumer.as_asgi()),
+	re_path(r'ws/localTournament/$', game.localTournament.as_asgi()),
 ]
 

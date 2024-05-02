@@ -58,7 +58,7 @@ export function init() {
 			const userInfo = userDetails.querySelector('.user-info');
 			if (userInfo.style.display === 'none') {
 					fetchUserData(user_id).then(responseData => {
-					userInfo.innerHTML = '';
+					userInfo.textContent = '';
 					userInfo.appendChild(friend_details(responseData));
 					userInfo.style.display = 'block';
 				})

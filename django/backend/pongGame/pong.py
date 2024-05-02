@@ -2,7 +2,8 @@ from django.http import JsonResponse
 import string
 import sys
 import random
-import json
+import time
+
 
 def logprint(*args, **kwargs):		
 	print(*args, file=sys.stderr, **kwargs)
@@ -64,7 +65,7 @@ class Ball:
 		self.x = 50
 		self.y = 50
 		self.radius = 1.25
-		self.speed = 0.2
+		self.speed = 0.36
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
 
@@ -113,13 +114,12 @@ class Ball:
 		return True
 
 
-	def reset_ball(self, score):
-		
+	def reset_ball(self):	
 		self.x = 50
 		self.y = 50
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
-		self.speed = 0.2
+		self.speed = 0.36
 	
 
 class Rules:
@@ -135,6 +135,7 @@ class Rules:
 		self.player_2_name = "Player 2"
 		self.player_2_rounds = 0
 		self.player_2_score = 0
+		self.winner = None
 		self.mirror = False
 
 	def scoring(self, gamePos):
@@ -148,13 +149,11 @@ class Rules:
 		self.player_2_score = int(self.player_2_score)
 		self.score_to_win = int(self.score_to_win)
 		if self.player_1_score == self.score_to_win:
-			logprint("Player 1 rounds")
 			self.current_rounds += 1
 			self.player_1_rounds += 1
 			self.player_1_score = 0
 			self.player_2_score = 0
 		elif self.player_2_score == self.score_to_win:
-			logprint("Player 2 rounds")
 			self.current_rounds += 1
 			self.player_2_rounds += 1
 			self.player_1_score = 0
@@ -162,16 +161,22 @@ class Rules:
 
 
 	def game_end(self):
-		if self.player_1_score == self.score_to_win or self.player_2_score == self.score_to_win:
+		self.player_1_rounds = int(self.player_1_rounds)
+		self.player_2_rounds = int(self.player_2_rounds)
+		self.score_to_win = int(self.score_to_win)
+		if self.player_1_rounds == self.rounds_to_win:
+			self.winner = self.player_1_name
 			return True
-		else:
-			return False
+		elif self.player_2_rounds == self.rounds_to_win:
+			self.winner = self.player_2_name
+			return True
+		return False
 		
 
 #updating settings
 	def settings(self, data):
 		self.score_to_win = data['score']
-		self.rounds_to_win = data['rounds']
+		self.rounds_to_win =int(data['rounds'])
 		self.mirror = data['mirror']
 		if self.mirror == True:
 			self.player_2_name = data['player1']
@@ -190,17 +195,28 @@ class Rules:
 	
 	def current_rules(self):
 		rules_data = {
+			'type' : 'rules',
 			'score_to_win' : self.score_to_win,
 			'rounds_to_win' : self.rounds_to_win,
 			'player_1_name' : self.player_1_name,
+			'player_1_rounds' : self.player_1_rounds,
 			'player1_score' : self.player_1_score,
 			'player_2_name' : self.player_2_name,
+			'player_2_rounds' : self.player_2_rounds,
 			'player2_score' : self.player_2_score,
 			'current_rounds' : self.current_rounds,
 			'mirror' : self.mirror,
 		}
 		return rules_data
 
+	def final_score(self):
+		game_result = {
+			'game_over' : 'true',
+			'player1_rounds' : self.player_1_rounds,
+			'player2_rounds' : self.player_2_rounds,
+			'winner' : self.winner,
+		}
+		return game_result
 
 def randomCode():
 	return ''.join(random.choice(string.ascii_letters) for _ in range(4))

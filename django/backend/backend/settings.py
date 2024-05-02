@@ -27,6 +27,11 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 AUTHENTICATION_BACKENDS = [
 # auth_backend.py implementing Class PasswordlessAuthBackend inside yourapp folder
     'oauth2.auth_backend.PasswordlessAuthBackend', 

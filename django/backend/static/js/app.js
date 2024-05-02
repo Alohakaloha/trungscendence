@@ -94,7 +94,6 @@ function unloadEvents(str) {
 		.then((module) => {
 			if (module.unload){
 				module.unload().then(() => {
-					console.log("All good");
 				}).catch((error) => {
 					console.error("Unloading failed:", error);
 				});
@@ -131,7 +130,6 @@ async function handleRouting() {
 		if (user.authenticated){
 			document.getElementById('profile_picture').src = user.profile_picture;
 		}
-
 		switch (page) {
 			case '/':
 				jsFile = './welcome.js';
@@ -148,9 +146,18 @@ async function handleRouting() {
 				showPage(`game/setupGameMode.html`);
 				break;
 
+			case '/game/localTournament':
+				if(tournamentSocket){
+					showPage(`/game/localTournament.html`);
+					break;
+				}else{
+					changeURL('/game', 'Game Page', {main : true});
+					break;
+					}
 			case '/pong':
 				// jsFile = './game/pong.js';
 				showPage(`game/pong.html`);
+				break;
 
 			case '/profile':
 				if(user.authenticated)
@@ -296,6 +303,8 @@ async function currentJS() {
 	.catch(error => console.log(error));
 }
 
+
+
 async function startLocal() {
 	return await fetch("localmatch")
 	.then(response => response.text())
@@ -308,7 +317,6 @@ async function startLocal() {
 			"score": document.querySelector('input[name="score"]:checked').value,
 			"mirror": document.getElementById('mirror').checked,
 		};
-		console.log(localSettings);
 		initializeGame(localSettings);
 	})
 	.catch(error => console.log(error));
@@ -319,31 +327,70 @@ async function enterLocalTournament(){
 	.then(response => response.text())
 	.then(data => {
 		let localSettings = {
-			"settings": "localTournament",
 			"rounds": document.querySelector('input[name="roundsToWin"]:checked').value,
 			"score": document.querySelector('input[name="score"]:checked').value,
 		}
 		let contentElement = document.getElementById('game-options');
 		if (contentElement)
 			contentElement.innerHTML = data;
-	})
-	.catch(error => console.log(error));
+		document.getElementById('lt-score').innerHTML = localSettings.score;
+		document.getElementById('lt-rounds').innerHTML = localSettings.rounds;
+})
+.catch(error => console.log(error));
 
 }
+
+function checkDups(arr){
+	return new Set(arr).size !== arr.length;
+}
+
+async function startLocalTournament(){
+	let players = [];
+	for (let i = 1; i <= 6; i++) {
+		let player = document.getElementById(`player${i}Name`).value.trim();
+		if(player.length > 15){
+			document.getElementById('localError').innerHTML =`Player ${i} name is too long!`;
+			return;
+		}
+		if (player !== '' && player.length <= 14) {
+			players.push(player);
+		}
+	}
+	if(players.length < 2){
+		document.getElementById('localError').innerHTML =`Not enough players!`;
+		return;
+	}
+
+	if(checkDups(players) === true){
+		document.getElementById('localError').innerHTML =`No duplicate player names allowed!`;
+		return;
+	}
+	
+	let localSettings = {
+		"type": "settings",
+		"rounds": parseInt(document.getElementById('lt-rounds').innerHTML),
+		"score": parseInt(document.getElementById('lt-score').innerHTML),
+		"players": players,
+	}
+	connectTournament(localSettings);
+	changeURL("/game/localTournament", 'Tournament Page', {main : true})
+	
+}
+
 
 function removeOptions(){
 	let contentElement = document.getElementById('game-options');
 	if (contentElement)
-		contentElement.innerHTML = '';
+	contentElement.innerHTML = '';
 }
 
 observer.observe(content, {childList: true});
 
-//  '██████'''█████''███''''███'██'███''''█'█'██████'''''█████████'█████'███████'████████'█'██████'███''''██'
-//  ██'''''''██'''██'████''████'██'████'''█'█'██''''''''''██'''''''█'''''██'''''''''██''''████''''██████'''██'
-//  ██'''███'███████'██'████'██'██'██'██''█'█'██'''███''''████████'████''██'''''''''██''''████''''████'██''██'
-//  ██''''██'██'''██'██''██''██'██'██''██'█'█'██''''██'''''''''███'█'''''██'''''''''██''''████''''████''██'██'
-//  '██████''██'''██'██''''''██'██'██'''███'█''██████'''''████████'█████'███████''''██''''██'██████'██'''████'
+//  '██████'''█████''███''''███'██'███''''█'█'██████'''''█████████'█████'███████'████████'██''██████'███''''██'
+//  ██'''''''██'''██'████''████'██'████'''█'█'██''''''''''██'''''''█'''''██'''''''''██''''██'██''''██████'''██'
+//  ██'''███'███████'██'████'██'██'██'██''█'█'██'''███''''████████'████''██'''''''''██''''██'██''''████'██''██'
+//  ██''''██'██'''██'██''██''██'██'██''██'█'█'██''''██'''''''''███'█'''''██'''''''''██''''██'██''''████''██'██'
+//  '██████''██'''██'██''''''██'██'██'''███'█''██████'''''████████'█████'███████''''██''''██''██████'██'''████'
 //  ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 let gameSocket;
@@ -363,7 +410,6 @@ function connectGame(settings){
 		})
 		.catch(error => console.log(error));
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/local/'); //wss only
-	console.log("'wss://' "+ window.location.host + "'/ws/local/'");
 	gameSocket.onopen = function(e){
 		gameSocket.send(JSON.stringify(settings));
 	}
@@ -381,7 +427,20 @@ function connectGame(settings){
 		if (keysPressed['ArrowDown']) {
 			player2down();
 		}
-	}, 20);
+		if(keysPressed['p']){
+			gameSocket.send(JSON.stringify({"pause": true}));
+			let pause = document.getElementById('pause-screen');
+			pause.innerHTML = 'Game Paused';
+			pause.style.display = 'block';
+			
+		}
+		if(keysPressed['k']){
+			let pause = document.getElementById('pause-screen');
+			pause.innerHTML = '';
+			pause.style.display = 'none';
+			gameSocket.send(JSON.stringify({"resume": true}));
+		}
+	}, 30);
 
 	document.addEventListener("keydown", e => {
 		keysPressed[e.key] = true;
@@ -392,12 +451,21 @@ function connectGame(settings){
 		keysPressed[e.key] = false;
 	});
 
+	
 
 	gameSocket.onmessage = function(event){
-		if (event.data === 'gameover'){
+		let data = JSON.parse(event.data);
+		if ('game_over' in data){
+			let winner = document.getElementById('winner');
+			let winnerBtn = document.getElementById('winner-name');
+			winner.style.display = 'block';
+			winnerBtn.innerHTML = data.winner + " wins!";
+			let backBtn = document.getElementById('game-back');
+			backBtn.style.display = 'block';
 			gameSocket.close();
+			return;
 		}
-		displayPong(event);
+		displayPong(data);
 	}
 
 	gameSocket.onclose = function(event){
@@ -435,10 +503,9 @@ function player2down() {
 
 
 
-function displayPong(event)
+function displayPong(data)
 {
-	let data = JSON.parse(event.data);
-	console.log(data);
+
 	let player1x = data.x1;
 	let player1y = data.y1;
 
@@ -448,6 +515,7 @@ function displayPong(event)
 	let ball = document.getElementById('ball');
 	let game = document.getElementById('pongGame');
 	let headerbar = document.getElementById('header-bar');
+	
 	if('player_1_name' in data){
 		let name1 = document.getElementById('player1-name');
 		let name2 = document.getElementById('player2-name');
@@ -459,8 +527,6 @@ function displayPong(event)
 		let p2score = document.getElementById('player2-score');
 		p1score.innerHTML = data.score1;
 		p2score.innerHTML = data.score2;
-		let matchRounds = document.getElementById('match-round');
-		matchRounds.innerHTML = data.current_rounds;
 	}
 	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
 
@@ -492,4 +558,47 @@ function displayPong(event)
 
 let tournamentSocket;
 
-// tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
+
+function connectTournament(localsettings){
+ tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
+
+ tournamentSocket.onopen = function(e){
+	tournamentSocket.send(JSON.stringify(localsettings));
+	console.log('Connected to tournament');
+ }
+
+ tournamentSocket.onmessage = function(event){
+	 let data = JSON.parse(event.data);
+	if ('status' in data)
+		updateTournament(data);
+ }
+
+ tournamentSocket.onclose = function(event){
+	 if (event.code === 1000) {
+		 console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+	 } else {
+		 console.log('Connection died');
+	 }
+	tournamentSocket = null;
+ }
+
+}
+
+function tournamentStatus(){
+	tournamentSocket.send(JSON.stringify({"type": "status"}));
+}
+
+function updateTournament(data){
+	console.log(data);
+	let participants = data['participants']
+	for (let i = 0; i < participants.length; i++) {
+		let ids = document.getElementById('p' + (i + 1));
+		ids.innerHTML = participants[i];
+	}
+}
+
+function localTournament(){
+	document.getElementById('stage').style.display = 'block';
+	document.getElementById('t-begin').style.display = 'none';
+	tournamentStatus();
+}

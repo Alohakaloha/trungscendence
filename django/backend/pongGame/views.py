@@ -21,6 +21,9 @@ def tournamentSetup(request):
 def enterLocalTournament(request):
 	return render(request,'game/enterLocalTournament.html')
 
+def localTournament(request):
+	return render(request,'game/localTournament.html')
+
 def rtournamentSetup(request):
 	return render(request,'game/setupRemoteTournament.html')
 

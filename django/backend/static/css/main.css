@@ -11,27 +11,50 @@ body {
 	flex-grow: 1;
 }
 
+#menuBtn{
+	padding:0;
+}
+
+
+.btn.btn-dark.cnvs{
+	border-radius: 0;
+}
+
+#profile_picture{
+	margin-left: 10vw;
+	margin-right: 2vw;
+}
 
 #loginBtn{
 	margin-top: 10px;
 }
-
+.--bs-btn-close-bg {
+	background-color: green;
+}
 
 .text-colors {
-	color:rgb(200, 200, 200);
+	color:#ababab;
 }
 
 .text-colors:hover {
-	color:rgb(249, 249, 249); /* replace with your desired color */
+	color:rgb(255, 255, 255); /* replace with your desired color */
 }
 
+.linkdin svg{
+	color: rgba(0, 118, 181, 0.8);
+}
 
+.linkdin svg:hover{
+	color: rgba(0, 118, 181);
+	transform: scale(1.3);
+}
 
-.dark-icon{
+.dark-icon svg{
 	color: rgb(70, 70, 70);
 }
-.dark-icon:hover{
-	color: rgb(10, 10, 10);
+.dark-icon svg:hover{
+	color: rgb(0, 0, 0);
+	transform: scale(1.3);
 }
 
 .span-container{
@@ -47,6 +70,11 @@ body {
 	display: flex;
 	justify-content: center;
 	flex-grow : 1;
+}
+
+#lastMsg{
+	width: 10vw;
+	height: 1vh
 }
 
 input[type="username"]{
@@ -71,8 +99,9 @@ input[type="email"]{
 	justify-content: center;
 }
 
-.text-center h3{
+.text-center{
 	margin-top: 40px;
+	background-color: rgba(255, 255, 255, 0.2);
 }
 
 #about-profile {
@@ -83,6 +112,7 @@ input[type="email"]{
 #about-profile img {
 	width: 150px;
 	position: relative;
+
 }
 
 .rounded-circle.mx-auto.d-block {
