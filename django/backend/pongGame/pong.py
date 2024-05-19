@@ -36,7 +36,9 @@ class Player:
 			"ballx": self.ball.x,
 			"bally": self.ball.y,
 			"score1": self.score.player_1_score,
+			"p1Rounds" : self.score.player_1_rounds,
 			"score2": self.score.player_2_score,
+			"p2Rounds" : self.score.player_2_rounds,
 			"current_rounds": self.score.current_rounds,
 		}
 		return game_data
@@ -45,19 +47,35 @@ class Player:
 		if data['movement'] == 'up':
 			if data['player'] == 'player1':
 				if self.y1 > 2:
-					self.y1 = self.y1 - 2
+					self.y1 = self.y1 - 3
 			elif data['player'] == 'player2':
 				if self.y2 > 2:
-					self.y2 = self.y2 - 2
+					self.y2 = self.y2 - 3
 		elif data['movement'] == 'down':
 			if data['player'] == 'player1':
 				if self.y1 < 82:
-					self.y1 = self.y1 + 2
+					self.y1 = self.y1 + 3
 			elif data['player'] == 'player2':
 				if self.y2 < 82:
-					self.y2 = self.y2 + 2
+					self.y2 = self.y2 + 3
 
+	def popSound(self):
+		game_sound = {
+			'sound': 'pop',
+		}
+		return game_sound
 
+	def clangSound(self):
+		game_sound = {
+			'sound': 'clang',
+		}
+		return game_sound
+
+	def scoreSound(self):
+		game_sound = {
+			'sound': 'score',
+		}
+		return game_sound
 
 
 class Ball:
@@ -175,15 +193,17 @@ class Rules:
 
 #updating settings
 	def settings(self, data):
-		self.score_to_win = data['score']
-		self.rounds_to_win =int(data['rounds'])
-		self.mirror = data['mirror']
+		self.score_to_win = int (data['score_to_win'])
+		self.rounds_to_win =int(data['rounds_to_win'])
+		if "mirror" in data:
+			self.mirror = data['mirror']
 		if self.mirror == True:
 			self.player_2_name = data['player1']
 			self.player_1_name = data['player2']
 		else:
 			self.player_1_name = data['player1']
 			self.player_2_name = data['player2']
+
 
 	def current_score(self):
 		score_data = {

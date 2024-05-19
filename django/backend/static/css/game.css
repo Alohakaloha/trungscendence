@@ -10,10 +10,6 @@
 	height: 100%;
 }
 
-#mode h2{
-	text-align: center;
-}
-
 #game_over{
 	background-color: black;
 	color: white;
@@ -25,21 +21,18 @@
 }
 
 #game-options{
+	
 	background-color:#0e0e0e;
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 	width: 100%;
-	position: relative;
+	position: block;
 	color: aliceblue;
-	padding-top : 15vh;
-	padding-left: 5vw;
 }
 
-.input-description{
-	padding-top: 1vh;
-}
-
-#nameField{
-	width: 12vw ;
+#nameField{ 
+	width: 20vw;
+	text-align: left;
+	position: relative;
 }
 
 #TournamentID{
@@ -47,7 +40,7 @@
 }
 
 .carousel-item img {
-	height: 48vh;
+	height: 50vh;
 	object-fit: contain; /* This will cover the whole area of the div without distorting the image */
 }
 
@@ -66,8 +59,8 @@ button.carousel-control-prev, button.carousel-control-next{
 	position: absolute;
 }
 
-.inline-options{
-	width: 12vw;
+.input-description, #localStartBtn {
+	margin-top: 2vh;
 }
 
 #game-mode{
@@ -92,18 +85,20 @@ button.carousel-control-prev, button.carousel-control-next{
 	position:absolute;
 	display: block;
 	background-color: #747474;
+	box-shadow: -5px 0px 2px teal;
 	width: 1.5vw;
 	height: 15vh;
-	border-radius: 10px;
+	border-radius: 2px;
 }
 
 #player2{
 	position:absolute;
 	display: block;
 	background-color: #747474;
+	box-shadow: 5px 0px 2px teal;
 	width: 1.5vw;
 	height: 15vh;
-	border-radius: 10px;
+	border-radius: 2px;
 }
 
 
@@ -111,9 +106,10 @@ button.carousel-control-prev, button.carousel-control-next{
 	position: absolute;
 	top: 10vh;
 	font-size: xx-large;
-	right: 10vh;
-	color: rgba(240, 248, 255, 0.2);
+	right: 10vw;
+	color: rgba(240, 248, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+	transform: translate(-50%, -50%);
 }
 
 #round{
@@ -141,17 +137,21 @@ button.carousel-control-prev, button.carousel-control-next{
 	position: absolute;
 	top: 10vh;
 	font-size: xx-large;
-	left: 10vh;
-	color: rgba(240, 248, 255, 0.2);
+	left: 10vw;
+	color: rgba(240, 248, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+	transform: translate(50%, -50%);
 }
 #player1-name{
 	position: absolute;
-	bottom: 0;
-	left: 10px;
-	color: rgba(240, 248, 255, 0.5);
-	background-color: darkred;
+	padding: 10px;
+	top: 4vh;
+	left: 10vw;
+	color: rgba(255, 255, 255, 0.5);
+	background-color: black;
+	border: 2px solid rgba(255, 255, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+	transform: translate(-50%, -50%);
 }
 #player1-rounds{
 	position: absolute;
@@ -163,11 +163,14 @@ button.carousel-control-prev, button.carousel-control-next{
 
 #player2-name{
 	position: absolute;
-	bottom: 0;
-	right: 10px;
-	color: rgba(240, 248, 255, 0.5);
-	background-color: darkblue;
+	padding: 10px;
+	top: 4vh;
+	right: 10vw;
+	color: rgba(255, 255, 255, 0.5);
+	background-color: black;
+	border: 2px solid rgba(255, 255, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+	transform: translate(+50%, -50%);
 }
 
 #player2-rounds{
@@ -190,12 +193,13 @@ button.carousel-control-prev, button.carousel-control-next{
 }
 
 #line {
+	display:none;
 	position: absolute;
 	left: 50%;
 	top: 0;
 	bottom: 0;
 	width: 2px; /* Adjust width to create a thicker line if desired */
-	border-left: 10px dotted #9e9e9e; /* Increase border-width to increase space between dots */
+	border-left: 10px dotted #9e9e9e6e; /* Increase border-width to increase space between dots */
 	background-clip: padding-box;
 	transform: translateX(-50%);
 }
@@ -247,12 +251,22 @@ button.carousel-control-prev, button.carousel-control-next{
 
 }
 
-#t-begin{
+#th-begin{
 	position: absolute;
 	left: 50%;
 	top: 50%;
 	transform: translate(-50%, -50%);
 	font-size: 20px;
+	color: white;
+	background-color: black;
+	border: 2px solid white;
+}
+#th-cancel{
+	position: absolute;
+	left: 50%;
+	top: 75%;
+	transform: translate(-50%, -50%);
+	font-size: 12px;
 	color: white;
 	background-color: black;
 	border: 2px solid white;
@@ -264,12 +278,27 @@ button.carousel-control-prev, button.carousel-control-next{
 
 #t-announcement{
 	position: absolute;
+	padding: 10px;
 	left: 50%;
 	top: 20%;
 	transform: translate(-50%, -50%);
 	font-size: 20px;
 	color: white;
 	background-color: black;
+	border: 2px solid white;
+}
+
+
+#startMatch{
+	position: absolute;
+	padding: 10px;
+	padding-left: 20px;
+	padding-right: 20px;
+	left: 50%;
+	top: 35%;
+	transform: translate(-50%, -50%);
+	font-size: 15px;
+	color: white;
 	border: 2px solid white;
 }
 
@@ -288,5 +317,12 @@ button.carousel-control-prev, button.carousel-control-next{
 }
 
 .listed-Player{
-	background-color: #747474;
+	size: 1rem;
+}
+
+#locals{
+	padding-top: 10vh;
+	padding-left: 5vw;
+	background-color:#0e0e0e;
+	color: rgb(240, 248, 255);
 }

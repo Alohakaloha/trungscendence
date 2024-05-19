@@ -2,68 +2,6 @@
 const content = document.getElementById('content');
 let jsFile;
 
-
-// let welcome = document.createElement('script');
-// welcome.src = '% static js/settings.js %';
-// document.body.appendChild(welcome);
-
-// const routes = {
-// 	'profile': () => {
-// 		showPage("main/profile.html");
-// 	},
-// 	'/': () =>{
-// 		jsFile = './welcome.js';
-// 		showPage("main/welcome.html");
-// 	},
-// 	'games': () => {
-// 		showPage("game/game.html");
-// 	},
-// 	'friends': () => {
-// 		if (user.authenticated){
-// 			showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-// 		}
-// 		else{
-// 			changeURL('/login', 'Login Page', {main : true});
-// 		}
-// 	},
-// 	'chat': () => {
-// 		jsFile = './chat.js';
-// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-// 	},
-// 	'history': () => {
-// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-// 	},
-
-// 	'about': () => {
-// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-// 	},
-// 	'settings': () => {
-// 		if (user.authenticated){
-// 			jsFile='./settings.js';
-// 			showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-// 		} 
-// 		else{
-// 			changeURL('/login', 'Login Page', {main : true});
-// 		}
-// 	},
-// 	'register': () => {
-// 		if (user.authenticated){
-// 			changeURL('/', 'Main Page', {main : true});
-// 		}
-// 		jsFile = './register.js';
-// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-// 	},
-// 	'login': () => {
-// 		if (user.authenticated){
-// 			changeURL('/', 'Main Page', {main : true});
-// 		}
-// 		jsFile = './login.js';
-// 		showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-// 	}
-
-// };
-
-
 window.onpopstate = function(event) {
 	handleRouting();
 };
@@ -143,7 +81,10 @@ async function handleRouting() {
 
 			case '/game':
 				// jsFile = './game/tmpGame.js';
-				showPage(`game/setupGameMode.html`);
+				if (tournamentSocket)
+					changeURL('/game/localTournament', 'Tournament Page', {main : true});
+				else
+					showPage(`game/setupGameMode.html`);
 				break;
 
 			case '/game/localTournament':
@@ -303,8 +244,7 @@ async function currentJS() {
 	.catch(error => console.log(error));
 }
 
-
-
+// TODO check security concerns
 async function startLocal() {
 	return await fetch("localmatch")
 	.then(response => response.text())
@@ -372,11 +312,16 @@ async function startLocalTournament(){
 		"score": parseInt(document.getElementById('lt-score').innerHTML),
 		"players": players,
 	}
-	connectTournament(localSettings);
-	changeURL("/game/localTournament", 'Tournament Page', {main : true})
-	
+	bind_local_Tournament(localSettings);
+	changeURL('/game/localTournament', 'Tournament Page', {main : true});
 }
 
+
+function cancelTH(){
+	if(tournamentSocket)
+		tournamentSocket.close();
+	changeURL('/game', 'Game Page', {main : true});
+}
 
 function removeOptions(){
 	let contentElement = document.getElementById('game-options');
@@ -394,11 +339,11 @@ observer.observe(content, {childList: true});
 //  ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 let gameSocket;
+let requestUpdate;
 let keysPressed = {};
 
 function initializeGame(settings) {
 		connectGame(settings);
-
 }
 
 
@@ -412,6 +357,222 @@ function connectGame(settings){
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/local/'); //wss only
 	gameSocket.onopen = function(e){
 		gameSocket.send(JSON.stringify(settings));
+		requestUpdate = setInterval(() => {
+			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
+	}
+
+	let checkInput = setInterval(() => {
+		if (keysPressed['w']) {
+			player1up();
+		}
+		if (keysPressed['s']) {
+			player1down();
+		}
+		if (keysPressed['ArrowUp']) {
+			player2up();
+		}
+		if (keysPressed['ArrowDown']) {
+			player2down();
+		}
+		if(keysPressed['p']){
+			gameSocket.send(JSON.stringify({"pause": true}));
+			let pause = document.getElementById('pause-screen');
+			pause.innerHTML = 'Game Paused';
+			pause.style.display = 'block';
+			
+		}
+		if(keysPressed['k']){
+			let pause = document.getElementById('pause-screen');
+			pause.innerHTML = '';
+			pause.style.display = 'none';
+			gameSocket.send(JSON.stringify({"resume": true}));
+		}
+	}, 30);
+
+	document.addEventListener("keydown", e => {
+		keysPressed[e.key] = true;
+	});
+
+
+	document.addEventListener("keyup", e => {
+		keysPressed[e.key] = false;
+	});
+
+
+	gameSocket.onmessage = function(event){
+		let data = JSON.parse(event.data);
+		if ('game_over' in data){
+			let winner = document.getElementById('winner');
+			let winnerBtn = document.getElementById('winner-name');
+			winner.style.display = 'block';
+			winnerBtn.innerHTML = data.winner + " wins!";
+			let backBtn = document.getElementById('game-back');
+			backBtn.style.display = 'block';
+			gameSocket.close();
+			return;
+		}
+
+		let page = window.location.pathname;
+		if (page != '/game')
+			gameSocket.close();
+		displayPong(data);
+	}
+
+	gameSocket.onclose = function(event){
+		clearInterval(checkInput);
+		clearInterval(requestUpdate);
+		if (event.code === 1000) {
+			console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+		} else {
+			console.log('Connection died');
+		}
+	}
+
+	gameSocket.onerror = function(error) {
+		console.log(`Error: ${error.message}`);
+	};
+}
+
+
+
+function player1up() {
+	gameSocket.send(JSON.stringify({ "movement": "up", "player": "player1" }));
+}
+
+function player1down() {
+	gameSocket.send(JSON.stringify({ "movement": "down", "player": "player1" }));
+}
+
+function player2up() {
+	gameSocket.send(JSON.stringify({ "movement": "up", "player": "player2" }));
+}
+
+function player2down() {
+	gameSocket.send(JSON.stringify({ "movement": "down", "player": "player2" }));
+}
+
+
+
+
+function displayPong(data)
+{
+
+	let ball = document.getElementById('ball');
+	let game = document.getElementById('pongGame');
+	let headerbar = document.getElementById('header-bar');
+	let name1 = document.getElementById('player1-name');
+	let name2 = document.getElementById('player2-name');
+	let p1score = document.getElementById('player1-score');
+	let p2score = document.getElementById('player2-score');
+	let player1 = document.getElementById('player1');
+	let player2 = document.getElementById('player2');
+	
+	if('player_1_name' in data){
+		name1.innerHTML = data.player_1_name;
+		name2.innerHTML = data.player_2_name;
+	}
+	if ('score1' in data){
+		p1score.innerHTML = data.score1;
+		p2score.innerHTML = data.score2;
+	}
+	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
+
+	ball.style.position = 'absolute';
+	ball.style.left = data.ballx + '%';
+	ball.style.top = data.bally + '%';
+
+
+	player1.style.position = 'absolute';
+	player1.style.left = data.x1 - 1 +'%';
+	player1.style.top = data.y1 + '%';
+	player1.style.transition = 'left 0.025s linear, top 0.025s linear';
+
+	player2.style.position = 'absolute';
+	player2.style.left = data.x2 + '%';
+	player2.style.top = data.y2 + '%';
+	player2.style.transition = 'left 0.025s linear, top 0.025s linear';
+}
+
+
+/*
+ _                 _   _                                                    _   
+| |               | | | |                                                  | |  
+| | ___   ___ __ _| | | |_ ___  _   _ _ __ _ __   __ _ _ __ ___   ___ _ __ | |_ 
+| |/ _ \ / __/ _` | | | __/ _ \| | | | '__| '_ \ / _` | '_ ` _ \ / _ \ '_ \| __|
+| | (_) | (_| (_| | | | || (_) | |_| | |  | | | | (_| | | | | | |  __/ | | | |_ 
+|_|\___/ \___\__,_|_|  \__\___/ \__,_|_|  |_| |_|\__,_|_| |_| |_|\___|_| |_|\__|
+*/
+
+let tournamentSocket;
+let tournamentRules;
+
+function bind_local_Tournament(localSettings){
+ tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
+
+ tournamentSocket.onopen = function(e){
+	tournamentSocket.send(JSON.stringify(localSettings));
+ }
+
+ tournamentSocket.onmessage = function(event){
+	 let data = JSON.parse(event.data);
+	 if(data.type === 'rules'){
+		 tournamentRules = data;
+	 }
+	 if ('status' in data)
+		updateTournament(data);
+ }
+
+ tournamentSocket.onclose = function(event){
+	 if (event.code === 1000) {
+		 console.log(`Connection of LocalTournament closed cleanly, code=${event.code} reason=${event.reason}`);
+	 } else {
+		 console.log('Connection died');
+	 }
+	tournamentSocket = null;
+ }
+
+}
+
+function tournamentStatus(){
+	tournamentSocket.send(JSON.stringify({"type": "status"}));
+}
+
+
+function updateTournament(data){
+	let participants = data['participants']
+	for (let i = 0; i < participants.length; i++) {
+		let ids = document.getElementById('p' + (i + 1));
+		ids.innerHTML = participants[i];
+	}
+	document.getElementById('nextFirst').innerHTML = data['nextUp'][0];
+	document.getElementById('nextSecond').innerHTML = data['nextUp'][1];
+}
+
+function localTournament(){
+	document.getElementById('stage').style.display = 'block';
+	document.getElementById('th-begin').style.display = 'none';
+	document.getElementById('th-cancel').style.display = 'none';
+	tournamentStatus();
+}
+
+function tournamentMatch(){
+	fetch('/game/pong.html')
+		.then(response => response.text())
+		.then(data => {
+			document.getElementById('content').innerHTML = data;
+		})
+		.catch(error => console.log(error));
+	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/'); //wss only
+	gameSocket.onopen = function(){
+		if(tournamentSocket){
+			console.log(tournamentRules)
+			gameSocket.send(JSON.stringify(tournamentRules))
+		}
+		else{
+			gameSocket.close();
+			tournamentRules = {};
+			changeURL("/game", 'game page', {main:true})
+		}
 	}
 
 	let checkInput = setInterval(() => {
@@ -455,6 +616,13 @@ function connectGame(settings){
 
 	gameSocket.onmessage = function(event){
 		let data = JSON.parse(event.data);
+		console.log(data);
+		if("Rules" in data){
+			gameSocket.send(JSON.stringify({ "update": "update"}));
+			requestUpdate = setInterval(() => {
+			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
+			}
+
 		if ('game_over' in data){
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
@@ -465,13 +633,19 @@ function connectGame(settings){
 			gameSocket.close();
 			return;
 		}
-		displayPong(data);
+
+		if (window.location.pathname != '/game')
+			gameSocket.close();
+		else
+			displayPong(data);
 	}
 
 	gameSocket.onclose = function(event){
 		clearInterval(checkInput);
+		clearInterval(requestUpdate);
+		tournamentRules = {};
 		if (event.code === 1000) {
-			console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+			console.log(`Connection localMatch closed cleanly, code=${event.code} reason=${event.reason}`);
 		} else {
 			console.log('Connection died');
 		}
@@ -480,125 +654,4 @@ function connectGame(settings){
 	gameSocket.onerror = function(error) {
 		console.log(`Error: ${error.message}`);
 	};
-}
-
-
-
-function player1up() {
-	gameSocket.send(JSON.stringify({ "movement": "up", "player": "player1" }));
-}
-
-function player1down() {
-	gameSocket.send(JSON.stringify({ "movement": "down", "player": "player1" }));
-}
-
-function player2up() {
-	gameSocket.send(JSON.stringify({ "movement": "up", "player": "player2" }));
-}
-
-function player2down() {
-	gameSocket.send(JSON.stringify({ "movement": "down", "player": "player2" }));
-}
-
-
-
-
-function displayPong(data)
-{
-
-	let player1x = data.x1;
-	let player1y = data.y1;
-
-	let player2x = data.x2;
-	let player2y = data.y2;
-
-	let ball = document.getElementById('ball');
-	let game = document.getElementById('pongGame');
-	let headerbar = document.getElementById('header-bar');
-	
-	if('player_1_name' in data){
-		let name1 = document.getElementById('player1-name');
-		let name2 = document.getElementById('player2-name');
-		name1.innerHTML = data.player_1_name;
-		name2.innerHTML = data.player_2_name;
-	}
-	if ('score1' in data){
-		let p1score = document.getElementById('player1-score');
-		let p2score = document.getElementById('player2-score');
-		p1score.innerHTML = data.score1;
-		p2score.innerHTML = data.score2;
-	}
-	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
-
-	ball.style.position = 'absolute';
-	ball.style.left = data.ballx + '%';
-	ball.style.top = data.bally + '%';
-
-	let player1 = document.getElementById('player1');
-	let player2 = document.getElementById('player2');
-
-	player1.style.position = 'absolute';
-	player1.style.left = player1x - 1 +'%';
-	player1.style.top = player1y + '%';
-
-	player2.style.position = 'absolute';
-	player2.style.left = player2x + '%';
-	player2.style.top = player2y + '%';
-}
-
-
-/*
- _                 _   _                                                    _   
-| |               | | | |                                                  | |  
-| | ___   ___ __ _| | | |_ ___  _   _ _ __ _ __   __ _ _ __ ___   ___ _ __ | |_ 
-| |/ _ \ / __/ _` | | | __/ _ \| | | | '__| '_ \ / _` | '_ ` _ \ / _ \ '_ \| __|
-| | (_) | (_| (_| | | | || (_) | |_| | |  | | | | (_| | | | | | |  __/ | | | |_ 
-|_|\___/ \___\__,_|_|  \__\___/ \__,_|_|  |_| |_|\__,_|_| |_| |_|\___|_| |_|\__|
-*/
-
-let tournamentSocket;
-
-
-function connectTournament(localsettings){
- tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
-
- tournamentSocket.onopen = function(e){
-	tournamentSocket.send(JSON.stringify(localsettings));
-	console.log('Connected to tournament');
- }
-
- tournamentSocket.onmessage = function(event){
-	 let data = JSON.parse(event.data);
-	if ('status' in data)
-		updateTournament(data);
- }
-
- tournamentSocket.onclose = function(event){
-	 if (event.code === 1000) {
-		 console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
-	 } else {
-		 console.log('Connection died');
-	 }
-	tournamentSocket = null;
- }
-
-}
-
-function tournamentStatus(){
-	tournamentSocket.send(JSON.stringify({"type": "status"}));
-}
-
-function updateTournament(data){
-	console.log(data);
-	let participants = data['participants']
-	for (let i = 0; i < participants.length; i++) {
-		let ids = document.getElementById('p' + (i + 1));
-		ids.innerHTML = participants[i];
-	}
-}
-
-function localTournament(){
-	document.getElementById('stage').style.display = 'block';
-	document.getElementById('t-begin').style.display = 'none';
-	tournamentStatus();
 }
