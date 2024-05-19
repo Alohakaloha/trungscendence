@@ -170,8 +170,6 @@ async function currentJS() {
 			unloadEvents('./welcome.js');
 			break;
 		case '/game':
-			if (gameSocket)
-				gameSocket.close();
 			break;
 		case '/profile':
 			break;
@@ -419,6 +417,7 @@ function connectGame(settings){
 	}
 
 	gameSocket.onclose = function(event){
+		console.log(event);
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
 		if (event.code === 1000) {
@@ -512,7 +511,7 @@ function bind_local_Tournament(localSettings){
  tournamentSocket.onopen = function(e){
 	tournamentSocket.send(JSON.stringify(localSettings));
  }
-
+gg
  tournamentSocket.onmessage = function(event){
 	 let data = JSON.parse(event.data);
 	 if(data.type === 'rules'){
@@ -569,6 +568,7 @@ function tournamentMatch(){
 			gameSocket.send(JSON.stringify(tournamentRules))
 		}
 		else{
+			console.log("No way right?")
 			gameSocket.close();
 			tournamentRules = {};
 			changeURL("/game", 'game page', {main:true})
@@ -630,6 +630,7 @@ function tournamentMatch(){
 			winnerBtn.innerHTML = data.winner + " wins!";
 			let backBtn = document.getElementById('game-back');
 			backBtn.style.display = 'block';
+			console.log("No way right? 2")
 			gameSocket.close();
 			return;
 		}
@@ -641,6 +642,7 @@ function tournamentMatch(){
 	}
 
 	gameSocket.onclose = function(event){
+		console.log(event);
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
 		tournamentRules = {};

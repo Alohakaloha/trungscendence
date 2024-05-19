@@ -43,6 +43,7 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 
 	async def game_loop(self):
 		while self.game_active:
+			logprint("loops")
 			if self.connections < 1:
 				self.game_active = False
 				self.gaming.cancel()
@@ -60,7 +61,6 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 				await self.send(json.dumps(self.player.score.current_rules()))
 			if self.player.score.game_end():
 				self.game_active = False
-				logprint("Final score:", self.player.score.final_score())
 				self.gaming.cancel()
 				logprint("Game ended")
 				await self.send(json.dumps(self.player.score.final_score()))
