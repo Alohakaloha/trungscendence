@@ -36,8 +36,8 @@ class tournamentHandler():
 	def currentRules(self):
 		data = {
 			"type":"rules",
-			"score_to_win": self.score_to_win,
-			"rounds_to_win": self.rounds_to_win,
+			"score": self.score_to_win,
+			"rounds": self.rounds_to_win,
 			"mirror": False,
 			"players": self.players,
 			"number_of_players": self.numPlayer,
@@ -96,8 +96,8 @@ class tournamentHandler():
 	def tournamentStatus(self):
 		data = {
 			"type": "rules",
-			"score_to_win": self.score_to_win,
-			"rounds_to_win": self.rounds_to_win,
+			"score": self.score_to_win,
+			"rounds": self.rounds_to_win,
 			"status": self.th_status,
 			"stage": self.stage,
 			"participants": self.players,

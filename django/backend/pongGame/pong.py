@@ -28,7 +28,6 @@ class Player:
 
 
 	def gamePos(self):
-		logprint("gamepos")
 		game_data = {
 			'x1': self.x1,
 			'y1': self.y1,
@@ -40,43 +39,38 @@ class Player:
 			"p1Rounds" : self.score.player_1_rounds,
 			"score2": self.score.player_2_score,
 			"p2Rounds" : self.score.player_2_rounds,
-			"current_rounds": self.score.current_rounds,
 		}
 		return game_data
 
 	def move(self, data):
-		logprint('move')
 		if data['movement'] == 'up':
 			if data['player'] == 'player1':
 				if self.y1 > 2:
-					self.y1 = self.y1 - 3
+					self.y1 = self.y1 - 2
 			elif data['player'] == 'player2':
 				if self.y2 > 2:
-					self.y2 = self.y2 - 3
+					self.y2 = self.y2 - 2
 		elif data['movement'] == 'down':
 			if data['player'] == 'player1':
 				if self.y1 < 82:
-					self.y1 = self.y1 + 3
+					self.y1 = self.y1 + 2
 			elif data['player'] == 'player2':
 				if self.y2 < 82:
-					self.y2 = self.y2 + 3
+					self.y2 = self.y2 + 2
 
 	def popSound(self):
-		logprint('popsound')
 		game_sound = {
 			'sound': 'pop',
 		}
 		return game_sound
 
 	def clangSound(self):
-		logprint("clangsound")
 		game_sound = {
 			'sound': 'clang',
 		}
 		return game_sound
 
 	def scoreSound(self):
-		logprint("scoreSound")
 		game_sound = {
 			'sound': 'score',
 		}
@@ -103,7 +97,6 @@ class Ball:
 	# recognize here if the ball has hit the player
 	def collision(self, player):
 		#ball > player height && ball height + radius <= player.height + 8.5 (paddle radius)
-		logprint("collision")
 		if self.y + self.radius > player.y1 and self.y + self.radius <= player.y1 + player.height1:
 			if self.x + self.radius < player.x1 + player.width1 and self.x + self.radius > player.x1:
 				if self.y + self.radius > player.y1 + 4:
@@ -126,7 +119,6 @@ class Ball:
 	
 	
 	def move_ball(self):
-		logprint("moveball")
 		if self.x > 99:
 			return False
 		else:
@@ -140,7 +132,6 @@ class Ball:
 
 
 	def reset_ball(self):	
-		logprint('resetball')
 		self.x = 50
 		self.y = 50
 		self.direction_x = random.choice([-1, 1])
@@ -152,7 +143,7 @@ class Rules:
 	def __init__(self):
 		self.score_to_win = 3
 		self.rounds_to_win = 1
-		self.current_rounds = 1
+
 
 		self.player_1_name = "Player 1"
 		self.player_1_score = 0
@@ -165,38 +156,38 @@ class Rules:
 		self.mirror = False
 
 	def scoring(self, gamePos):
-		logprint("scoring")
 		if gamePos['ballx'] < 1.5:
-			self.player_1_score += 1
-		elif gamePos['ballx'] > 98.5:
 			self.player_2_score += 1
+			return True
+		elif gamePos['ballx'] > 98.5:
+			self.player_1_score += 1
+			return True
+		return False
 
 	def next_round(self):
-		logprint("nextround")
 		self.player_1_score = int(self.player_1_score)
 		self.player_2_score = int(self.player_2_score)
 		self.score_to_win = int(self.score_to_win)
 		if self.player_1_score == self.score_to_win:
-			self.current_rounds += 1
 			self.player_1_rounds += 1
 			self.player_1_score = 0
 			self.player_2_score = 0
 		elif self.player_2_score == self.score_to_win:
-			self.current_rounds += 1
 			self.player_2_rounds += 1
 			self.player_1_score = 0
 			self.player_2_score = 0
 
 
 	def game_end(self):
-		logprint("game_end")
 		self.player_1_rounds = int(self.player_1_rounds)
 		self.player_2_rounds = int(self.player_2_rounds)
 		self.score_to_win = int(self.score_to_win)
+		
 		if self.player_1_rounds == self.rounds_to_win:
 			self.winner = self.player_1_name
 			return True
 		elif self.player_2_rounds == self.rounds_to_win:
+
 			self.winner = self.player_2_name
 			return True
 		return False
@@ -204,8 +195,8 @@ class Rules:
 
 #updating settings
 	def settings(self, data):
-		self.score_to_win = int (data['score_to_win'])
-		self.rounds_to_win =int(data['rounds_to_win'])
+		self.score_to_win = int(data['score'])
+		self.rounds_to_win =int (data['rounds'])
 		if "mirror" in data:
 			self.mirror = data['mirror']
 		if self.mirror == True:
@@ -216,16 +207,9 @@ class Rules:
 			self.player_2_name = data['player2']
 
 
-	def current_score(self):
-		score_data = {
-			'player1-score' : self.player_1_score,
-			'player2-score' : self.player_2_score,
-			'current_rounds' : self.current_rounds,
-		}
-		return score_data
-	
+
+
 	def current_rules(self):
-		logprint("current rules")
 		rules_data = {
 			'type' : 'rules',
 			'score_to_win' : self.score_to_win,
@@ -236,7 +220,6 @@ class Rules:
 			'player_2_name' : self.player_2_name,
 			'player_2_rounds' : self.player_2_rounds,
 			'player2_score' : self.player_2_score,
-			'current_rounds' : self.current_rounds,
 			'mirror' : self.mirror,
 		}
 		return rules_data

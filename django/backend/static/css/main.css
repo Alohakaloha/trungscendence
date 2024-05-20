@@ -11,10 +11,25 @@ body {
 	flex-grow: 1;
 }
 
+.nav-link{
+	color: #ababab;
+}
+
+.offcanvas-header{
+	color:rgb(224, 224, 224);
+	background-image: linear-gradient(to bottom, #212529 , rgb(21, 21, 21)) ;
+}
 #menuBtn{
 	padding:0;
 }
 
+.offcanvas-body{
+	background-color: #212529;
+}
+
+.nav-link:hover {
+	color:rgb(255, 255, 255); /* replace with your desired color */
+}
 
 .btn.btn-dark.cnvs{
 	border-radius: 0;
@@ -30,6 +45,13 @@ body {
 }
 .--bs-btn-close-bg {
 	background-color: green;
+}
+
+#sidebar{
+	display: flex;
+	justify-content: center;
+	transform:translate(50%);
+
 }
 
 .text-colors {

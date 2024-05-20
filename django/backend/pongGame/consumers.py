@@ -36,14 +36,13 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 		else:
 			return
 
-		self.fps = 0.01
+		self.fps = 1/60
 		self.game_active = True
 		self.next_round = False
 		self.gaming = asyncio.create_task(self.game_loop())
 
 	async def game_loop(self):
 		while self.game_active:
-			logprint("loops")
 			if self.connections < 1:
 				self.game_active = False
 				self.gaming.cancel()
@@ -70,6 +69,7 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 
 
 	async def disconnect(self, close_code):
+
 		self.connections -= 1
 		self.game_active = False
 		self.gaming.cancel()
@@ -147,6 +147,7 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 		active_rooms.add(self.room_group_name)
 
 		self.connections = 0
+		logprint("Room name: \n", self.room_name, "\nRoom group name: \n", self.room_group_name, "\n")
 
 		await self.channel_layer.group_add(
 			self.room_group_name,
@@ -163,7 +164,7 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 		else:
 			return
 
-		self.fps = 1 / 60
+		self.fps = 1/60
 		self.game_active = True
 		self.next_round = False
 		self.gaming = asyncio.create_task(self.game_loop())
@@ -187,14 +188,12 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 				await self.send(json.dumps(self.player.score.current_rules()))
 			if self.player.score.game_end():
 				self.game_active = False
-				logprint("Final score:", self.player.score.final_score())
 				self.gaming.cancel()
 				logprint("Game ended")
 				await self.send(json.dumps(self.player.score.final_score()))
 				return
 			await self.send(json.dumps(self.player.gamePos()))
 			await asyncio.sleep(self.fps)
-
 
 	async def disconnect(self, close_code):
 		self.connections -= 1
@@ -212,6 +211,8 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 		try:
 			commands = json.loads(text_data)
 			if "type" in commands:
+				logprint("settings have been set")
+				logprint(commands)
 				self.player.score.settings(commands)
 				logprint(self.player.score.current_rules())
 				await self.send(json.dumps(self.player.score.current_rules()))

@@ -406,12 +406,13 @@ function connectGame(settings){
 			winnerBtn.innerHTML = data.winner + " wins!";
 			let backBtn = document.getElementById('game-back');
 			backBtn.style.display = 'block';
+			console.log("game over");
 			gameSocket.close();
 			return;
 		}
 
 		let page = window.location.pathname;
-		if (page != '/game')
+		if (page != '/game' && page != "game/localTournament")
 			gameSocket.close();
 		displayPong(data);
 	}
@@ -451,6 +452,28 @@ function player2down() {
 }
 
 
+function playerRounds(p1, p2){
+	console.log(p1);
+	console.log(p2);
+	let p1rounds	= document.getElementById('player1-rounds');
+	let p2rounds	= document.getElementById('player2-rounds');
+	let svgCount	= p1rounds.getElementsByTagName('svg').length;
+	let toAdd		= p1 - svgCount;
+	let svgTemplate =  `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+		<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+		</svg>`;
+
+	for (let i = 0; i < toAdd; i++){
+		p1rounds.innerHTML += svgTemplate;
+		
+	}
+
+	svgCount		= p2rounds.getElementsByTagName('svg').length;
+	toAdd			= p2 - svgCount;
+	for (let i = 0; i < toAdd; i++){
+		p2rounds.innerHTML += svgTemplate;
+	}
+}
 
 
 function displayPong(data)
@@ -474,6 +497,8 @@ function displayPong(data)
 		p1score.innerHTML = data.score1;
 		p2score.innerHTML = data.score2;
 	}
+	if ('p1Rounds' in data)
+		playerRounds(data.p1Rounds, data.p2Rounds);
 	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
 
 	ball.style.position = 'absolute';
@@ -508,10 +533,12 @@ let tournamentRules;
 function bind_local_Tournament(localSettings){
  tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
 
- tournamentSocket.onopen = function(e){
+ tournamentSocket.onopen = function(){
+	console.log("localSettings");
+	console.log(localSettings);
 	tournamentSocket.send(JSON.stringify(localSettings));
  }
-gg
+
  tournamentSocket.onmessage = function(event){
 	 let data = JSON.parse(event.data);
 	 if(data.type === 'rules'){
@@ -568,7 +595,6 @@ function tournamentMatch(){
 			gameSocket.send(JSON.stringify(tournamentRules))
 		}
 		else{
-			console.log("No way right?")
 			gameSocket.close();
 			tournamentRules = {};
 			changeURL("/game", 'game page', {main:true})
@@ -616,7 +642,6 @@ function tournamentMatch(){
 
 	gameSocket.onmessage = function(event){
 		let data = JSON.parse(event.data);
-		console.log(data);
 		if("Rules" in data){
 			gameSocket.send(JSON.stringify({ "update": "update"}));
 			requestUpdate = setInterval(() => {
@@ -630,19 +655,13 @@ function tournamentMatch(){
 			winnerBtn.innerHTML = data.winner + " wins!";
 			let backBtn = document.getElementById('game-back');
 			backBtn.style.display = 'block';
-			console.log("No way right? 2")
 			gameSocket.close();
 			return;
 		}
-
-		if (window.location.pathname != '/game')
-			gameSocket.close();
-		else
-			displayPong(data);
+		displayPong(data);
 	}
 
 	gameSocket.onclose = function(event){
-		console.log(event);
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
 		tournamentRules = {};

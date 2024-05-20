@@ -102,7 +102,7 @@ button.carousel-control-prev, button.carousel-control-next{
 }
 
 
-#player1-score{
+#player2-score{
 	position: absolute;
 	top: 10vh;
 	font-size: xx-large;
@@ -133,7 +133,7 @@ button.carousel-control-prev, button.carousel-control-next{
 	align-items: center;
 }
 
-#player2-score{
+#player1-score{
 	position: absolute;
 	top: 10vh;
 	font-size: xx-large;
@@ -193,7 +193,6 @@ button.carousel-control-prev, button.carousel-control-next{
 }
 
 #line {
-	display:none;
 	position: absolute;
 	left: 50%;
 	top: 0;
