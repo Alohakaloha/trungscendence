@@ -453,8 +453,6 @@ function player2down() {
 
 
 function playerRounds(p1, p2){
-	console.log(p1);
-	console.log(p2);
 	let p1rounds	= document.getElementById('player1-rounds');
 	let p2rounds	= document.getElementById('player2-rounds');
 	let svgCount	= p1rounds.getElementsByTagName('svg').length;
