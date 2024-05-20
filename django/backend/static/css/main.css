@@ -213,6 +213,7 @@ input[type="email"]{
 	color: rgb(224, 224, 224);
 	right: 2%;
 	bottom:0%;
+	transform: translate(0%, -100%);
 }
 
 #chat:hover{

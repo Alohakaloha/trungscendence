@@ -20,6 +20,15 @@
 	}
 }
 
+#close-chat{
+	position: absolute;
+	bottom: 47%;
+	right: 2vw;
+	background-color: red;
+	width: 4vw;
+	height: 3vh;
+	transform: translate(0%, -100%);
+}
 
 #chat-button{
 	margin-left: 5px;
