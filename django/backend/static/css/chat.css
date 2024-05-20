@@ -1,7 +1,7 @@
 #chat-window{
 	display: grid;
 	justify-content: center;
-	width: 65vw;
+	width: 45vw;
 	height: 50vh;
 	/* background-color: grey; */
 	overflow: auto;
@@ -20,11 +20,6 @@
 	}
 }
 
-#chat-input{
-	margin-top: 10px;
-	display: flex;
-	width: 65vw;
-}
 
 #chat-button{
 	margin-left: 5px;

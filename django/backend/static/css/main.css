@@ -95,6 +95,7 @@ body {
 }
 
 #lastMsg{
+	transform: translate(50%);
 	width: 10vw;
 	height: 1vh
 }
@@ -195,7 +196,7 @@ input[type="email"]{
 @keyframes shine {
 	0% {
 		left: -100%;
-	}
+	}f
 	50% {
 		left: 60%;
 	}
@@ -204,3 +205,16 @@ input[type="email"]{
 	}
 }
 
+#chat{
+	width: 7vw;
+	height:3vh;
+	position:absolute;
+	background-image: linear-gradient(to bottom, #212529 , rgb(21, 21, 21)) ;
+	color: rgb(224, 224, 224);
+	right: 2%;
+	bottom:0%;
+}
+
+#chat:hover{
+	background-image: linear-gradient(to bottom, #212529 , rgb(21, 21, 21)) ;
+}
