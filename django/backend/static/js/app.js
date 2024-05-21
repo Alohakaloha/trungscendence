@@ -70,6 +70,10 @@ async function handleRouting() {
 		
 		if (user.authenticated){
 			document.getElementById('profile_picture').src = user.profile_picture;
+			chatSocket = new WebSocket('wss://' + window.location.host + '/ws/chatting/');
+			chatSocket.onopen = function(){
+				console.log("Socket is open");
+			}
 		}
 		switch (page) {
 			case '/':
@@ -154,6 +158,8 @@ async function handleRouting() {
 				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 				break;
 
+			case '/password_reset':
+				showPage('password_reset')
 			default:
 				console.log('Page not found');
 				console.log(window.location.pathname);
@@ -238,7 +244,10 @@ async function currentJS() {
 //    \___|_| |_|\__,_|\__|
 	let chatSocket;
 	let chatWrapper = document.getElementById('chat-wrapper');
-	
+	let chatMessage;
+	let chatWindow;
+
+
 	function openingChat(){
 		console.log("opening chat")
 		openWindow = true;
@@ -248,24 +257,67 @@ async function currentJS() {
 		let closing = document.createElement("div");
 		closing.id = 'close-chat';
 		chatWrapper.appendChild(closing);
-		chat.innerHTML = '<div id="chat-window"></div><div id="chat-input"><input type="text" id="chat-message" ><button class="btn btn-dark" id="chat-button">Send</button></div></div>';
+		chat.innerHTML = '<div id="chat-window"></div><div id="chat-input"><input type="text" id="chat-message" ><button class="btn btn-dark" id="chat-button" onclick="sendChat()">Send</button></div></div>';
 		closing.addEventListener('click', closingChat);
 		closing.innerHTML = '<div><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg></div>';
 			// chat.innerHTML = 'Please log in to use chat';
 		chat.style.transform = 'translate(0, 0)';
-
+		chatMessage = document.getElementById('chat-message');
+		chatWindow = document.getElementById('chat-window');
+		chatMessage.addEventListener('keydown', function(event){
+			if(event.key === "Enter" && document.activeElement === chatMessage){
+				sendChat();
+			}
+		});
+		updateChat();
 	};
 	
 	chat.addEventListener('click', openingChat);
 
+	function updateChat(){
+		console.log("chat update on")
+		chatSocket.onmessage = function(event) {
+			console.log(`Data received from server: ${event.data}`);
+			chatWindow.innerText += event.data + "\n";
+			chatWindow.scrollTop = chatWindow.scrollHeight;
+		};
+		
+		chatSocket.onclose = function(event){
+			if (event.code === 1000) {
+				console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+			} else {
+				console.log('Connection died');
+			}
+		}
+	}
 
-
-	function closingChat(){	
+	function sendChat(){
+		// TODO with user Authentication
+		let text = chatMessage.value;
+		text = text.trim();
+		if(text === ""){
+			return;
+		}
+		let message = {
+			"username": "TestUser",
+			"message": text,
+		};
+		if (chatSocket.readyState === WebSocket.OPEN) {
+			console.log("message: " + message);
+		// console.log("message: " + message);
+		chatSocket.send(JSON.stringify(message));	
+		}
+		chatMessage.value = "";
+	}
+		
+		
+		function closingChat(){	
 		console.log("closing chat")
 		let closeChat;
 		closeChat = document.getElementById('close-chat');
 		closeChat.removeEventListener('click', closingChat);
 		chatWrapper.removeChild(closeChat);
+		chatWindow = null;
 		openWindow = false;
 		chat.style.height = '3vh';
 		chat.style.width = '5vw';

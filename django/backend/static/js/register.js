@@ -9,7 +9,8 @@ let registerBtnClickHandler = function(e) {
 	let email = document.getElementById("email").value;
 	let username = document.getElementById("username").value;
 	let password = document.getElementById("password").value;
-	register(email, username, password);
+	let confirm = document.getElementById("confirm").value;
+	register(email, username, password, confirm);
 };
 export function init() {
 	return new Promise((resolve, reject) => {
@@ -42,7 +43,7 @@ export function unload(){
 	});
 }
 
-function register(email, username, password){
+function register(email, username, password, confirm){
 	let errormsg = document.getElementById("errorMsg");
 	let successmsg = document.getElementById("successMsg");
 	
@@ -58,6 +59,11 @@ function register(email, username, password){
 
 		if (!validatePassword(password)){
 			errormsg.textContent = 'Password must contain\n8 characters, 1 capital letter, 1 lowercase and 1 special character.';
+			return;
+		}
+
+		if (password !== confirm){
+			errormsg.textContent = 'Passwords do not match.';
 			return;
 		}
 		let data = {

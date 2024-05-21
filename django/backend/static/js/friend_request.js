@@ -99,10 +99,6 @@ export function unload(){
 			clickEvent.forEach(function(clickEvent){
 				clickEvent.removeEventListener('click')});
 		}
-		else{
-			// Reject the promise if the login button is not found
-			reject(new Error("accept button not found"));
-		}
 		acceptButtons = null;
 		declineButtons = null;
 		addFriendButtons = null;

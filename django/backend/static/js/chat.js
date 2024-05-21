@@ -1,7 +1,6 @@
 let chatWindow;
 let chatMessage;
 let sendBtn;
-let chatSocket;
 
 init();
 
