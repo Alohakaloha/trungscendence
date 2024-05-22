@@ -28,7 +28,7 @@ Our chosen modules and functionalities are following:
 >The designated database for all DB instances in your project is PostgreSQL.\
 >This choice guarantees data consistency and compatibility across all project components and may be a prerequisite for other modules, such as the backend Framework module.
 
-<h3>[User Management] Use a database for the backend -and more (minor) </h3>
+<h3>[User Management] Use a database for the backend -and more (major) </h3>
 
 >Users can subscribe to the website in a secure way.\
 >◦ Registered users can log in in a secure way.\
@@ -39,3 +39,16 @@ Our chosen modules and functionalities are following:
 >◦ User profiles display stats, such as wins and losses.\
 >◦ Each user has a Match History including 1v1 games, dates, and relevant
 >details, accessible to logged-in users
+
+
+<h3>[User Management] Remote Authentication (Major) </h3>
+
+>In this major module, the goal is to implement the following authentication system:
+>OAuth 2.0 authentication with 42 . Key features and objectives include:
+
+>◦ Integrate the authentication system, allowing users to securely sign in.\
+>◦ Obtain the necessary credentials and permissions from the authority to enable a secure login.\
+>◦ Implement user-friendly login and authorization flows that adhere to best practices and security standards.\
+>◦ Ensure the secure exchange of authentication tokens and user information between the web application and the authentication provider
+
+
