@@ -27,7 +27,17 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+AUTHENTICATION_BACKENDS = [
+# auth_backend.py implementing Class PasswordlessAuthBackend inside yourapp folder
+    'oauth2.auth_backend.PasswordlessAuthBackend', 
+# Default authentication of Django
+    'django.contrib.auth.backends.ModelBackend',
+]
 # Application definition
 
 STATICFILES_DIRS = [
@@ -35,7 +45,11 @@ STATICFILES_DIRS = [
 ]
 
 INSTALLED_APPS = [
+    'daphne',
     'auth_app',
+    'pongGame',
+    'chat',
+    'oauth2',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -56,6 +70,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'auth_app.middleware.UpdateLastOnlineMiddleware'
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
 
 CSRF_TRUSTED_ORIGINS = [
     "https://localhost",
@@ -96,6 +119,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+
+# WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
+
+#For redis within docker compose
+# CELERY_BROKER_URL = 'redis://redis:6379/0'
+
 
 
 # Database

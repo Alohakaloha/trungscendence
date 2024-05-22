@@ -58,7 +58,7 @@ export function init() {
 			const userInfo = userDetails.querySelector('.user-info');
 			if (userInfo.style.display === 'none') {
 					fetchUserData(user_id).then(responseData => {
-					userInfo.innerHTML = '';
+					userInfo.textContent = '';
 					userInfo.appendChild(friend_details(responseData));
 					userInfo.style.display = 'block';
 				})
@@ -98,10 +98,6 @@ export function unload(){
 		if (clickEvent){
 			clickEvent.forEach(function(clickEvent){
 				clickEvent.removeEventListener('click')});
-		}
-		else{
-			// Reject the promise if the login button is not found
-			reject(new Error("accept button not found"));
 		}
 		acceptButtons = null;
 		declineButtons = null;

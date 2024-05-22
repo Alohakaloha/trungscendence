@@ -5,7 +5,9 @@ from . import views
 urlpatterns = [
 	path('', views.header_view, name='index'),
 	path('main.html', views.main, name='main'),
+	path('chat', views.header_view, name='chat'),
 	path('register', views.header_view, name='register'),
+	path('game', views.header_view, name='game'),
 	path('register/register.html', views.register_view, name='register_view'),
 	path('register/form', views.register_view, name='register_view'),
 	path('login', views.header_view, name='login'),
@@ -25,6 +27,7 @@ urlpatterns = [
 	path('reset/<uidb64>/<token>', views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 	path('reset/done', views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
 	path('main', views.header_view),
+	path('main/welcome.html', views.main),
 	path('profile', views.header_view),
 	path('profile/profile.html', views.profile),
 	path("profile/<int:user_id>", views.profile, name="getFriendStats_view"),

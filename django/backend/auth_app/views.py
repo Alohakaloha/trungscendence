@@ -16,8 +16,6 @@ def eprint(*args, **kwargs):
 def header_view(request):
 	return render(request,'header.html')
 	
-
-
 def game(request):
 	return render(request,'game.html')
 
@@ -59,12 +57,11 @@ def profile(request, **args):
 
 
 def history(request):
-
 	return render(request, 'history.html')
 
 
 def main(request):
-	return render(request, 'main.html')
+	return render(request, 'welcome.html')
 
 def about(request):
 	return render(request, 'about.html')

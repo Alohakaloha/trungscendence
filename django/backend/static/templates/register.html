@@ -1,4 +1,6 @@
 {% load static %}
+<div>
+
     <h2>Register</h2>
     <form method="post" id="registerForm">
         {% csrf_token %}
@@ -14,6 +16,10 @@
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
         </div>
+		<div>
+            <label for="confirm">confirm Password:</label>
+            <input type="password" id="confirm" name="confirm" required>
+        </div>
         <div>
             <span id="errorMsg" style="color: red;"></span>
             <span id="successMsg" style="color: green;"></span>
@@ -24,4 +30,9 @@
     </div>
     Already have an account?
 	<button class= "btn-dark" onclick="changeURL('/login', 'Login', {page: 'login'})">Login</button>
+    <div>
+        <br>
+        <a href="/oauth2/login">Login for 42 Students</a>
+    </div>
     <script type="module" src="{% static 'js/register.js' %}"></script>
+</div>

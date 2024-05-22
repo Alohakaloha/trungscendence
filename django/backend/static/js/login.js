@@ -21,10 +21,10 @@ export function init() {
 			loginBtn.addEventListener('click', (event) => loginBtnClickHandler(event));
 			// Resolve the promise if everything is successful
 			resolve();
-		} else {
+		} else {;
 			// Reject the promise if the login button is not found
 			console.log("login button not found");
-			reject(new Error("Login button not found"));
+			reject(new Error("Login button not found"))
 		}
 	});
 }

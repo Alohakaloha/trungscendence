@@ -1,10 +1,4 @@
-<!DOCTYPE html>
-<html>
-	{% load static %}
-<head>
-	<title>Profile settings</title>
-</head>
-<body>
+{% load static %}
 	<h2>Profile settings</h2>
 		{% if not user.is_authenticated%}
 			<h1>You are not logged in </h1>
@@ -45,7 +39,5 @@
 				</div>
 			</div>
 		{% endif %}
-</body>
 
-<script type="module" src="{% static 'js/settings.js' %}"></script>
-</html>
+<script type="module" src="{% static 'js/settings.js' %}""></script>
