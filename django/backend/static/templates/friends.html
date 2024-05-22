@@ -23,11 +23,11 @@
 		{% for user in users %}
 		{% if not user.is_superuser %}
 		{% if user not in request.user.friends.all and user != request.user%}
-		<ul>
+		<ul> 
 			<form class='friend_request_send' action="send_friend_request/{{ user.user_id }}" method="post">
 							{% csrf_token %}
 							<li/><input type="hidden" id="value" name="request_id" value="{{ user.user_id }}">
-							{{ user }} <button type="submit" class='add_friend-button' data-user-id="{{ user.user_id }}">Add friend</button><br>
+							{{ user.username}} <button type="submit" class='add_friend-button' data-user-id="{{ user.user_id }}">Add friend</button><br>
 						</form>
 					</ul>
 				{% endif %}

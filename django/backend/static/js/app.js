@@ -1,8 +1,20 @@
 // on refresh handle the routing
+let jsFile;
 const content = document.getElementById('content');
 const chat = document.getElementById('chat');
 
-let jsFile;
+
+// const toastTrigger = document.getElementById('ToastBtn')
+// const toastLiveExample = document.getElementById('liveToast')
+
+
+// if (toastTrigger) {
+// 	const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+// 	toastTrigger.addEventListener('click', () => {
+// 		toastBootstrap.show()
+// 	})
+// }
+
 
 window.onpopstate = function(event) {
 	handleRouting();
@@ -18,6 +30,17 @@ async function fetchUserData(){
 		const response = await fetch('/getUserData');
 		const data = await response.json();
 		return data.user;
+	} catch (error){
+		console.error('Error fetching user data', error);
+		return null;
+	}
+}
+
+async function fetchUserFriends(){
+	try {
+		const response = await fetch('/friends_list');
+		const data = await response.json();
+		return data;
 	} catch (error){
 		console.error('Error fetching user data', error);
 		return null;
@@ -272,6 +295,26 @@ async function currentJS() {
 	// {% endfor %}
 
 	
+	async function showFriends(){
+		let user = await fetchUserData();
+		if (user.authenticated){
+			let list = await fetchUserFriends();
+			for (let friend of list['friends']) {
+				let friendDiv = document.createElement('div');
+				friendDiv.className = 'friends-window';
+				friendDiv.innerHTML = `<span style="cursor: pointer; text-decoration: underline; color: blue;"> ${friend.username} </span>`;
+				let friendPic = document.createElement('img');
+				friendPic.src = friend.profile_picture;
+				friendPic.width = 22;
+				friendList.appendChild(friendDiv);
+				friendDiv.appendChild(friendPic);
+			}
+		}
+		else
+			console.log('Not logged in')
+		
+	}
+
 
 	function openingChat(){
 		console.log("opening chat")
@@ -292,6 +335,7 @@ async function currentJS() {
 		chat.style.transform = 'translate(0, 0)';
 		friendList = document.createElement('div');
 		friendList.id = 'friend-list';
+		showFriends();
 		chatMessage = document.getElementById('chat-message');
 		chatWindowWrapper = document.getElementById('chatWindow-Wrapper');
 		chatWindowWrapper.insertBefore(friendList, chatWindowWrapper.firstChild);

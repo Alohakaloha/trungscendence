@@ -222,6 +222,20 @@ def getUserData_view(request):
 		user_data = {'authenticated': False}
 	return JsonResponse({'user': user_data})
 
+def friends_list_view(request):
+	if request.user.is_authenticated:
+		friends = request.user.friends.all()
+		friends_list = []
+		for friend in friends:
+			friends_list.append({
+				'user_id': friend.user_id,
+				'username': friend.username,
+				'profile_picture': friend.profile_picture.url
+			})
+		return JsonResponse({'friends': friends_list})
+	else:
+		return JsonResponse({'status': 'error', 'message':'You must be logged in to view this page.'})
+
 class CustomPasswordResetView(auth_views.PasswordResetView):
 	template_name = 'password_reset_form.html'
 # 
