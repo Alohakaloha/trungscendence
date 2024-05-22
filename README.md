@@ -52,3 +52,47 @@ Our chosen modules and functionalities are following:
 >◦ Ensure the secure exchange of authentication tokens and user information between the web application and the authentication provider
 
 
+<h3>[Accessibility] Server Sided Rendering (minor) </h3>
+
+>◦ Develop server-side logic for the Pong game to handle gameplay, ball movement, scoring, and player interactions.\
+>◦ Create an API that exposes the necessary resources and endpoints to interactwith the Pong game, allowing partial usage of the game via the Command-Line
+>Interface (CLI) and web interface.\
+>◦ Design and implement the API endpoints to support game initialization, playercontrols, and game state updates.\
+>◦ Ensure that the server-side Pong game is responsive, providing an engagingand enjoyable gaming experience.\
+>◦ Integrate the server-side Pong game with the web application, allowing usersto play the game directly on the website.
+
+<h3>[Accessibility] Server Sided Pong (Major) </h3>
+
+
+>◦ Develop server-side logic for the Pong game to handle gameplay, ball movement, scoring, and player interactions.\
+>◦ Create an API that exposes the necessary resources and endpoints to interact with the Pong game, allowing partial usage of the game via the Command-Line Interface (CLI) and web interface.\
+>◦ Design and implement the API endpoints to support game initialization, player controls, and game state updates.\
+>◦ Ensure that the server-side Pong game is responsive, providing an engaging and enjoyable gaming experience.\
+>◦ Integrate the server-side Pong game with the web application, allowing users to play the game directly on the website.
+
+
+>This major module aims to elevate the Pong game by migrating it to the server
+>side, enabling interaction through both a web interface and CLI while offering an
+>API for easy access to game resources and features.
+
+<h3>[Gameplay and user experience] Game Customization Options (minor) </h3>
+
+
+>◦ Offer customization features, such as power-ups, attacks, or different maps, that enhance the gameplay experience.\
+>◦ Allow users to choose a default version of the game with basic features if they prefer a simpler experience.\
+>◦ Ensure that customization options are available and applicable to all games offered on the platform.\
+>◦ Implement user-friendly settings menus or interfaces for adjusting game parameters.\
+>◦ Maintain consistency in customization features across all games to provide a unified user experience.
+
+<h3>[Gameplay and user experience] Remote players (major) </h3>
+
+>It is possible to have two distant players. Each player is located on a separated
+computer, accessing the same website and playing the same Pong game.
+
+<h3>[Gameplay and user experience] Live-Chat (major) </h3>
+
+>◦ The user should be able to send direct messages to other users.\
+>◦ The user should be able to block other users. This way, they will see no more messages from the account they blocked.\
+>◦ The user should be able to invite other users to play a Pong game through the chat interface.\
+>◦ The tournament system should be able to warn users expected for the next game.\
+>◦ The user should be able to access other players profiles through the chat interface.
