@@ -205,6 +205,16 @@ input[type="email"]{
 	}
 }
 
+.friend_requests, .friends{
+	display:flex;
+	justify-content: space-between;
+}
+
+.all_users{
+	display:block;
+
+}
+
 #chat{
 	width: 7vw;
 	height:3vh;
@@ -218,4 +228,12 @@ input[type="email"]{
 
 #chat:hover{
 	background-image: linear-gradient(to bottom, #212529 , rgb(21, 21, 21)) ;
+}
+
+#friend-list{
+	background-color: darkgrey;
+	height: 50vh;
+	width: 15vw;
+	position:absolute;
+	right: 0%;
 }

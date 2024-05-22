@@ -1,11 +1,5 @@
-<!DOCTYPE html>
-<html>
-	{% load static %}
-<head>
-	<title>Friends</title>
-</head>
-<body>
-	<div class="friend_requests">
+	{%load static%}
+	<div class="friend_requests">	
 		<h3>Friend requests:</h3>
 		{% for friend_request in friend_requests %}
 			{{ friend_request.sender }}
@@ -67,5 +61,3 @@
 			{% endfor %}
 	</div>
 <script type='module' src="{% static '/js/friend_request.js' %}"></script>
-</body>
-</html>

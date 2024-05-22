@@ -110,19 +110,19 @@ export function unload(){
 
 function handleSubmit(event, button){
 	event.preventDefault();
-	var form = event.target.closest('form');
-	var formData = new FormData(form);
+	let form = event.target.closest('form');
+	let formData = new FormData(form);
 
-	var user_id = button.getAttribute('data-user-id');
+	let user_id = button.getAttribute('data-user-id');
 	formData.append('user_id', user_id);
 
-	var jsonObject = {};
+	let jsonObject = {};
 	formData.forEach(function(value,key){
 		jsonObject[key] = value;
 	})
 
 
-	var fetchOptions = {
+	let fetchOptions = {
 		method: 'POST',
 		headers: {
 			'Accept': 'application/json',

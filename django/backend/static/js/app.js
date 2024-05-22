@@ -245,25 +245,57 @@ async function currentJS() {
 	let chatSocket;
 	let chatWrapper = document.getElementById('chat-wrapper');
 	let chatMessage;
-	let chatWindow;
+	let chatWindowWrapper;
+	let chatText;
+	let friendList;
 
+	// {% for user in request.user.friends.all%}
+	// <div class="user-details">
+	// 	<span style="cursor: pointer; text-decoration: underline; color: blue;"> {{ user.username }} </span>
+	// 	<a class="user_id" style="display: none" data-user-id="{{ user.user_id }}"></a>
+	// 	{% if user.is_online %}
+	// 	<img src="{% static 'images/online.png' %}" width="22"/>
+	// 	<a>Online</a>
+	// 	{% elif user.last_online %}
+	// 	<img src="{% static 'images/last_online.png' %}" width="22"/>
+	// 	<a>{{ user.get_online_info }} </a>
+	// 	{% endif %}
+	// 	<form class="unfriend" action="unfriend/{{ user.user_id }}" method="post">
+	// 		{% csrf_token %}
+	// 		<button type="submit" class="unfriend_button" data-user-id="{{ user.user_id }}" style="background-color: red; color: white; width: 100px; height: 30px">Unfriend</button> 
+	// 	</form>
+	// 	<span id="unfriend_msg" style="color: green;"></span>
+	// 	<br>
+	// 	<div class="user-info" style="display: none"></div>
+	// </div>
+	// <br>
+	// {% endfor %}
+
+	
 
 	function openingChat(){
 		console.log("opening chat")
 		openWindow = true;
 		chat.style.height = 'auto';
 		chat.style.width = 'auto';
-		chat.removeEventListener('click', openingChat);
 		let closing = document.createElement("div");
 		closing.id = 'close-chat';
-		chatWrapper.appendChild(closing);
-		chat.innerHTML = '<div id="chat-window"></div><div id="chat-input"><input type="text" id="chat-message" ><button class="btn btn-dark" id="chat-button" onclick="sendChat()">Send</button></div></div>';
-		closing.addEventListener('click', closingChat);
+		chat.innerHTML = '<div id="chatWindow-Wrapper"><div id="chat-window"><div id="chat-text"></div></div></div><div id="chat-input"><input type="text" id="chat-message" ><button class="btn btn-dark" id="chat-button" onclick="sendChat()"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/></svg></button></div></div>';
+		chat.removeEventListener('click', openingChat);
+		chat.insertBefore(closing, chat.firstChild);
 		closing.innerHTML = '<div><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg></div>';
-			// chat.innerHTML = 'Please log in to use chat';
+		// chat.innerHTML = 'Please log in to use chat';
+		closing.addEventListener('click', function(event) {
+			event.stopPropagation();
+			closingChat();
+		});
 		chat.style.transform = 'translate(0, 0)';
+		friendList = document.createElement('div');
+		friendList.id = 'friend-list';
 		chatMessage = document.getElementById('chat-message');
-		chatWindow = document.getElementById('chat-window');
+		chatWindowWrapper = document.getElementById('chatWindow-Wrapper');
+		chatWindowWrapper.insertBefore(friendList, chatWindowWrapper.firstChild);
+		chatText = document.getElementById('chat-text');
 		chatMessage.addEventListener('keydown', function(event){
 			if(event.key === "Enter" && document.activeElement === chatMessage){
 				sendChat();
@@ -278,8 +310,13 @@ async function currentJS() {
 		console.log("chat update on")
 		chatSocket.onmessage = function(event) {
 			console.log(`Data received from server: ${event.data}`);
-			chatWindow.innerText += event.data + "\n";
-			chatWindow.scrollTop = chatWindow.scrollHeight;
+			let message = document.createElement('div');
+			message.className = 'user-message';
+			chatText.appendChild(message)
+			message.innerHTML = event.data;
+
+			chatText.scrollTop = chatText.scrollHeight;
+			
 		};
 		
 		chatSocket.onclose = function(event){
@@ -311,14 +348,16 @@ async function currentJS() {
 	}
 		
 		
-		function closingChat(){	
+		function closingChat(){
+		
 		console.log("closing chat")
 		let closeChat;
 		closeChat = document.getElementById('close-chat');
 		closeChat.removeEventListener('click', closingChat);
-		chatWrapper.removeChild(closeChat);
-		chatWindow = null;
+		chat.removeChild(closeChat);
 		openWindow = false;
+		chatText = null;
+		chatWindowWrapper = null;
 		chat.style.height = '3vh';
 		chat.style.width = '5vw';
 		chat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-chat" viewBox="0 0 16 16"><path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"/></svg>';
