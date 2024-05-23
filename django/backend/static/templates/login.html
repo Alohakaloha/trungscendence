@@ -1,41 +1,56 @@
     {% load static %}
-    <div id="loginField">
-        <div>
-            <h1>Login</h1>
-            <form method="post" id="loginForm">
-                {% csrf_token %}
-            <div>
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <div>
-                <span id="errorMsg" style="color: red;"></span>
-            </div>
-            
-            <div>
-                <button class="btn btn-dark" id="loginBtn">Login</button>
-            </div>
-        </form>
-        
-        <p>Forgot your password? <a class="btn btn-dark" onclick="changeURL('/password_reset')">Reset it</a></p>
-        
-        <div>
-            Don't have an account?
-            <div>
-                <a onclick="changeURL('/register', 'Registration Page', { Register: true });">
-                    <button class="btn btn-dark">Register</button>
-                </a>
-            </div>
-        </div>
-    </div>
-        <div>
-            <br>
-            <a href="/oauth2/login">Login for 42 Students</a>
-        </div>
-</div>
-    
-    
+	<div class="loginWrapper">
+
+		<div id="loginField">
+			<div>
+				<h1>Login</h1>
+				<form method="post" id="loginForm">
+					{% csrf_token %}
+					<div>
+						<label for="email">Email:</label>
+						<input type="email" id="email" name="email" required>
+					</div>
+					<div>
+						<label for="password">Password:</label>
+						<input type="password" id="password" name="password" required>
+					</div>
+					<div>
+						<span id="errorMsg" style="color: red;"></span>
+					</div>
+					
+					<div>
+						<button class="btn btn-dark" id="loginBtn">Login</button>
+					</div>
+				</form>
+				<h4> or </h4>
+				<a href="/oauth2/login">
+					<div>
+
+						<svg width="50" height="50" viewBox="0 0 120 80">
+							<g xmlns="http://www.w3.org/2000/svg" clip-path="url(#clip0_1225_6394)">
+								<path d="M57.8974 0H38.5952L0 37.275V52.3625H38.5952V71H57.8974V37.275H19.2931L57.8974 0Z" fill="white" />
+								<path d="M66.168 18.6375L85.461 0H66.168V18.6375Z" fill="white"/>
+								<path d="M104.763 18.6375V0H85.461V18.6375L66.168 37.275V55.9125H85.461V37.275L104.763 18.6375Z" fill="white"/>
+								<path d="M104.763 37.2754L85.4609 55.9129H104.763V37.2754Z" fill="white"/>
+							</g>
+						</svg>
+						Login as 42 student</a>
+					</div>
+				
+				<p>Forgot your password? <a class="btn btn-dark" onclick="changeURL('/password_reset')">Reset it</a></p>
+				
+				<div>
+					Don't have an account?
+					<div>
+						<a onclick="changeURL('/register', 'Registration Page', { Register: true });">
+							<button class="btn btn-dark">Register</button>
+						</a>
+					</div>
+				</div>
+			</div>
+			<div>
+			</div>
+		</div>
+	</div>
+
+	

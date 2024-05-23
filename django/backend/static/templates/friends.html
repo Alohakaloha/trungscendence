@@ -1,44 +1,51 @@
 	{%load static%}
-	<div class="friend_requests">	
-		<h3>Friend requests:</h3>
-		{% for friend_request in friend_requests %}
-			{{ friend_request.sender }}
-			<form class="friend_request_form" action="accept_friend_request/{{ friend_request.id }}" method="post">
-				{% csrf_token %}
-				<input type="hidden" name="request_id" value="{{ friend_request.id }}" method="post">
-				<button type="submit" class="accept-button" data-user-id="{{ friend_request.id }}">Accept</button>
-			</form>
-			<form class="friend_request_form" action="decline_friend_request/{{ friend_request.id }}" method="post">
-				{% csrf_token%}
-				<input type="hidden" name="request_id" value="{{ friend_request.id }}" method="post">
-				<button type="submit" class="decline-button" data-user-id={{ friend_request.id}}>Decline</button>
-			</form>
-		{% endfor %} 
-		</br>
+	<div id="user-list">
+		<div class="request-wrapper">
+			<div class="friend_requests">	
+				<h3>Friend requests:</h3>
+				{% for friend_request in friend_requests %}
+				{{ friend_request.sender }}
+				<form class="friend_request_form" action="accept_friend_request/{{ friend_request.id }}" method="post">
+					{% csrf_token %}
+					<input type="hidden" name="request_id" value="{{ friend_request.id }}" method="post">
+					<button type="submit" class="accept-button" data-user-id="{{ friend_request.id }}">Accept</button>
+				</form>
+				<form class="friend_request_form" action="decline_friend_request/{{ friend_request.id }}" method="post">
+					{% csrf_token%}
+					<input type="hidden" name="request_id" value="{{ friend_request.id }}" method="post">
+					<button type="submit" class="decline-button" data-user-id={{ friend_request.id}}>Decline</button>
+				</form>
+				{% endfor %} 
+			</br>
+		</div>
+		<span id="successMsg" style="color: green;"></span>
+		<span id="declineMsg" style="color: red"></span>
 	</div>
-	<span id="successMsg" style="color: green;"></span>
-	<span id="declineMsg" style="color: red"></span>
-	<div class="all_users">
-		<h3>All Users:</h3>
-		{% for user in users %}
-		{% if not user.is_superuser %}
-		{% if user not in request.user.friends.all and user != request.user%}
-		<ul> 
-			<form class='friend_request_send' action="send_friend_request/{{ user.user_id }}" method="post">
-							{% csrf_token %}
-							<li/><input type="hidden" id="value" name="request_id" value="{{ user.user_id }}">
-							{{ user.username}} <button type="submit" class='add_friend-button' data-user-id="{{ user.user_id }}">Add friend</button><br>
-						</form>
-					</ul>
-				{% endif %}
+	<div class="user-wrapper">
+		<div class="all_users">
+			<h3>All Users:</h3>
+			{% for user in users %}
+			{% if not user.is_superuser %}
+			{% if user not in request.user.friends.all and user != request.user%}
+			<ul> 
+				<form class='friend_request_send' action="send_friend_request/{{ user.user_id }}" method="post">
+					{% csrf_token %}
+					<li/><input type="hidden" id="value" name="request_id" value="{{ user.user_id }}">
+					{{ user.username}} <button type="submit" class='add_friend-button' data-user-id="{{ user.user_id }}">Add friend</button><br>
+				</form>
+			</ul>
 			{% endif %}
-		{% endfor %}
+			{% endif %}
+			{% endfor %}
+		</div>
+		<span id="friend-request-sent" style="color: green;"></span> 
+		<span id="alreadySent" style="color: red;"></span>
 	</div>
-	<span id="friend-request-sent" style="color: green;"></span> 
-	<span id="alreadySent" style="color: red;"></span>
-	<div class="friends">
-		<h3>My friends:</h3>
-		{% for user in request.user.friends.all%}
+	<div class="friends-wrapper">
+
+		<div class="friends">
+			<h3>My friends:</h3>
+			{% for user in request.user.friends.all%}
 			<div class="user-details">
 				<span style="cursor: pointer; text-decoration: underline; color: blue;"> {{ user.username }} </span>
 				<a class="user_id" style="display: none" data-user-id="{{ user.user_id }}"></a>
@@ -53,11 +60,13 @@
 					{% csrf_token %}
 					<button type="submit" class="unfriend_button" data-user-id="{{ user.user_id }}" style="background-color: red; color: white; width: 100px; height: 30px">Unfriend</button> 
 				</form>
-				<span id="unfriend_msg" style="color: green;"></span>
+				<span id="unfriend_msg" style="color: gFn;"></span>
 				<br>
 				<div class="user-info" style="display: none"></div>
 			</div>
 			<br>
 			{% endfor %}
+		</div>
 	</div>
-<script type='module' src="{% static '/js/friend_request.js' %}"></script>
+</div>
+	<script type='module' src="{% static '/js/friend_request.js' %}"></script>

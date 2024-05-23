@@ -11,6 +11,26 @@ body {
 	flex-grow: 1;
 }
 
+.loginWrapper{
+	background: linear-gradient(#2a3e4d, #4a112d);
+	width: 100%;
+}
+
+#loginField{
+	display: flex;
+	justify-content: center;
+	color:#ffffff;
+	border-radius: 7px;
+	border-style: solid;
+	background: linear-gradient(to bottom, #343a4084 , rgba(21, 21, 21, 0.5));
+	margin-top: 5vh;
+	margin-left: 2vw;
+	margin-right: 2vw;
+	padding-bottom: 4vh;
+	padding-top: 2vh;
+	height: fit-content;
+}
+
 .nav-link{
 	color: #ababab;
 }
@@ -52,6 +72,27 @@ body {
 	justify-content: center;
 	transform:translate(50%);
 
+}
+
+#user-list
+{
+	display: flex;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	background:darkgray;
+}
+
+.request-wrapper {
+	background-color: blue;
+}
+
+.user-wrapper {
+	background-color: rgb(107, 0, 128);
+}
+
+.friends-wrapper {
+	background-color: rgb(0, 128, 107);
 }
 
 .text-colors {
@@ -117,10 +158,6 @@ input[type="email"]{
 	justify-content: center;
 }
 
-#loginField{
-	display: flex;
-	justify-content: center;
-}
 
 .text-center{
 	margin-top: 40px;
@@ -221,9 +258,12 @@ input[type="email"]{
 	position:absolute;
 	background-image: linear-gradient(to bottom, #212529 , rgb(21, 21, 21)) ;
 	color: rgb(224, 224, 224);
-	right: 2%;
+	border-radius: 5px;
+	display:flex;
+	justify-content: center;
+	align-items: center;
+	right: 0%;
 	bottom:0%;
-	transform: translate(0%, -100%);
 }
 
 #chat:hover{
