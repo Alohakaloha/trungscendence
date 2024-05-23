@@ -259,7 +259,6 @@ input[type="email"]{
 	background-image: linear-gradient(to bottom, #212529 , rgb(21, 21, 21)) ;
 	color: rgb(224, 224, 224);
 	border-radius: 5px;
-	display:flex;
 	justify-content: center;
 	align-items: center;
 	right: 0%;
