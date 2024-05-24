@@ -18,14 +18,14 @@ body {
 
 #loginField{
 	display: flex;
+	box-shadow: #ffffff 0px 0px 5px;
 	justify-content: center;
 	color:#ffffff;
 	border-radius: 7px;
-	border-style: solid;
-	background: linear-gradient(to bottom, #343a4084 , rgba(21, 21, 21, 0.5));
+	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
 	margin-top: 5vh;
-	margin-left: 2vw;
-	margin-right: 2vw;
+	margin-left: 4vw;
+	margin-right: 4vw;
 	padding-bottom: 4vh;
 	padding-top: 2vh;
 	height: fit-content;
