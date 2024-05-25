@@ -119,14 +119,14 @@ async function handleRouting() {
 
 			case '/game':
 				// jsFile = './game/tmpGame.js';
-				if (tournamentSocket)
+				if (BackgroundWorker)
 					changeURL('/game/localTournament', 'Tournament Page', {main : true});
 				else
 					showPage(`game/setupGameMode.html`);
 				break;
 
 			case '/game/localTournament':
-				if(tournamentSocket){
+				if(BackgroundWorker){
 					showPage(`/game/localTournament.html`);
 					break;
 				}else{
@@ -509,8 +509,8 @@ async function startLocalTournament(){
 
 
 function cancelTH(){
-	if(tournamentSocket)
-		tournamentSocket.close();
+	if(BackgroundWorker)
+		BackgroundWorker.close();
 	changeURL('/game', 'Game Page', {main : true});
 }
 
@@ -718,19 +718,20 @@ function displayPong(data)
 |_|\___/ \___\__,_|_|  \__\___/ \__,_|_|  |_| |_|\__,_|_| |_| |_|\___|_| |_|\__|
 */
 
-let tournamentSocket;
+/*Socket for handling background tasks*/
+let BackgroundWorker;
 let tournamentRules;
 
 function bind_local_Tournament(localSettings){
- tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
+ BackgroundWorker = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
 
- tournamentSocket.onopen = function(){
+ BackgroundWorker.onopen = function(){
 	console.log("localSettings");
 	console.log(localSettings);
-	tournamentSocket.send(JSON.stringify(localSettings));
+	BackgroundWorker.send(JSON.stringify(localSettings));
  }
 
- tournamentSocket.onmessage = function(event){
+ BackgroundWorker.onmessage = function(event){
 	 let data = JSON.parse(event.data);
 	 if(data.type === 'rules'){
 		 tournamentRules = data;
@@ -739,19 +740,19 @@ function bind_local_Tournament(localSettings){
 		updateTournament(data);
  }
 
- tournamentSocket.onclose = function(event){
+ BackgroundWorker.onclose = function(event){
 	 if (event.code === 1000) {
 		 console.log(`Connection of LocalTournament closed cleanly, code=${event.code} reason=${event.reason}`);
 	 } else {
 		 console.log('Connection died');
 	 }
-	tournamentSocket = null;
+	BackgroundWorker = null;
  }
 
 }
 
 function tournamentStatus(){
-	tournamentSocket.send(JSON.stringify({"type": "status"}));
+	BackgroundWorker.send(JSON.stringify({"type": "status"}));
 }
 
 
@@ -781,7 +782,7 @@ function tournamentMatch(){
 		.catch(error => console.log(error));
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/'); //wss only
 	gameSocket.onopen = function(){
-		if(tournamentSocket){
+		if(BackgroundWorker){
 			console.log(tournamentRules)
 			gameSocket.send(JSON.stringify(tournamentRules))
 		}

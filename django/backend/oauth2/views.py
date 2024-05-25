@@ -8,6 +8,7 @@ import logging
 import http.client as http_client
 from auth_app.models import AppUser
 import secrets
+import sys
 
 http_client.HTTPConnection.debuglevel = 1
 
@@ -29,6 +30,9 @@ BASE_URL = "https://api.intra.42.fr/oauth/authorize"
 USERDATA_ENDPOINT = "https://api.intra.42.fr/v2/me"
 OAUTH_PASSWORD_LENGTH=16
 
+def logprint(*args, **kwargs):
+	print(*args, file=sys.stderr, **kwargs)
+
 redirect_url = f"{BASE_URL}?client_id={CLIENT_ID}&redirect_uri={urllib.parse.quote_plus(REDIRECT_URI)}&response_type=code"
 # Create your views here.
 def oauth_login(request):
@@ -43,6 +47,7 @@ def oauth_redirect(request):
         "redirect_uri": REDIRECT_URI,
         "code": code
     }
+    logprint (data)
     try:
         r = requests.post("https://api.intra.42.fr/oauth/token", data=data)
         access_token = r.json()["access_token"]
