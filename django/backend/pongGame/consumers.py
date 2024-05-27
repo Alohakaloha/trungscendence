@@ -51,17 +51,17 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 				if self.player.ball.speed < 1.2:
 					self.player.ball.speed += 0.03
 				self.player.ball.direction_x = -self.player.ball.direction_x
-				self.send(self.player.clangSound())
-			if not self.player.ball.move_ball():
+				await self.send(json.dumps(self.player.Player_Sound()))
+			if self.player.ball.wall_collision():
+				await self.send(json.dumps(self.player.Wall_Sound()))
+			if not self.player.ball.boundaries():
 				self.player.score.scoring(self.player.gamePos())
 				self.player.score.next_round()
 				self.player.ball.reset_ball()
-				self.send(self.player.scoreSound())
 				await self.send(json.dumps(self.player.score.current_rules()))
 			if self.player.score.game_end():
 				self.game_active = False
 				self.gaming.cancel()
-				logprint("Game ended")
 				await self.send(json.dumps(self.player.score.final_score()))
 				return
 			await self.send(json.dumps(self.player.gamePos()))
@@ -179,17 +179,18 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 				if self.player.ball.speed < 1.2:
 					self.player.ball.speed += 0.03
 				self.player.ball.direction_x = -self.player.ball.direction_x
-				self.send(self.player.clangSound())
-			if not self.player.ball.move_ball():
+				await self.send(json.dumps(self.player.Player_Sound()))
+			if self.player.ball.boundaries():
+				await self.send(json.dumps(self.player.Wall_Sound()))
+			else:
+				await self.send(json.dump(self.player.Score_Sound()))
 				self.player.score.scoring(self.player.gamePos())
 				self.player.score.next_round()
 				self.player.ball.reset_ball()
-				self.send(self.player.scoreSound())
 				await self.send(json.dumps(self.player.score.current_rules()))
 			if self.player.score.game_end():
 				self.game_active = False
 				self.gaming.cancel()
-				logprint("Game ended")
 				await self.send(json.dumps(self.player.score.final_score()))
 				return
 			await self.send(json.dumps(self.player.gamePos()))

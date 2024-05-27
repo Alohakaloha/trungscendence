@@ -58,21 +58,21 @@ class Player:
 				if self.y2 < 82:
 					self.y2 = self.y2 + 2
 
-	def popSound(self):
+	def Wall_Sound(self):
 		game_sound = {
-			'sound': 'pop',
+			'sounds': 'wall',
 		}
 		return game_sound
 
-	def clangSound(self):
+	def Player_Sound(self):
 		game_sound = {
-			'sound': 'clang',
+			'sounds': 'player',
 		}
 		return game_sound
 
-	def scoreSound(self):
+	def Score_Sound(self):
 		game_sound = {
-			'sound': 'score',
+			'sounds': 'ring',
 		}
 		return game_sound
 
@@ -117,17 +117,23 @@ class Ball:
 				return True
 		return False
 	
-	
-	def move_ball(self):
+
+	def wall_collision(self):
+		if self.y > 99 or self.y < 1:
+			self.direction_y = -self.direction_y
+			self.y += self.speed * self.direction_y
+			return True
+		self.x += self.speed * self.direction_x
+		self.y += self.speed * self.direction_y
+		return False
+
+
+	def boundaries(self):
 		if self.x > 99:
 			return False
 		else:
 			if self.x < 1:
 				return False
-		self.x += self.speed * self.direction_x
-		if self.y > 99 or self.y < 1:
-			self.direction_y = -self.direction_y
-		self.y += self.speed * self.direction_y
 		return True
 
 

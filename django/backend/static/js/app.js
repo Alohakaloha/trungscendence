@@ -448,6 +448,8 @@ async function startLocal() {
 			"score": document.querySelector('input[name="score"]:checked').value,
 			"mirror": document.getElementById('mirror').checked,
 		};
+		sounds = document.getElementById('localSound').checked;
+		console.log("I am here")
 		initializeGame(localSettings);
 	})
 	.catch(error => console.log(error));
@@ -530,11 +532,23 @@ observer.observe(content, {childList: true});
 //  ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 let gameSocket;
+let sounds = false;
 let requestUpdate;
 let keysPressed = {};
 
 function initializeGame(settings) {
 		connectGame(settings);
+}
+
+function playSound(sound){
+	let audio 
+	if (sound === "player")
+		audio = new Audio('/staticstuff/sounds/bounce.mp3');
+	else if (sound === "wall")
+		audio = new Audio('/staticstuff/sounds/wall.mp3');
+	else if (sound === "ring")
+		audio = new Audio('/staticstuff/sounds/score.mp3');
+	audio.play();
 }
 
 
@@ -607,7 +621,12 @@ function connectGame(settings){
 		let page = window.location.pathname;
 		if (page != '/game' && page != "game/localTournament")
 			gameSocket.close();
-		displayPong(data);
+		if ("sounds" in data){
+			playSound(data.sounds);
+		}
+		else{
+			displayPong(data);
+		}
 	}
 
 	gameSocket.onclose = function(event){
@@ -650,9 +669,19 @@ function playerRounds(p1, p2){
 	let p2rounds	= document.getElementById('player2-rounds');
 	let svgCount	= p1rounds.getElementsByTagName('svg').length;
 	let toAdd		= p1 - svgCount;
+
 	let svgTemplate =  `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
 		<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
 		</svg>`;
+
+		let parser = new DOMParser();
+		let svgElement = parser.parseFromString(svgTemplate, 'image/svg+xml').documentElement;
+		svgElement.style.backgroundColor = 'green';
+		
+		// Convert the SVG element back to a string
+		let serializer = new XMLSerializer();
+		let svgString = serializer.serializeToString(svgElement);
+		
 
 	for (let i = 0; i < toAdd; i++){
 		p1rounds.innerHTML += svgTemplate;
@@ -662,7 +691,7 @@ function playerRounds(p1, p2){
 	svgCount		= p2rounds.getElementsByTagName('svg').length;
 	toAdd			= p2 - svgCount;
 	for (let i = 0; i < toAdd; i++){
-		p2rounds.innerHTML += svgTemplate;
+		p2rounds.innerHTML += svgString;
 	}
 }
 
@@ -849,7 +878,10 @@ function tournamentMatch(){
 			gameSocket.close();
 			return;
 		}
-		displayPong(data);
+		if ("sounds" in data)
+			playSound(data.sounds);
+		else
+			displayPong(data);
 	}
 
 	gameSocket.onclose = function(event){
