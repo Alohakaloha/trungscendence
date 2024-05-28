@@ -1,4 +1,4 @@
-import { getCookie, validateEmail, validateUsername } from "./utils.js";
+import { getCookie, validateEmail } from "./utils.js";
 
 console.log("login.js loaded");
 

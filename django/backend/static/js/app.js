@@ -191,7 +191,18 @@ async function handleRouting() {
 				break;
 
 			case '/password_reset':
-				showPage('password_reset')
+				jsFile = './forgot_password.js'
+				await showPage('password_reset');
+				break;
+
+			case '/password_reset_done':
+				await showPage(`password_reset_done`);;
+				break ;
+
+			case '/reset/Mg/set-password':
+				await showPage('reset/Mg/set-password');
+				break;
+			
 			default:
 				console.log('Page not found');
 				console.log(window.location.pathname);
