@@ -253,6 +253,7 @@ input[type="email"]{
 }
 
 #chat{
+	box-shadow: #ababab 0px 0px 5px;
 	width: 7vw;
 	height:3vh;
 	position:absolute;
@@ -262,7 +263,7 @@ input[type="email"]{
 	justify-content: center;
 	align-items: center;
 	right: 0%;
-	bottom:0%;
+	bottom:1%;
 }
 
 #chat:hover{

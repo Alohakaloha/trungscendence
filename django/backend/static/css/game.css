@@ -85,7 +85,6 @@ button.carousel-control-prev, button.carousel-control-next{
 	position:absolute;
 	display: block;
 	background-color: #747474;
-	box-shadow: -5px 0px 2px teal;
 	width: 1.5vw;
 	height: 15vh;
 	border-radius: 2px;
@@ -95,7 +94,6 @@ button.carousel-control-prev, button.carousel-control-next{
 	position:absolute;
 	display: block;
 	background-color: #747474;
-	box-shadow: 5px 0px 2px teal;
 	width: 1.5vw;
 	height: 15vh;
 	border-radius: 2px;
@@ -153,10 +151,11 @@ button.carousel-control-prev, button.carousel-control-next{
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 	transform: translate(-50%, -50%);
 }
+
 #player1-rounds{
 	position: absolute;
-	top: 2vh;
-	left: 0;
+	bottom: 3vh;
+	left: 2vw;
 	color: rgba(240, 248, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
@@ -175,8 +174,8 @@ button.carousel-control-prev, button.carousel-control-next{
 
 #player2-rounds{
 	position: absolute;
-	top: 2vh;
-	right: 0;
+	bottom: 3vh;
+	right: 2vw;
 	color: rgba(240, 248, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }

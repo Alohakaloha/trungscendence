@@ -119,6 +119,8 @@ async function handleRouting() {
 
 			case '/game':
 				// jsFile = './game/tmpGame.js';
+				if (gameSocket)
+					gameSocket.close();
 				if (tournamentSocket)
 					changeURL('/game/localTournament', 'Tournament Page', {main : true});
 				else
@@ -449,8 +451,12 @@ async function startLocal() {
 			"mirror": document.getElementById('mirror').checked,
 		};
 		sounds = document.getElementById('localSound').checked;
-		console.log("I am here")
-		initializeGame(localSettings);
+		localColors = {
+			"p1Color": document.querySelector('input[name="player1Color"]:checked').value,
+			"p2Color": document.querySelector('input[name="player2Color"]:checked').value,
+		}
+	
+		initializeGame(localSettings, localColors);
 	})
 	.catch(error => console.log(error));
 }
@@ -468,6 +474,7 @@ async function enterLocalTournament(){
 			contentElement.innerHTML = data;
 		document.getElementById('lt-score').innerHTML = localSettings.score;
 		document.getElementById('lt-rounds').innerHTML = localSettings.rounds;
+		
 })
 .catch(error => console.log(error));
 
@@ -536,23 +543,27 @@ let sounds = false;
 let requestUpdate;
 let keysPressed = {};
 
-function initializeGame(settings) {
-		connectGame(settings);
+function initializeGame(settings, colors) {
+		connectGame(settings, colors);
 }
 
 function playSound(sound){
-	let audio 
+	if (!sounds)
+		return;
+	let audio;
 	if (sound === "player")
 		audio = new Audio('/staticstuff/sounds/bounce.mp3');
 	else if (sound === "wall")
 		audio = new Audio('/staticstuff/sounds/wall.mp3');
 	else if (sound === "ring")
 		audio = new Audio('/staticstuff/sounds/score.mp3');
+	else if (sound === "game_over")
+		audio = new Audio('/staticstuff/sounds/game_over.mp3');
 	audio.play();
 }
 
 
-function connectGame(settings){
+function connectGame(settings, colors){
 	fetch('/game/pong.html')
 		.then(response => response.text())
 		.then(data => {
@@ -564,7 +575,18 @@ function connectGame(settings){
 		gameSocket.send(JSON.stringify(settings));
 		requestUpdate = setInterval(() => {
 			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
+			p1Color = document.getElementById("player1");
+			p2Color = document.getElementById("player2");
+			console.log(colors);
+			p1Color.style.boxShadow = "-5px 0px 3px "+ colors.p1Color;
+			console.log(colors.p1Color);
+			p2Color.style.boxShadow ="5px 0px 3px " + colors.p2Color;
+			console.log(colors.p2Color);
+			console.log(p1Color.style.boxShadow);
+			console.log(p2Color.style.boxShadow);
+
 	}
+
 
 	let checkInput = setInterval(() => {
 		if (keysPressed['w']) {
@@ -630,6 +652,7 @@ function connectGame(settings){
 	}
 
 	gameSocket.onclose = function(event){
+
 		console.log(event);
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
@@ -665,33 +688,22 @@ function player2down() {
 
 
 function playerRounds(p1, p2){
-	let p1rounds	= document.getElementById('player1-rounds');
-	let p2rounds	= document.getElementById('player2-rounds');
-	let svgCount	= p1rounds.getElementsByTagName('svg').length;
-	let toAdd		= p1 - svgCount;
+	let p1rounds = document.getElementById('player1-rounds');
+	let p2rounds = document.getElementById('player2-rounds');
 
-	let svgTemplate =  `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-		<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-		</svg>`;
+	let svgTemplate = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg>';
+	
+	let currentP1 = p1rounds.getElementsByTagName('svg').length;
+	let currentP2 = p2rounds.getElementsByTagName('svg').length;
 
-		let parser = new DOMParser();
-		let svgElement = parser.parseFromString(svgTemplate, 'image/svg+xml').documentElement;
-		svgElement.style.backgroundColor = 'green';
-		
-		// Convert the SVG element back to a string
-		let serializer = new XMLSerializer();
-		let svgString = serializer.serializeToString(svgElement);
-		
+	let toAddP1 = p1 - currentP1;
+    let toAddP2 = p2 - currentP2;
 
-	for (let i = 0; i < toAdd; i++){
+	for (let i = 0; i < toAddP1; i++){
 		p1rounds.innerHTML += svgTemplate;
-		
 	}
-
-	svgCount		= p2rounds.getElementsByTagName('svg').length;
-	toAdd			= p2 - svgCount;
-	for (let i = 0; i < toAdd; i++){
-		p2rounds.innerHTML += svgString;
+	for (let i = 0; i < toAddP2; i++){
+		p2rounds.innerHTML += svgTemplate;
 	}
 }
 
@@ -717,8 +729,10 @@ function displayPong(data)
 		p1score.innerHTML = data.score1;
 		p2score.innerHTML = data.score2;
 	}
-	if ('p1Rounds' in data)
+	if ('p1Rounds' in data){
+		playSound("ring");
 		playerRounds(data.p1Rounds, data.p2Rounds);
+	}
 	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
 
 	ball.style.position = 'absolute';
@@ -754,7 +768,6 @@ function bind_local_Tournament(localSettings){
  tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
 
  tournamentSocket.onopen = function(){
-	console.log("localSettings");
 	console.log(localSettings);
 	tournamentSocket.send(JSON.stringify(localSettings));
  }

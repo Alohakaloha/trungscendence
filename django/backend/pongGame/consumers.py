@@ -7,7 +7,7 @@ import sys
 
 active_rooms = set()
 
-def logprint(*args, **kwargs):		
+def logprint(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
 
@@ -58,13 +58,12 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 				self.player.score.scoring(self.player.gamePos())
 				self.player.score.next_round()
 				self.player.ball.reset_ball()
-				await self.send(json.dumps(self.player.score.current_rules()))
+				await self.send(json.dumps(self.player.status()))
 			if self.player.score.game_end():
 				self.game_active = False
 				self.gaming.cancel()
 				await self.send(json.dumps(self.player.score.final_score()))
 				return
-			await self.send(json.dumps(self.player.gamePos()))
 			await asyncio.sleep(self.fps)
 
 
@@ -102,8 +101,11 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 					await self.send(json.dumps(self.player.score.current_rules()))
 				elif "movement" in action:
 					self.player.move(action)
+					await self.send(json.dumps(self.player.gamePos()))
 				elif "update" in action:
 					await self.send(json.dumps(self.player.gamePos()))
+				elif "status" in action:
+					await self.send(json.dumps(self.player.score.current_rules()))
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data}")
 

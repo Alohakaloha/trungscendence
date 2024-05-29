@@ -27,6 +27,16 @@ class Player:
 		self.score = Rules()
 
 
+	def status(self):
+		status_data = {
+			"score1": self.score.player_1_score,
+			"p1Rounds" : self.score.player_1_rounds,
+			"score2": self.score.player_2_score,
+			"p2Rounds" : self.score.player_2_rounds,
+		}
+		return status_data
+
+
 	def gamePos(self):
 		game_data = {
 			'x1': self.x1,
@@ -35,10 +45,7 @@ class Player:
 			'y2' : self.y2,
 			"ballx": self.ball.x,
 			"bally": self.ball.y,
-			"score1": self.score.player_1_score,
-			"p1Rounds" : self.score.player_1_rounds,
-			"score2": self.score.player_2_score,
-			"p2Rounds" : self.score.player_2_rounds,
+
 		}
 		return game_data
 
