@@ -54,7 +54,6 @@ async function forgotPassword(event, email){
 	// }
 	// try
 	let formData = new FormData(event.target);
-	console.log("im here");
 	try {
 		const response = await fetch(event.target.action, {
 			method: 'POST',
@@ -63,9 +62,7 @@ async function forgotPassword(event, email){
 				'X-CSRFToken': getCookie('csrftoken')
 			}
 		});
-		console.log('before response');
 		if (response.ok) {
-			console.log("response ok");
 			changeURL('/password_reset_done', 'Password Reset Done');
 		} else {
 			console.error('Failed to send password reset email');

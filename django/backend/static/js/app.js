@@ -92,7 +92,7 @@ async function handleRouting() {
 		const user = await fetchUserData();
 		
 		if (user.authenticated){
-			document.getElementById('profile_picture').src = user.profile_picture;
+			document.getElementById('user_profile_picture').src = user.profile_picture;
 			if (chatSocket){
 			}else{
 				chatSocket = new WebSocket('wss://' + window.location.host + '/ws/chatting/');
@@ -107,6 +107,7 @@ async function handleRouting() {
 				chatSocket = null;
 			}
 		}
+		
 		switch (page) {
 			case '/':
 				jsFile = './welcome.js';
@@ -197,12 +198,8 @@ async function handleRouting() {
 
 			case '/password_reset_done':
 				await showPage(`password_reset_done`);;
-				break ;
-
-			case '/reset/Mg/set-password':
-				await showPage('reset/Mg/set-password');
 				break;
-			
+
 			default:
 				console.log('Page not found');
 				console.log(window.location.pathname);
@@ -220,33 +217,47 @@ async function currentJS() {
 		case '/':
 			unloadEvents('./welcome.js');
 			break;
+
 		case '/game':
 			break;
+
 		case '/profile':
 			break;
-			case '/chat':
-				break;
-				case '/history':
-					break;
+		
+		case '/chat':
+			break;
+	
+		case '/history':
+			break;
+	
 		case '/about':
 			break;
-			case '/settings':
-				break;
+
+		case '/settings':
+			break;
+
 		case '/friends':
 			if (user.authenticated)
 			unloadEvents('./friend_request.js');
-		break;
+			break;
+
 		case '/register':
 			unloadEvents('./register.js');
 			break;
-			case '/login':
-				if (!user.authenticated)
-				unloadEvents('./login.js');
+
+		case '/login':
+			if (!user.authenticated)
+			unloadEvents('./login.js');
 			break;
-			default:
-				break;
-			}
-		}
+
+		case '/password_reset':
+			unloadEvents('./forgot_password.js');
+			break;
+
+		default:
+			break;
+	}
+}
 		
 		
 		async function showPage(path) {
