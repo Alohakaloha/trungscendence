@@ -76,7 +76,6 @@ function loadModule(str) {
 	.then((module) => {
 		if (module.init){
 			module.init();
-			console.log("Initialization successful");
 		}
 	})
 	.catch((err) => {
@@ -561,6 +560,8 @@ function playSound(sound){
 		audio = new Audio('/staticstuff/sounds/score.mp3');
 	else if (sound === "game_over")
 		audio = new Audio('/staticstuff/sounds/winning.mp3');
+	else
+		return;
 	audio.play();
 }
 
