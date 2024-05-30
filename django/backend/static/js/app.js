@@ -270,7 +270,8 @@ async function currentJS() {
 			jsFile = null;
 		}
 	});
-	
+
+
 //        | |         | |  
 //     ___| |__   __ _| |_ 
 //    / __| '_ \ / _` | __|
@@ -395,12 +396,13 @@ async function currentJS() {
 		if(text === ""){
 			return;
 		}
+		let user = fetchUserData();
 		let message = {
-			"username": "TestUser",
+			"sender": user.username,
 			"message": text,
 		};
 		if (chatSocket.readyState === WebSocket.OPEN) {
-			console.log("message: " + message);
+
 		// console.log("message: " + message);
 		chatSocket.send(JSON.stringify(message));	
 		}
@@ -558,7 +560,7 @@ function playSound(sound){
 	else if (sound === "ring")
 		audio = new Audio('/staticstuff/sounds/score.mp3');
 	else if (sound === "game_over")
-		audio = new Audio('/staticstuff/sounds/game_over.mp3');
+		audio = new Audio('/staticstuff/sounds/winning.mp3');
 	audio.play();
 }
 
@@ -637,6 +639,7 @@ function connectGame(settings, colors){
 			backBtn.style.display = 'block';
 			console.log("game over");
 			gameSocket.close();
+			playSound("game_over");
 			return;
 		}
 

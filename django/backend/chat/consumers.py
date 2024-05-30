@@ -1,6 +1,7 @@
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import AsyncWebsocketConsumer
+
 import sys
 
 def logprint(*args, **kwargs):
@@ -26,10 +27,11 @@ class chatConsumer(AsyncWebsocketConsumer):
 		)
 	
 	async def receive(self, text_data):
+		from .models import Message
+		from auth_app.models import AppUser
 		try:
 			chatJSON = json.loads(text_data)
-			message = chatJSON["message"]
-			user = chatJSON["username"]
+
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data}")
 
@@ -60,3 +62,9 @@ class chatConsumer(AsyncWebsocketConsumer):
 
 		#json.dumps is a module to convert python object into a json string
 		await self.send(text_data)
+	
+	# @async_to_sync
+	def getMessageModel(self):
+		from .models import Message
+		return Message.last_5_messages()
+		
