@@ -92,6 +92,7 @@ async function handleRouting() {
 		
 		if (user.authenticated){
 			document.getElementById('profile_picture').src = user.profile_picture;
+			console.log(user.profile_picture)
 			if (chatSocket){
 			}else{
 				chatSocket = new WebSocket('wss://' + window.location.host + '/ws/chatting/');
@@ -268,6 +269,7 @@ async function currentJS() {
 			loadModule(jsFile);
 			jsFile = null;
 		}
+
 	});
 
 
@@ -545,7 +547,13 @@ let requestUpdate;
 let keysPressed = {};
 
 function initializeGame(settings, colors) {
+	fetch('/game/pong.html')
+	.then(response => response.text())
+	.then(data => {
+		document.getElementById('content').innerHTML = data;
 		connectGame(settings, colors);
+	})
+	.catch(error => console.log(error));
 }
 
 function playSound(sound){
@@ -567,26 +575,16 @@ function playSound(sound){
 
 
 function connectGame(settings, colors){
-	fetch('/game/pong.html')
-		.then(response => response.text())
-		.then(data => {
-			document.getElementById('content').innerHTML = data;
-		})
-		.catch(error => console.log(error));
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/local/'); //wss only
-	gameSocket.onopen = function(e){
+	gameSocket.onopen = function(){
 		gameSocket.send(JSON.stringify(settings));
 		requestUpdate = setInterval(() => {
 			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
 			p1Color = document.getElementById("player1");
 			p2Color = document.getElementById("player2");
-			console.log(colors);
 			p1Color.style.boxShadow = "-5px 0px 3px "+ colors.p1Color;
-			console.log(colors.p1Color);
 			p2Color.style.boxShadow ="5px 0px 3px " + colors.p2Color;
-			console.log(colors.p2Color);
-			console.log(p1Color.style.boxShadow);
-			console.log(p2Color.style.boxShadow);
+
 
 	}
 

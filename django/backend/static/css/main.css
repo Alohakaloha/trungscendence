@@ -22,7 +22,6 @@ body {
 	justify-content: center;
 	color:#ffffff;
 	border-radius: 7px;
-	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
 	margin-top: 5vh;
 	margin-left: 4vw;
 	margin-right: 4vw;
@@ -61,7 +60,9 @@ body {
 }
 
 #loginBtn{
-	margin-top: 10px;
+	margin-top: 1vh;
+	width: 100%;
+	margin-bottom: 2vh;
 }
 .--bs-btn-close-bg {
 	background-color: green;
