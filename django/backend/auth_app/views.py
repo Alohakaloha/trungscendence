@@ -13,7 +13,8 @@ import sys
 def eprint(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
-def header_view(request):
+def header_view(request, **args):
+	eprint(args)
 	return render(request,'header.html')
 	
 def game(request):

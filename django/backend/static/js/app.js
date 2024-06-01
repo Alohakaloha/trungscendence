@@ -85,9 +85,22 @@ function loadModule(str) {
 	});
 }
 
+function resetPwd(params){
+	showPage('password_reset_confirm.html');
+}
+
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
+	let params = page.split('/');
+	console.log()
+	if (params[0] === 'reset' && params.length == 4) {
+		console.log("HERE IN THE RESET");
+		jsFile = './resetPassword.js';
+		resetPwd(params);
+		return;
+	}
+
 	try{
 		const user = await fetchUserData();
 		
@@ -108,6 +121,7 @@ async function handleRouting() {
 			}
 		}
 		
+		console.log(page);
 		switch (page) {
 			case '/':
 				jsFile = './welcome.js';
@@ -163,8 +177,8 @@ async function handleRouting() {
 					changeURL('/login', 'Login Page', {main : true});
 					break;
 				}
-
 				break;
+
 			case '/friends':
 				if (user.authenticated){
 					jsFile='./friend_request.js';
