@@ -13,17 +13,19 @@ import sys
 def eprint(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
-def header_view(request, **args):
-	eprint(args)
+def header_view(request, **kwargs):
+	if(kwargs):
+		resetPassword(request, kwargs['uidb64'], kwargs['token'])
+		# return render(request,'header.html', {'uidb64': jsonResponse['uidb64'], 'token': jsonResponse['token']})
 	return render(request,'header.html')
 	
 def game(request):
 	return render(request,'game.html')
 
-def profile(request, **args):
-	if args :
+def profile(request, **kwargs):
+	if kwargs :
 		if request.user.is_authenticated:
-			friendUser  = AppUser.objects.get(user_id=args['user_id'])
+			friendUser  = AppUser.objects.get(user_id=kwargs['user_id'])
 
 			if request.user.friends.filter(email=friendUser.email).exists():
 				friend_game_history = friendUser.get_game_history()[:5]
@@ -237,15 +239,24 @@ def friends_list_view(request):
 	else:
 		return JsonResponse({'status': 'error', 'message':'You must be logged in to view this page.'})
 
+def resetPassword(request, uidb64, token):
+	if (request.method == 'GET'):
+		return {'uidb64': uidb64, 'token' : token}
+
+def resetPasswordForm(request):
+	if (request.method == 'GET'):
+		return render(request, 'password_reset_confirm.html')
+	if (request.method == 'POST'):
+		eprint("in the post method")
+		data = json.loads(request.body)
+		eprint(data)
+
+
 class CustomPasswordResetView(auth_views.PasswordResetView):
 	template_name = 'password_reset_form.html'
-# 
+
 class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
 	template_name = 'password_reset_done.html'
-# 
-class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
-	template_name = 'password_reset_confirm.html'
-# 
+
 class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
-	template_name = 'password_reset_complete.html'
-# 
+	template_name = 'password_reset_complete.html' 

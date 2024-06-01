@@ -86,17 +86,16 @@ function loadModule(str) {
 }
 
 function resetPwd(params){
-	showPage('password_reset_confirm.html');
+	 changeURL('/password_reset_confirm', 'Reset password', {main:true});
+	// showPage('/password_reset_confirm.html')
 }
 
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
 	let params = page.split('/');
-	console.log()
-	if (params[0] === 'reset' && params.length == 4) {
-		console.log("HERE IN THE RESET");
-		jsFile = './resetPassword.js';
+	console.log(params)
+	if (params[1] === 'reset' && params[3].length !== 27){
 		resetPwd(params);
 		return;
 	}
@@ -121,7 +120,6 @@ async function handleRouting() {
 			}
 		}
 		
-		console.log(page);
 		switch (page) {
 			case '/':
 				jsFile = './welcome.js';
@@ -213,6 +211,12 @@ async function handleRouting() {
 			case '/password_reset_done':
 				await showPage(`password_reset_done`);;
 				break;
+			
+			case '/password_reset_confirm':
+				console.log("in the reset case");
+				jsFile = './reset_password.js';
+				await showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
 
 			default:
 				console.log('Page not found');
@@ -268,6 +272,8 @@ async function currentJS() {
 			unloadEvents('./forgot_password.js');
 			break;
 
+		case '/password_reset_confirm':
+			unloadEvents('./reset_password.js');
 		default:
 			break;
 	}
