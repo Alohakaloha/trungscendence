@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'daphne',
     'auth_app',
     'pongGame',
-    'chat',
     'oauth2',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -56,8 +55,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-	'django.contrib.humanize',
-	'channels'
+    'django.contrib.humanize',
+    'channels',
+    'chat'
 ]
 
 MIDDLEWARE = [
@@ -68,7 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-	'auth_app.middleware.UpdateLastOnlineMiddleware'
+    'auth_app.middleware.UpdateLastOnlineMiddleware'
 ]
 
 CHANNEL_LAYERS = {

@@ -46,6 +46,7 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 			if self.connections < 1:
 				self.game_active = False
 				self.gaming.cancel()
+				
 				return
 			if self.player.ball.collision(self.player):
 				if self.player.ball.speed < 1.2:

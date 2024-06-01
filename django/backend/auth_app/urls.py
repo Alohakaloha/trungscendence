@@ -38,5 +38,5 @@ urlpatterns = [
 	path('about', views.header_view),
 	path('about/about.html', views.about),
 	path('getUserData', views.getUserData_view, name='fetch_user_data'),
-	path('friends_list', views.friends_list_view, name='friends_list')
+	path('friends_list', views.friends_list_view, name='friends_list'),
 ]

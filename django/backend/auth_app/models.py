@@ -36,7 +36,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(max_length=50, unique=True)
     USERNAME_FIELD = 'email'
-    username = models.CharField(max_length=30, unique=True)
+    username = models.CharField(max_length=15, unique=True)
     objects = AppUserManager()
     profile_picture = models.ImageField(null=True, blank=True, upload_to='staticstuff/images')
     friends = models.ManyToManyField('self', symmetrical=True, blank=True)
@@ -65,6 +65,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
         if self.last_online:
             return 'Was active {}'.format(naturaltime(self.last_online))
         return 'Unknown'
+
     def __str__(self):
         return self.email
 

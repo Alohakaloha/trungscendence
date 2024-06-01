@@ -62,3 +62,21 @@ input[type="text"]{
 	flex-direction: column;
 	overflow-wrap: break-word;
 }
+
+.friends-window{
+	text-align: left;
+	justify-content: left;
+
+}
+
+#chat-receiver{
+	height: 2.5vh;
+}
+
+
+.friends-window img{
+	border-radius: 50%;
+	width: 3vw;
+	height: 3vw;
+	margin-right: 1vw;
+}
