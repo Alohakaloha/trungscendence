@@ -1,14 +1,10 @@
 import { getCookie, validatePassword } from "./utils.js";
 
 let form;
+let uidb64;
+let token;
 
-function submitFormHandler(event){
-	event.preventDefault();
-	let new_password1 = document.getElementById('new_password1').value;
-	let new_password2 = document.getElementById('new_password2').value;
 
-	resetPassword(event, new_password1, new_password2);
-}
 
 export function init(){
 	return new Promise((resolve, reject) => {
@@ -42,15 +38,21 @@ export function unload() {
 async function resetPassword(event, new_password1, new_password2){
 	// let errorMsg = document.getElementById('errorMsg');
 	// let successMsg = document.getElementById('successMsg');
+	let resetData = document.getElementById('reset-data');
+	let uidb64 = resetData.getAttribute('data-uidb64').value;
+	let token = resetData.getAttribute('data-token').value;
+	
 	let data = {
 		"new_password1": new_password1,
-		"new_password2": new_password2
+		"new_password2": new_password2,
+		"uidb64": uidb64,
+		"token" : token
 	};
 	// formData.append('new_password1', new_password1);
 	// formData.append('new_password2', new_password2);
 	console.log(data);
 	try{
-		const response = await fetch('/password_reset_confirm/password_reset_confirm.html',{
+		const response = await fetch(`/password_reset_confirm/password_reset_confirm.html/${uidb64}/${token}/`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

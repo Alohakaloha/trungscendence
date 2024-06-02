@@ -10,14 +10,17 @@ import uuid
 import json
 import sys
 
+uidb,tokn = None,None
+
 def eprint(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
 def header_view(request, **kwargs):
+	context = {}
 	if(kwargs):
-		resetPassword(request, kwargs['uidb64'], kwargs['token'])
-		# return render(request,'header.html', {'uidb64': jsonResponse['uidb64'], 'token': jsonResponse['token']})
-	return render(request,'header.html')
+		context['uidb64'] = kwargs['uidb64']
+		context['token'] = kwargs['token']
+	return render(request,'header.html', context)
 	
 def game(request):
 	return render(request,'game.html')
@@ -243,9 +246,18 @@ def resetPassword(request, uidb64, token):
 	if (request.method == 'GET'):
 		return {'uidb64': uidb64, 'token' : token}
 
-def resetPasswordForm(request):
+def resetPasswordForm(request, uidb64, token):
+	eprint("before if" , uidb64, token)
+	if uidb64 is not None and token is not None:
+		uidb = uidb64
+		tokn = token
+		eprint("first if", uidb, tokn, uidb64, token)
+	else:
+		eprint("uidb64 and token are null")
 	if (request.method == 'GET'):
-		return render(request, 'password_reset_confirm.html')
+		eprint(uidb, tokn)
+		context = {'uidb64': uidb, 'token' : tokn}
+		return render(request, 'password_reset_confirm.html', context)
 	if (request.method == 'POST'):
 		eprint("in the post method")
 		data = json.loads(request.body)

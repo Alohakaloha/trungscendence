@@ -3,6 +3,10 @@ let jsFile;
 const content = document.getElementById('content');
 const chat = document.getElementById('chat');
 
+let resetData = document.getElementById('reset-data');
+let uidb64 = resetData.getAttribute('data-uidb64');
+let token = resetData.getAttribute('data-token');
+
 
 // const toastTrigger = document.getElementById('ToastBtn')
 // const toastLiveExample = document.getElementById('liveToast')
@@ -85,20 +89,13 @@ function loadModule(str) {
 	});
 }
 
-function resetPwd(params){
-	 changeURL('/password_reset_confirm', 'Reset password', {main:true});
-	// showPage('/password_reset_confirm.html')
+function resetPwd(){
+	 changeURL(`/password_reset_confirm`, 'Reset password', {main:true});
 }
 
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
-	let params = page.split('/');
-	console.log(params)
-	if (params[1] === 'reset' && params[3].length !== 27){
-		resetPwd(params);
-		return;
-	}
 
 	try{
 		const user = await fetchUserData();
@@ -118,6 +115,11 @@ async function handleRouting() {
 				chatSocket.close();
 				chatSocket = null;
 			}
+		}
+
+		if (uidb64 && token){
+			console.log("Resetting password");
+			resetPwd();
 		}
 		
 		switch (page) {
@@ -215,7 +217,9 @@ async function handleRouting() {
 			case '/password_reset_confirm':
 				console.log("in the reset case");
 				jsFile = './reset_password.js';
-				await showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				await showPage(`${page.slice(1)}/${page.slice(1)}.html/${uidb64}/${token}`);
+				uidb64 = null;
+				token =	null;
 				break;
 
 			default:
@@ -273,7 +277,6 @@ async function currentJS() {
 			break;
 
 		case '/password_reset_confirm':
-			unloadEvents('./reset_password.js');
 		default:
 			break;
 	}
@@ -310,7 +313,46 @@ async function currentJS() {
 			jsFile = null;
 		}
 	});
-	
+// RESET
+
+function submitFormHandler(event){
+	event.preventDefault();
+	let new_password1 = document.getElementById('new_password1').value;
+	let new_password2 = document.getElementById('new_password2').value;
+
+	resetPassword(event, new_password1, new_password2);
+}
+async function resetPassword(event, new_password1, new_password2){
+	// let errorMsg = document.getElementById('errorMsg');
+	// let successMsg = document.getElementById('successMsg');
+	let data = {
+		"new_password1": new_password1,
+		"new_password2": new_password2,
+		"uidb64": uidb64,
+		"token" : token
+	};
+	// formData.append('new_password1', new_password1);
+	// formData.append('new_password2', new_password2);
+	console.log(data);
+	try{
+		const response = await fetch(`/password_reset_confirm/password_reset_confirm.html/${uidb64}/${token}/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCookie('csrftoken')
+			},
+			body: JSON.stringify(data),
+		});
+		const responseData = await response.json();
+		if (responseData.success){
+			changeURL ('/login', 'Login', {main:true});
+		} else {
+			alert(responseData.error);
+		}
+	} catch (error){
+		console.error('Error setting the new password: ', error);
+	}
+}
 //        | |         | |  
 //     ___| |__   __ _| |_ 
 //    / __| '_ \ / _` | __|
