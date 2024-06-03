@@ -12,6 +12,7 @@ class Message(models.Model):
     content = models.TextField(max_length=255)
     timestamp= models.DateTimeField(default=timezone.now)
 
+
     def save_message(self, chat, sender, content):
         self.chat=chat
         self.sender=sender
@@ -21,5 +22,3 @@ class Message(models.Model):
 
     def last_5_messages(self):
         return Message.objects.order_by('-timestamp').all()[:5]
-
-

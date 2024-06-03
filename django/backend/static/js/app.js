@@ -877,7 +877,7 @@ function tournamentMatch(){
 
 	gameSocket.onmessage = function(event){
 		let data = JSON.parse(event.data);
-		if("Rules" in data){
+		if(data.type === 'rules'){
 			gameSocket.send(JSON.stringify({ "update": "update"}));
 			requestUpdate = setInterval(() => {
 			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);

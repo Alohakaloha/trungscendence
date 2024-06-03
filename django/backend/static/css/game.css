@@ -72,7 +72,7 @@ button.carousel-control-prev, button.carousel-control-next{
 	display: flex;
 	justify-content: center;
 	background-color: #0e0e0e;
-	width: 100vw;
+	width: 80vw;
 	overflow: hidden;
 	scrollbar-width: none;
 	box-sizing: border-box;
@@ -154,8 +154,8 @@ button.carousel-control-prev, button.carousel-control-next{
 
 #player1-rounds{
 	position: absolute;
-	bottom: 3vh;
-	left: 2vw;
+	bottom: 0%;
+	left: 3vw;
 	color: rgba(240, 248, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
@@ -174,8 +174,8 @@ button.carousel-control-prev, button.carousel-control-next{
 
 #player2-rounds{
 	position: absolute;
-	bottom: 3vh;
-	right: 2vw;
+	bottom: 0%;
+	right: 3vw;
 	color: rgba(240, 248, 255, 0.5);
 	font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
@@ -183,8 +183,8 @@ button.carousel-control-prev, button.carousel-control-next{
 #ball{
 	display: block;
 	background-color: #ffffff;
-	width: 1.25vw;
-	height: 1.25vh;
+	width: 1.5vw;
+	height: 1.5vh;
 	min-width: 15px;
 	min-height: 15px;
 	/* border-radius: 50%; */
@@ -200,6 +200,7 @@ button.carousel-control-prev, button.carousel-control-next{
 	border-left: 10px dotted #9e9e9e6e; /* Increase border-width to increase space between dots */
 	background-clip: padding-box;
 	transform: translateX(-50%);
+
 }
 
 #pause-screen {
@@ -272,46 +273,49 @@ button.carousel-control-prev, button.carousel-control-next{
 
 #stage{
 	display:none;
+	width: 100%;
 }
 
 #t-announcement{
-	position: absolute;
 	padding: 10px;
-	left: 50%;
-	top: 20%;
-	transform: translate(-50%, -50%);
 	font-size: 20px;
 	color: white;
 	background-color: black;
 	border: 2px solid white;
+	text-align: center;
 }
 
+#announcement-wrapper{
+	display: flex;
+	justify-content: center;
+}
+
+#nextFirst, #nextSecond{
+	margin: 15px;
+}
 
 #startMatch{
-	position: absolute;
-	padding: 10px;
-	padding-left: 20px;
-	padding-right: 20px;
-	left: 50%;
-	top: 35%;
-	transform: translate(-50%, -50%);
+	width: 100%;
+	display: flex;
+	justify-content: center;
 	font-size: 15px;
 	color: white;
 	border: 2px solid white;
 }
 
-#side-participants{
-	position:absolute;
+#T-player, #customize{
+	margin-top: 4vh;
+}
+/* #side-participants{
+	position:fixed;
 	left: 5vw;
 	top: 10vh;
+	width: fit-content;
 	color: #0e0e0e;;
-}
+} */
 
 #remaining{
-	position:absolute;
-	right: 5vw;
-	top: 10vh;
-	color: #0e0e0e;;
+	text-align: right;
 }
 
 .listed-Player{
@@ -324,3 +328,12 @@ button.carousel-control-prev, button.carousel-control-next{
 	background-color:#0e0e0e;
 	color: rgb(240, 248, 255);
 }
+
+#TcolorP1{
+	position: relative;
+}
+
+#TcolorP2{
+	position: relative;
+}
+
