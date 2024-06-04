@@ -12,7 +12,7 @@ body {
 }
 
 .loginWrapper{
-	background: linear-gradient(#2a3e4d, #4a112d);
+	background: linear-gradient(#2a3e4d, rgb(0, 80, 172));
 	width: 100%;
 }
 
@@ -134,6 +134,9 @@ body {
 	display: flex;
 	justify-content: center;
 	flex-grow : 1;
+	overflow-x: hidden;
+	background-color:#0e0e0e;
+	color:#ffffff;
 }
 
 #lastMsg{

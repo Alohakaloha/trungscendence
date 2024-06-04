@@ -27,6 +27,7 @@
 	width: 100%;
 	position: block;
 	color: aliceblue;
+	padding-left: 1vw;
 }
 
 #nameField{ 
@@ -322,7 +323,7 @@ button.carousel-control-prev, button.carousel-control-next{
 	size: 1rem;
 }
 
-#locals{
+.game-option-settings{
 	padding-top: 10vh;
 	padding-left: 5vw;
 	background-color:#0e0e0e;
