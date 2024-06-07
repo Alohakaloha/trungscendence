@@ -1,10 +1,14 @@
 from django.db import models
 from django.utils import timezone
+from auth_app.models import AppUser
+
+User = AppUser
 
 # Create your models here.
 class Chat(models.Model):
     participant1 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant1')
     participant2 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant2')
+
 
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE , related_name='messages')

@@ -12,13 +12,13 @@ http_client.HTTPConnection.debuglevel = 1
 
 logger = logging.getLogger('mylogger')
 
-logger.setLevel(logging.CRITICAL)
+logger.setLevel(logging.DEBUG)
 logger.propagate = True
 
 logging.basicConfig()
-logging.getLogger().setLevel(logging.CRITICAL)
+logging.getLogger().setLevel(logging.DEBUG)
 requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.CRITICAL)
+requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 
 CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")

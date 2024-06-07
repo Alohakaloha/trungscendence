@@ -26,14 +26,6 @@ class chatConsumer(AsyncWebsocketConsumer):
 			self.channel_name
 		)
 	
-	async def receive(self, text_data):
-		from .models import Message
-		from auth_app.models import AppUser
-		try:
-			chatJSON = json.loads(text_data)
-
-		except json.JSONDecodeError:
-			logprint(f"Invalid JSON: {text_data}")
 
 
 	async def chat_message(self, event):
@@ -46,22 +38,23 @@ class chatConsumer(AsyncWebsocketConsumer):
 		}))
 
 	async def receive(self, text_data):
-		text_data_json = json.loads(text_data)
-		message = text_data_json['message']
+		from .models import Message, Chat
+		from auth_app.models import AppUser
 
-		# Send message to room group
-		await self.channel_layer.group_send(
-			self.room_group_name,
-			{
-				'type': 'chat_message',
-				'message': message
-			}
-		)
+		chatJSON = json.loads(text_data)
+		receiver = chatJSON['receiver']
+		try:
+			user_email = await AppUser.get_email_by_username(receiver)
+			logprint(user_email)
+		except AppUser.DoesNotExist:
+			logprint(f"User {receiver} does not exist")
+		# try:
+		# 	user_email = AppUser.objects.get(username=chatJSON.receiver).email
+		# 	logprint(user_email)
 
-		# text_data_json = json.loads(text_data)
+		# except json.JSONDecodeError:
+		# 	logprint(f"Invalid JSON: {text_data}")
 
-		#json.dumps is a module to convert python object into a json string
-		await self.send(text_data)
 	
 	# @async_to_sync
 	def getMessageModel(self):

@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from asgiref.sync import sync_to_async
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.humanize.templatetags.humanize import naturaltime
@@ -30,7 +31,6 @@ class AppUserManager(BaseUserManager):
         user.save(using=self.db)
         return user
     
-    
 
 class AppUser(AbstractBaseUser, PermissionsMixin):
     user_id = models.AutoField(primary_key=True)
@@ -54,6 +54,14 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     def get_game_history(self):
         return History.objects.filter(Q(player_one=self) | Q(player_two=self)).order_by('-game_date')
     
+    @classmethod
+    def get_email_by_username(cls, name):
+        try:
+           user = sync_to_async(cls.objects.get)(username=name)
+           return user
+        except cls.DoesNotExist:
+            return None
+    
     def is_online (self):
         if self.last_online:
             return (timezone.now() - self.last_online < timezone.timedelta(minutes=3))
@@ -67,6 +75,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
         return 'Unknown'
     def __str__(self):
         return self.email
+
 
 class History(models.Model):
     game_id = models.AutoField(primary_key=True)
