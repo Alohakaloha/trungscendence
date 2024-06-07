@@ -115,6 +115,7 @@ class localTournament(AsyncWebsocketConsumer):
 	async def connect(self):
 		self.room_name =  pong.randomCode()
 		self.room_group_name = "lt_"+ self.room_name
+		self.status = "idle"
 
 		await self.channel_layer.group_add(
 			self.room_group_name,
@@ -126,10 +127,10 @@ class localTournament(AsyncWebsocketConsumer):
 
 	async def receive(self, text_data):
 		data = json.loads(text_data)
+		logprint(data)
 		if data["type"] == "settings":
 			self.tournament.setRules(data)
 			await self.send(json.dumps(self.tournament.currentRules()))
-
 		if data["type"] == "status":
 			await self.send(json.dumps(self.tournament.tournamentStatus()))
 
@@ -167,7 +168,6 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 
 		self.fps = 1/60
 		self.game_active = True
-		self.next_round = False
 		self.gaming = asyncio.create_task(self.game_loop())
 
 	async def game_loop(self):
@@ -200,8 +200,6 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 		self.game_active = False
 		self.gaming.cancel()
 		active_rooms.remove(self.room_group_name)
-		if (self.next_round == True):
-			logprint("Next round")
 		await self.channel_layer.group_discard(
 			self.room_group_name,
 			self.channel_name
@@ -228,7 +226,6 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 					if not self.game_active:
 						self.game_active = True
 						self.gaming = asyncio.create_task(self.game_loop())
-
 				elif "movement" in action:
 					self.player.move(action)
 				elif "update" in action:
