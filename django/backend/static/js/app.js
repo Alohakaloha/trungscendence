@@ -833,17 +833,28 @@ function localTournament(){
 }
 
 function tournamentMatch(){
+	sounds = document.getElementById('localSound').checked;
+	let colors = {
+		"p1Color": document.querySelector('input[name="player1Color"]:checked').value,
+		"p2Color": document.querySelector('input[name="player2Color"]:checked').value,
+	}
 	fetch('/game/pong.html')
 		.then(response => response.text())
 		.then(data => {
 			document.getElementById('content').innerHTML = data;
+			
 		})
 		.catch(error => console.log(error));
+
+
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/'); //wss only
 	gameSocket.onopen = function(){
 		if(tournamentSocket){
-			console.log(tournamentRules)
 			gameSocket.send(JSON.stringify(tournamentRules))
+			p1Color = document.getElementById("player1");
+			p2Color = document.getElementById("player2");
+			p1Color.style.boxShadow = "-5px 0px 3px "+ colors.p1Color;
+			p2Color.style.boxShadow ="5px 0px 3px " + colors.p2Color;
 		}
 		else{
 			gameSocket.close();
@@ -893,13 +904,14 @@ function tournamentMatch(){
 
 	gameSocket.onmessage = function(event){
 		let data = JSON.parse(event.data);
-		if("Rules" in data){
+		if(data.type === 'rules'){
 			gameSocket.send(JSON.stringify({ "update": "update"}));
 			requestUpdate = setInterval(() => {
 			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
 			}
 
 		if ('game_over' in data){
+			console.log("result =", data)
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
 			winner.style.display = 'block';
@@ -907,6 +919,9 @@ function tournamentMatch(){
 			let backBtn = document.getElementById('game-back');
 			backBtn.style.display = 'block';
 			gameSocket.close();
+			sounds = false;
+			if (tournamentSocket === WebSocket.OPEN)
+				tournamentSocket.send(JSON.stringify(data));
 			return;
 		}
 		if ("sounds" in data)
