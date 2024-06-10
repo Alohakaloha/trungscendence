@@ -43,9 +43,9 @@ class chatConsumer(AsyncWebsocketConsumer):
 
 		chatJSON = json.loads(text_data)
 		receiver = chatJSON['receiver']
+		sender = chatJSON['sender']
 		try:
 			user_email = await AppUser.get_email_by_username(receiver)
-			logprint(user_email)
 		except AppUser.DoesNotExist:
 			logprint(f"User {receiver} does not exist")
 		# try:

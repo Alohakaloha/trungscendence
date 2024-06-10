@@ -1,14 +1,32 @@
 from django.db import models
 from django.utils import timezone
+from django.db.models import Q
 from auth_app.models import AppUser
+import sys
 
 User = AppUser
+
+def logprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 # Create your models here.
 class Chat(models.Model):
     participant1 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant1')
     participant2 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant2')
 
+def find_or_create_chat(self, participant1, participant2):
+    chat = Chat.objects.filter(
+        Q(participant1=participant1, participant2=participant2) |
+        Q(participant1=participant2, participant2=participant1)
+    )
+    if chat.exists():
+        logprint("Chat found")
+        return chat.first()
+    else:
+        logprint("Creating a new chat")
+        new_chat = Chat(participant1=participant1, participant2=participant2)
+        new_chat.save()
+        return new_chat
 
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE , related_name='messages')
