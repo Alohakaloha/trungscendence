@@ -1,5 +1,5 @@
 import json
-from asgiref.sync import async_to_sync
+from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 import sys
@@ -38,16 +38,21 @@ class chatConsumer(AsyncWebsocketConsumer):
 		}))
 
 	async def receive(self, text_data):
-		from .models import Message, Chat
+		from .models import Chat
 		from auth_app.models import AppUser
 
-		chatJSON = json.loads(text_data)
-		receiver = chatJSON['receiver']
-		sender = chatJSON['sender']
+		chat_json = json.loads(text_data)
+		receiver_uname = chat_json['receiver']
+		sender_email = chat_json['sender']
+		receiver_email = await AppUser.get_email_by_username(receiver_uname)
 		try:
-			user_email = await AppUser.get_email_by_username(receiver)
-		except AppUser.DoesNotExist:
-			logprint(f"User {receiver} does not exist")
+			user1 = await sync_to_async(AppUser.objects.get)(email=sender_email)
+			user2 = await sync_to_async(AppUser.objects.get)(email=receiver_email)
+			logprint(user1, user2)
+			chat = await sync_to_async(Chat.find_or_create_chat)(self, user1, user2)
+			
+		except Exception as e:
+			logprint(f"User {receiver_uname} does not exist: {e}")
 		# try:
 		# 	user_email = AppUser.objects.get(username=chatJSON.receiver).email
 		# 	logprint(user_email)

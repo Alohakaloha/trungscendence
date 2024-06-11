@@ -14,19 +14,30 @@ class Chat(models.Model):
     participant1 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant1')
     participant2 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant2')
 
-def find_or_create_chat(self, participant1, participant2):
-    chat = Chat.objects.filter(
-        Q(participant1=participant1, participant2=participant2) |
-        Q(participant1=participant2, participant2=participant1)
-    )
-    if chat.exists():
-        logprint("Chat found")
-        return chat.first()
-    else:
-        logprint("Creating a new chat")
-        new_chat = Chat(participant1=participant1, participant2=participant2)
-        new_chat.save()
-        return new_chat
+
+    def find_or_create_chat(self, sender, receiver):
+        try:
+            chat = Chat.objects.filter(
+                Q(participant1=sender, participant2=receiver) |
+                Q(participant1=receiver, participant2=sender)
+            ).first()
+            if chat is None:
+                logprint("Creating a new chat")
+                chat = Chat.objects.create(participant1=sender, participant2=receiver)
+            else:
+                logprint("Chat found")
+            return chat
+        except Exception as e:
+            logprint(e)
+            return None
+        # if chat.exists():
+        #  logprint("Chat found")
+        #  return chat.first()
+        # else:
+        #     logprint("Creating a new chat")
+        #     new_chat = Chat(participant1=participant1, participant2=participant2)
+        #     new_chat.save()
+        #     return new_chat
 
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE , related_name='messages')
