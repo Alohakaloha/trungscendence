@@ -10,6 +10,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = "all_chat"
         self.room_group_name = f"chat_{self.room_name}"
+        self.username = self.scope['user'].username
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -17,36 +18,77 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
 
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'chat_message',
+                'message': f'{self.username} has joined the chat.',
+                'sender': 'System'
+            }
+        )
+
     async def disconnect(self, close_code):
-        # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
-    async def chat_message(self, event):
-        # Extract the message from the event
-        message = event['message']
-
-        # Send the message to the WebSocket
-        await self.send(text_data=json.dumps({
-            'message': message
-        }))
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'chat_message',
+                'message': f'{self.username} has left the chat.',
+                'sender': 'System'
+            }
+        )
 
     async def receive(self, text_data):
-        from .models import Chat
+        from .models import Chat, Message
         from auth_app.models import AppUser
 
         try:
             chat_json = json.loads(text_data)
-            receiver_uname = chat_json['receiver']
-            sender_email = chat_json['sender']
-            receiver_email = await AppUser.get_email_by_username(receiver_uname)
+            message_type = chat_json.get('type')
+            sender_email = chat_json.get('sender')
+            message_content = chat_json.get('message')
 
-            user1 = await sync_to_async(AppUser.objects.get)(email=sender_email)
-            user2 = await sync_to_async(AppUser.objects.get)(email=receiver_email)
-            logprint(user1, user2)
-            chat = await sync_to_async(Chat.find_or_create_chat)(self, user1, user2)
+            sender = await sync_to_async(AppUser.objects.get)(email=sender_email)
+
+            if message_type == 'direct_message':
+                receiver_uname = chat_json.get('receiver')
+                receiver_email = await AppUser.get_email_by_username(receiver_uname)
+                receiver = await sync_to_async(AppUser.objects.get)(email=receiver_email)
+
+                logprint(sender, receiver)
+
+                chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
+
+                message = await sync_to_async(Message.objects.create)(
+                    chat=chat,
+                    sender=sender,
+                    content=message_content
+                )
+
+                # Send private message to receiver
+                await self.send_private_message(receiver.email, {
+                    'type': 'chat_message',
+                    'message': message_content,
+                    'sender': sender.email,
+                })
+
+            elif message_type == 'chat_message':
+                # Broadcast the message to the chat room without saving
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': message_content,
+                        'sender': sender.email,
+                    }
+                )
+
+            else:
+                logprint("Invalid message type received")
 
         except KeyError as e:
             logprint(f"Missing key in JSON data: {e}")
@@ -57,10 +99,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logprint(f"An error occurred: {e}")
 
+    async def send_private_message(self, receiver_email, message):
+        # Send the message to the WebSocket clients // EMAIL AS UNIQUE IDENTIFIER?
+        await self.send(text_data=json.dumps(message))
+
+    async def chat_message(self, event):
+        message = event['message']
+        sender = event['sender']
+
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'sender': sender
+        }))
+
     def getMessageModel(self):
         from .models import Message
         return Message.last_5_messages()
 
+## DIRECT MESSAGE JSON STRUCTURE
+# {
+#     "type": "direct_message",
+#     "sender": "sender@example.com",
+#     "receiver": "receiver_username",
+#     "message": "This is a private message."
+# }
+
+## CHAT MESSAGE JSON STRUCTURE
+# {
+#     "type": "chat_message",
+#     "sender": "sender@example.com",
+#     "message": "This is a public chat message."
+# }
 
 
 # # This are my local functions for the whisper mechanic, needs adjustment for project scope
