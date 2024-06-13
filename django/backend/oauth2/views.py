@@ -3,23 +3,12 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login as auth_login, views as auth_views
 import urllib.parse, json, os
 from auth_app.views import register_view
-import logging
+
 import http.client as http_client
 from auth_app.models import AppUser
 import secrets
 
-http_client.HTTPConnection.debuglevel = 1
 
-logger = logging.getLogger('mylogger')
-
-logger.setLevel(logging.DEBUG)
-logger.propagate = True
-
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.DEBUG)
-requests_log.propagate = True
 
 CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
 CLIENT_SECRET =os.getenv("OAUTH_CLIENT_SECRET")
