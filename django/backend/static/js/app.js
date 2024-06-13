@@ -114,6 +114,7 @@ async function handleRouting() {
 				break;
 
 			case '/history':
+				jsFile='./history.js';
 				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 				break;
 
