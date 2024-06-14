@@ -279,4 +279,5 @@ input[type="email"]{
 	width: 15vw;
 	position:absolute;
 	right: 0%;
+	border-left: 1px solid black;
 }
