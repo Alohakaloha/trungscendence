@@ -308,10 +308,24 @@ async function currentJS() {
 	}
 	if (chatSocket.readyState === WebSocket.OPEN) {
 		console.log("chat socket for room is open")
-		chatSocket.send(JSON.stringify(chatRoom));	
+		chatSocket.send(JSON.stringify(chatRoom));
 		}
 	else
 		return;
+	}
+
+	function blockUser(user, receiver){
+		let block = {
+			"type": "block",
+			"sender": user,
+			"receiver": receiver,
+		};
+
+		if (chatSocket.readyState === WebSocket.OPEN) {
+			chatSocket.send(JSON.stringify(block));
+		}
+		else
+			return;
 	}
 
 	// creates the chat window with the friend list from userobject
@@ -330,11 +344,42 @@ async function currentJS() {
 				friendDiv.className = 'friends-window';
 				let friendPic = document.createElement('img');
 				friendPic.src = friend.profile_picture;
-				friendDiv.onclick = function() {chatObject(user.email, friend.username)};
+				friendDiv.onclick = function() { chatObject(user.email, friend.username); };
 				friendDiv.appendChild(friendPic);
+				friendDiv.innerHTML += friend.username;
+			
+				// Create the dropdown button
+				let menu = document.createElement('button');
+				menu.style.borderRadius = '50%';
+				menu.className = 'btn btn-dark dropdown-toggle';
+				menu.setAttribute('type', 'button');
+				menu.setAttribute('id', 'dropdownMenuButton' + friend.username); // Ensure unique ID for each friend
+				menu.setAttribute('data-bs-toggle', 'dropdown'); // Note the 'bs' for Bootstrap 5
+				menu.setAttribute('aria-expanded', 'false');
+			
+				// Create the dropdown menu
+				let dropdownMenu = document.createElement('ul');
+				dropdownMenu.className = 'dropdown-menu';
+				dropdownMenu.setAttribute('aria-labelledby', 'dropdownMenuButton' + friend.username); // Ensure it matches the button's ID
+			
+				// Create dropdown items
+				let dropdownItem = document.createElement('li');
+				let actionLink = document.createElement('a');
+				actionLink.className = 'dropdown-item';
+				actionLink.href = '#';
+				actionLink.textContent = "block " + friend.username;
+				actionLink.onclick = function() { blockUser(user.email, friend.username); };
+				// Add any specific onclick functionality here
+				dropdownItem.appendChild(actionLink);
+				dropdownMenu.appendChild(dropdownItem);
+			
+				// Append the menu and dropdownMenu to friendDiv
+				friendDiv.appendChild(menu);
+				friendDiv.appendChild(dropdownMenu);
+			
+				// Append friendDiv to friendList
 				friendList.appendChild(friendDiv);
-				friendDiv.innerHTML +=  friend.username;
-				
+			
 			}
 		}
 		else
@@ -415,10 +460,12 @@ async function currentJS() {
 		}
 		let user = await fetchUserData();
 		let message = {
+			"type"	: "message",
 			"sender": user.username,
 			"receiver": receiver,
 			"message": text,
 		};
+		console.log(message);
 		if (chatSocket.readyState === WebSocket.OPEN) {
 
 		// console.log("message: " + message);
@@ -716,7 +763,7 @@ function playerRounds(p1, p2){
 	let currentP2 = p2rounds.getElementsByTagName('svg').length;
 
 	let toAddP1 = p1 - currentP1;
-    let toAddP2 = p2 - currentP2;
+	let toAddP2 = p2 - currentP2;
 
 	for (let i = 0; i < toAddP1; i++){
 		p1rounds.innerHTML += svgTemplate;
@@ -818,9 +865,14 @@ function tournamentStatus(){
 
 function updateTournament(data){
 	let participants = data['participants']
+	let remaining = data['remaining'];
 	for (let i = 0; i < participants.length; i++) {
 		let ids = document.getElementById('p' + (i + 1));
 		ids.innerHTML = participants[i];
+	}
+	for(let i = 0; i < remaining.length; i++){
+		let ids = document.getElementById('r' + (i + 1));
+		ids.innerHTML = remaining[i];
 	}
 	document.getElementById('nextFirst').innerHTML = data['nextUp'][0];
 	document.getElementById('nextSecond').innerHTML = data['nextUp'][1];

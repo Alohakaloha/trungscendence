@@ -3,6 +3,8 @@ from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 import sys
 
+
+
 def logprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
@@ -10,22 +12,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = "all_chat"
         self.room_group_name = f"chat_{self.room_name}"
-        self.username = self.scope['user'].username
-
+        # self.username = self.scope['user'].username
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
+
         await self.accept()
 
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': f'{self.username} has joined the chat.',
-                'sender': 'System'
-            }
-        )
+        # await self.channel_layer.group_send(
+        #     self.room_group_name,
+        #     {
+        #         'type': 'chat_message',
+        #         # 'message': f'{self.username} has joined the chat.',
+        #         'sender': 'System'
+        #     }
+        # )
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -37,7 +39,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': f'{self.username} has left the chat.',
+                # 'message': f'{self.username} has left the chat.',
                 'sender': 'System'
             }
         )
@@ -54,7 +56,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             sender = await sync_to_async(AppUser.objects.get)(email=sender_email)
 
-            if message_type == 'direct_message':
+            if message_type == 'block':
+                logprint("Block message received")
+                return
+
+            if message_type == 'message':
                 receiver_uname = chat_json.get('receiver')
                 receiver_email = await AppUser.get_email_by_username(receiver_uname)
                 receiver = await sync_to_async(AppUser.objects.get)(email=receiver_email)
@@ -71,17 +77,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                 # Send private message to receiver
                 await self.send_private_message(receiver.email, {
-                    'type': 'chat_message',
+                    'type': 'message',
                     'message': message_content,
                     'sender': sender.email,
                 })
 
-            elif message_type == 'chat_message':
+            elif message_type == 'message':
                 # Broadcast the message to the chat room without saving
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
-                        'type': 'chat_message',
+                        'type': 'message',
                         'message': message_content,
                         'sender': sender.email,
                     }

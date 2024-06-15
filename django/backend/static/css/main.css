@@ -77,23 +77,21 @@ body {
 
 #user-list
 {
-	display: flex;
-	justify-content: center;
-	width: 100%;
+	display: grid;
+	width: 80%;
 	height: 100%;
-	background:darkgray;
 }
 
 .request-wrapper {
-	background-color: blue;
+	background-color: rgba(0, 0, 255, 0.2);
 }
 
 .user-wrapper {
-	background-color: rgb(107, 0, 128);
+	background-color: rgb(107, 0, 128, 0.2);
 }
 
 .friends-wrapper {
-	background-color: rgb(0, 128, 107);
+	background-color: rgb(0, 128, 107, 0.2);
 }
 
 .text-colors {
@@ -237,7 +235,7 @@ input[type="email"]{
 @keyframes shine {
 	0% {
 		left: -100%;
-	}f
+	}
 	50% {
 		left: 60%;
 	}
@@ -246,15 +244,27 @@ input[type="email"]{
 	}
 }
 
-.friend_requests, .friends{
-	display:flex;
-	justify-content: space-between;
-}
 
 .all_users{
 	display:block;
 
 }
+
+.user-details{
+	border: 1px solid rgb(255, 255, 255);
+}
+
+.user-details .online-status{
+	width: 1em;
+}
+
+#user-detail-id{
+	color: white;
+	margin-left: 12px;
+	margin-right: 12px;
+}
+
+
 
 #chat{
 	box-shadow: #ababab 0px 0px 5px;
@@ -280,4 +290,15 @@ input[type="email"]{
 	position:absolute;
 	right: 0%;
 	border-left: 1px solid black;
+}
+
+.friend_request_send{
+	display: flex;
+	justify-content: left;
+	align-items: left;
+}
+
+.add_friend-button{
+	position: relative;
+	left: 40%;
 }
