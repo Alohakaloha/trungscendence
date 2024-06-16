@@ -243,6 +243,7 @@ services:
       - certs:/usr/share/logstash/certs
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
       - "./log/nginx:/nginx_logs"
+      - "./log/django:/django_logs"
     environment:
       - NODE_NAME="logstash"
       - xpack.monitoring.enabled=false

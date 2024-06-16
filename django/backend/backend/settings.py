@@ -218,11 +218,16 @@ LOGGING = {
             "formatter": "simple",
             "stream": "ext://sys.stdout",
         },
+        "file": {
+            "class": "logging.FileHandler",
+            "formatter": "simple",
+            "filename": "/var/log/django/django.log",
+        },
     },
     "loggers": {
         "root": {
-            "level": "INFO", 
-            "handlers": ["stdout"],
+            "level": "DEBUG", 
+            "handlers": ["stdout", "file"],
         },
     },
 }

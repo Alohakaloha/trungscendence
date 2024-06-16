@@ -41,6 +41,7 @@ services:
       - ./django/backend:/code
       - ./django/start.sh:/code/start.sh
       - static_volume:/code/staticstuff
+      - ./log/django:/var/log/django
     environment:
       SECRET_KEY: ${SECRET_KEY}
       DJANGO_SETTINGS_MODULE: backend.settings
