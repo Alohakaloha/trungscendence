@@ -49,74 +49,104 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from auth_app.models import AppUser
 
         try:
+            # Parse incoming JSON data
             chat_json = json.loads(text_data)
-            message_type = chat_json.get('type')
+
+            # Extract action details
+            action_type = chat_json.get('type')  # Renamed from message_type
             sender_email = chat_json.get('sender')
             message_content = chat_json.get('message')
 
+            # Log received message
+            logprint(f"Received {action_type} from sender {sender_email}: {message_content}")
+
+            # Fetch sender asynchronously
             sender = await sync_to_async(AppUser.objects.get)(email=sender_email)
 
-            if message_type == 'block':
-                logprint("Block message received")
-                return
-
-            if message_type == 'message':
+            if action_type == 'message':
                 receiver_uname = chat_json.get('receiver')
-                receiver_email = await AppUser.get_email_by_username(receiver_uname)
-                receiver = await sync_to_async(AppUser.objects.get)(email=receiver_email)
 
-                logprint(sender, receiver)
+                if receiver_uname == 'global':
+                    # Broadcast message to the chat room without saving to database
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            'type': 'message',
+                            'message': message_content,
+                            'sender': sender.email,
+                        }
+                    )
+                else:
+                    # Private message handling
+                    receiver_email = await AppUser.get_email_by_username(receiver_uname)
+                    receiver = await sync_to_async(AppUser.objects.get)(email=receiver_email)
 
-                chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
+                    logprint(sender, receiver)
 
-                message = await sync_to_async(Message.objects.create)(
-                    chat=chat,
-                    sender=sender,
-                    content=message_content
-                )
+                    # Find or create chat asynchronously
+                    chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
 
-                # Send private message to receiver
-                await self.send_private_message(receiver.email, {
-                    'type': 'message',
-                    'message': message_content,
-                    'sender': sender.email,
-                })
+                    # Create message asynchronously
+                    message = await sync_to_async(Message.objects.create)(
+                        chat=chat,
+                        sender=sender,
+                        content=message_content
+                    )
 
-            elif message_type == 'message':
-                # Broadcast the message to the chat room without saving
-                await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
+                    # Send private message to receiver
+                    await self.send_private_message(receiver.email, {
                         'type': 'message',
                         'message': message_content,
                         'sender': sender.email,
-                    }
-                )
+                    })
+
+            elif action_type == 'block':
+                # Handle block action
+                logprint("Block action received")
+                await self.block_user(chat_json)
 
             else:
-                logprint("Invalid message type received")
+                # Handle unknown action type
+                logprint(f"Unknown action type received: {action_type}")
 
         except KeyError as e:
             logprint(f"Missing key in JSON data: {e}")
         except json.JSONDecodeError:
             logprint(f"Invalid JSON: {text_data}")
         except AppUser.DoesNotExist as e:
-            logprint(f"User does not exist: {e}")
+            receiver_uname = chat_json.get('receiver')
+            if receiver_uname == 'global':
+                logprint("Broadcast action received")
+            else:
+                logprint(f"User '{receiver_uname}' does not exist: {e}")
         except Exception as e:
             logprint(f"An error occurred: {e}")
 
-    async def send_private_message(self, receiver_email, message):
-        # Send the message to the WebSocket clients // EMAIL AS UNIQUE IDENTIFIER?
-        await self.send(text_data=json.dumps(message))
 
-    async def chat_message(self, event):
-        message = event['message']
-        sender = event['sender']
 
-        await self.send(text_data=json.dumps({
-            'message': message,
-            'sender': sender
-        }))
+
+        async def send_private_message(self, receiver_email, message):
+            # Send the message to the WebSocket clients // EMAIL AS UNIQUE IDENTIFIER?
+            await self.send(text_data=json.dumps(message))
+
+        async def chat_message(self, event):
+            message = event['message']
+            sender = event['sender']
+
+            await self.send(text_data=json.dumps({
+                'message': message,
+                'sender': sender
+            }))
+
+    async def block_user(self, chat_json):
+        from .models import Chat, Message
+        from auth_app.models import AppUser
+        
+        # Implement blocking logic here
+        sender_email = chat_json.get('sender')
+        receiver_username = chat_json.get('receiver')
+        sender = await sync_to_async(AppUser.objects.get)(email=sender_email)
+        logprint(f"{sender.email} is blocking {receiver_username}")
 
     def getMessageModel(self):
         from .models import Message
