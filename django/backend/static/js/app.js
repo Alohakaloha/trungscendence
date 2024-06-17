@@ -851,7 +851,7 @@ function bind_local_Tournament(localSettings){
 	 if (event.code === 1000) {
 		 console.log(`Connection of LocalTournament closed cleanly, code=${event.code} reason=${event.reason}`);
 	 } else {
-		 console.log('Connection died');
+		 console.log('tournament closed ', event);
 	 }
 	tournamentSocket = null;
  }
@@ -963,7 +963,7 @@ function tournamentMatch(){
 			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
 			}
 
-		if ('game_over' in data){
+		if (data.type === "match_result"){
 			console.log("result =", data)
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
@@ -974,6 +974,7 @@ function tournamentMatch(){
 			gameSocket.close();
 			sounds = false;
 			if (tournamentSocket === WebSocket.OPEN)
+				console.log(data);
 				tournamentSocket.send(JSON.stringify(data));
 			return;
 		}
@@ -987,11 +988,7 @@ function tournamentMatch(){
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
 		tournamentRules = {};
-		if (event.code === 1000) {
-			console.log(`Connection localMatch closed cleanly, code=${event.code} reason=${event.reason}`);
-		} else {
-			console.log('Connection died');
-		}
+		console.log("game ended");
 	}
 
 	gameSocket.onerror = function(error) {
