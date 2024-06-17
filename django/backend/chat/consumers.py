@@ -1,8 +1,9 @@
 import json
+from django.utils import timezone
+from django.utils.timezone import now
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 import sys
-
 
 
 def logprint(*args, **kwargs):
@@ -11,9 +12,9 @@ def logprint(*args, **kwargs):
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        #fixed room name
         self.room_name = 'chatting'
         self.room_group_name = f'chat_{self.room_name}'
+        self.username = self.scope['user'].username
 
         # Join room group
         await self.channel_layer.group_add(
@@ -21,9 +22,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+        # Send connect message with timestamp
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'chat_message',
+                'message': f"{self.username} has joined the chat",
+                'sender': 'system',
+                'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+            }
+        )
+
         await self.accept()
 
     async def disconnect(self, close_code):
+        # Send disconnect message with timestamp
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'chat_message',
+                'message': f"{self.username} has left the chat",
+                'sender': 'system',
+                'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+            }
+        )
+
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -42,7 +65,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender_username = chat_json.get('sender')
             message_content = chat_json.get('message')
 
-            #DEBUG Log received message
+            # DEBUG Log received message
             logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
 
             # Fetch sender asynchronously
@@ -56,16 +79,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     await self.channel_layer.group_send(
                         self.room_group_name,
                         {
-                            'type': 'chat_message',  # Ensure the correct handler type is specified
+                            'type': 'chat_message',
                             'message': message_content,
                             'sender': sender.username,
+                            'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                         }
                     )
                 else:
                     # Private message handling
                     receiver = await sync_to_async(AppUser.objects.get)(username=receiver_uname)
-                    #DEBUG
-                    logprint(sender, receiver)
 
                     # Find or create chat asynchronously
                     chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
@@ -82,10 +104,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'type': 'message',
                         'message': message_content,
                         'sender': sender.username,
+                        'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                     })
 
             elif action_type == 'block':
-                #DEBUG Handle block action
+                # DEBUG Handle block action
                 logprint("Block action received")
                 await self.block_user(chat_json)
 
@@ -110,11 +133,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         message = event['message']
         sender = event['sender']
+        timestamp = event['timestamp']
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message': message,
-            'sender': sender
+            'sender': sender,
+            'timestamp': timestamp,
         }))
 
     async def send_private_message(self, receiver_username, message):
@@ -132,7 +157,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Fetch sender asynchronously by username
         sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
 
-        #DEBUG
+        # DEBUG
         logprint(f"{sender.username} is blocking {receiver_username}")
 
 

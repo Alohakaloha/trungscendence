@@ -492,26 +492,44 @@ async function currentJS() {
 
 
 
-	function updateChat(){
-		console.log("chat update on")
-		chatSocket.onmessage = function(event) {
+	function updateChat() {
+		console.log("Chat update started");
+	
+		chatSocket.onmessage = function (event) {
 			console.log(`Data received from server: ${event.data}`);
-			let message = document.createElement('div');
-			message.className = 'user-message';
-			chatText.appendChild(message)
-			message.innerHTML = event.data;
-
+	
+			// Parse the incoming message JSON
+			let messageData = JSON.parse(event.data);
+	
+			// Extract the relevant data
+			let timestamp = messageData.timestamp;
+			let sender = messageData.sender;
+			let message = messageData.message;
+	
+			// Create a div element for the message
+			let messageDiv = document.createElement('div');
+			messageDiv.className = 'user-message';
+	
+			// Construct the message text in the desired format
+			let messageText = `${timestamp}: ${sender}: ${message}`;
+	
+			// Set the innerHTML of the message div
+			messageDiv.textContent = messageText;
+	
+			// Append the message div to the chat text area
+			chatText.appendChild(messageDiv);
+	
+			// Scroll to the bottom of the chat text area
 			chatText.scrollTop = chatText.scrollHeight;
-			
 		};
-		
-		chatSocket.onclose = function(event){
+	
+		chatSocket.onclose = function (event) {
 			if (event.code === 1000) {
 				console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
 			} else {
-				console.log('Connection died = ', event);
+				console.log('Connection closed unexpectedly:', event);
 			}
-		}
+		};
 	}
 
 	async function sendChat() {
