@@ -8,11 +8,14 @@ import sys
 def logprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_name = "all_chat"
-        self.room_group_name = f"chat_{self.room_name}"
-        # self.username = self.scope['user'].username
+        #fixed room name
+        self.room_name = 'chatting'
+        self.room_group_name = f'chat_{self.room_name}'
+
+        # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -20,28 +23,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
-        # await self.channel_layer.group_send(
-        #     self.room_group_name,
-        #     {
-        #         'type': 'chat_message',
-        #         # 'message': f'{self.username} has joined the chat.',
-        #         'sender': 'System'
-        #     }
-        # )
-
     async def disconnect(self, close_code):
+        # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
-        )
-
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                # 'message': f'{self.username} has left the chat.',
-                'sender': 'System'
-            }
         )
 
     async def receive(self, text_data):
@@ -49,19 +35,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from auth_app.models import AppUser
 
         try:
-            # Parse incoming JSON data
             chat_json = json.loads(text_data)
 
             # Extract action details
-            action_type = chat_json.get('type')  # Renamed from message_type
-            sender_email = chat_json.get('sender')
+            action_type = chat_json.get('type')
+            sender_username = chat_json.get('sender')
             message_content = chat_json.get('message')
 
-            # Log received message
-            logprint(f"Received {action_type} from sender {sender_email}: {message_content}")
+            #DEBUG Log received message
+            logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
 
             # Fetch sender asynchronously
-            sender = await sync_to_async(AppUser.objects.get)(email=sender_email)
+            sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
 
             if action_type == 'message':
                 receiver_uname = chat_json.get('receiver')
@@ -71,16 +56,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     await self.channel_layer.group_send(
                         self.room_group_name,
                         {
-                            'type': 'message',
+                            'type': 'chat_message',  # Ensure the correct handler type is specified
                             'message': message_content,
-                            'sender': sender.email,
+                            'sender': sender.username,
                         }
                     )
                 else:
                     # Private message handling
-                    receiver_email = await AppUser.get_email_by_username(receiver_uname)
-                    receiver = await sync_to_async(AppUser.objects.get)(email=receiver_email)
-
+                    receiver = await sync_to_async(AppUser.objects.get)(username=receiver_uname)
+                    #DEBUG
                     logprint(sender, receiver)
 
                     # Find or create chat asynchronously
@@ -94,14 +78,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     )
 
                     # Send private message to receiver
-                    await self.send_private_message(receiver.email, {
+                    await self.send_private_message(receiver.username, {
                         'type': 'message',
                         'message': message_content,
-                        'sender': sender.email,
+                        'sender': sender.username,
                     })
 
             elif action_type == 'block':
-                # Handle block action
+                #DEBUG Handle block action
                 logprint("Block action received")
                 await self.block_user(chat_json)
 
@@ -122,31 +106,36 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logprint(f"An error occurred: {e}")
 
+    # Handler for receiving message from room group
+    async def chat_message(self, event):
+        message = event['message']
+        sender = event['sender']
 
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'sender': sender
+        }))
 
-
-        async def send_private_message(self, receiver_email, message):
-            # Send the message to the WebSocket clients // EMAIL AS UNIQUE IDENTIFIER?
-            await self.send(text_data=json.dumps(message))
-
-        async def chat_message(self, event):
-            message = event['message']
-            sender = event['sender']
-
-            await self.send(text_data=json.dumps({
-                'message': message,
-                'sender': sender
-            }))
+    async def send_private_message(self, receiver_username, message):
+        # Send the message to the WebSocket clients
+        await self.send(text_data=json.dumps(message))
 
     async def block_user(self, chat_json):
         from .models import Chat, Message
         from auth_app.models import AppUser
-        
+
         # Implement blocking logic here
-        sender_email = chat_json.get('sender')
+        sender_username = chat_json.get('sender')
         receiver_username = chat_json.get('receiver')
-        sender = await sync_to_async(AppUser.objects.get)(email=sender_email)
-        logprint(f"{sender.email} is blocking {receiver_username}")
+
+        # Fetch sender asynchronously by username
+        sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
+
+        #DEBUG
+        logprint(f"{sender.username} is blocking {receiver_username}")
+
+
 
     def getMessageModel(self):
         from .models import Message
