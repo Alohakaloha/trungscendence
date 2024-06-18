@@ -504,6 +504,11 @@ async function currentJS() {
 			let messageContainer = document.createElement('div');
 			messageContainer.className = 'message-container';
 	
+			// Apply different class for system messages
+			if (sender === "system") {
+				messageContainer.classList.add('system-message');
+			}
+	
 			// Create a div for the timestamp and sender
 			let messageTimestamp = document.createElement('div');
 			messageTimestamp.className = 'message-timestamp';
@@ -533,7 +538,6 @@ async function currentJS() {
 			}
 		};
 	}
-	
 
 	async function sendChat() {
 		let text = chatMessage.value;

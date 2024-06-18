@@ -82,3 +82,7 @@ input[type="text"] {
     margin-left: 10px;
     font-weight: bold;
 }
+
+.system-message .message-content {
+    color: red;
+}
