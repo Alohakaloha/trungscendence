@@ -336,7 +336,6 @@ async function currentJS() {
 		}
 	}
 
-	// creates the chat window with the friend list from userobject
 	async function showFriends() {
 		try {
 			let user = await fetchUserData();
@@ -483,8 +482,6 @@ async function currentJS() {
 				sendChat();
 			}
 		});
-	
-		// Update chat window
 		updateChat();
 	}
 	
@@ -498,10 +495,7 @@ async function currentJS() {
 		chatSocket.onmessage = function (event) {
 			console.log(`Data received from server: ${event.data}`);
 	
-			// Parse the incoming message JSON
 			let messageData = JSON.parse(event.data);
-	
-			// Extract the relevant data
 			let timestamp = messageData.timestamp;
 			let sender = messageData.sender;
 			let message = messageData.message;
@@ -546,12 +540,10 @@ async function currentJS() {
 		let receiver = document.getElementById('chat-receiver').textContent;
 		text = text.trim();
 	
-		// Check if input fields are empty
 		if (text === "" || receiver === "") {
 			return;
 		}
 	
-		// Fetch user data to check authentication
 		let user = await fetchUserData();
 		if (!user.authenticated) {
 			console.log("User not authenticated. Cannot send message.");
@@ -568,12 +560,9 @@ async function currentJS() {
 	
 		console.log("Sending message:", message);
 	
-		// Send message if chat socket is open
 		if (chatSocket.readyState === WebSocket.OPEN) {
 			chatSocket.send(JSON.stringify(message));
 		}
-	
-		// Clear chat input after sending message
 		chatMessage.value = "";
 	}
 
