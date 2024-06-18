@@ -294,37 +294,92 @@ async function currentJS() {
 	// <br>
 	// {% endfor %}
 
-	
+	// user email and receiver userid are being send to the server
+	function chatObject(user, receiver){
+	let chatRoom = {
+		"type": "chatroom",
+		"sender": user,
+		"receiver": receiver,
+	};
+
+	if (openWindow === true){
+		let chatReceiver = document.getElementById('chat-receiver');
+		chatReceiver.innerHTML = receiver;
+	}
+	if (chatSocket.readyState === WebSocket.OPEN) {
+		console.log("chat socket for room is open")
+		chatSocket.send(JSON.stringify(chatRoom));
+		}
+	else
+		return;
+	}
+
+	function blockUser(user, receiver){
+		let block = {
+			"type": "block",
+			"sender": user,
+			"receiver": receiver,
+		};
+
+		if (chatSocket.readyState === WebSocket.OPEN) {
+			chatSocket.send(JSON.stringify(block));
+		}
+		else
+			return;
+	}
+
+	// creates the chat window with the friend list from userobject
 	async function showFriends(){
 		let user = await fetchUserData();
 		if (user.authenticated){
+
 			let list = await fetchUserFriends();
+			let allChat = document.createElement('div');
+			allChat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/></svg> All Chat`;
+			
+			allChat.onclick = function() {chatObject(user, "global")};
+			friendList.appendChild(allChat);
 			for (let friend of list.friends) {
 				let friendDiv = document.createElement('div');
 				friendDiv.className = 'friends-window';
 				let friendPic = document.createElement('img');
 				friendPic.src = friend.profile_picture;
-				friendDiv.onclick = function() {
-					let sender = user.email;
-					let receiver = friend.username;
-					let chatRoom = {
-						"type": "chatroom",
-						"sender": sender,
-						"receiver": receiver,
-					};
-					if (openWindow === true){
-						let chatReceiver = document.getElementById('chat-receiver');
-						chatReceiver.innerHTML = "chatting with " + receiver;
-					}
-					if (chatSocket.readyState === WebSocket.OPEN) {
-						console.log("chat socket for room is open")
-						chatSocket.send(JSON.stringify(chatRoom));	
-						}
-				}
+				friendDiv.onclick = function() { chatObject(user.email, friend.username); };
 				friendDiv.appendChild(friendPic);
+				friendDiv.innerHTML += friend.username;
+			
+				// Create the dropdown button
+				let menu = document.createElement('button');
+				menu.style.borderRadius = '50%';
+				menu.className = 'btn btn-dark dropdown-toggle';
+				menu.setAttribute('type', 'button');
+				menu.setAttribute('id', 'dropdownMenuButton' + friend.username); // Ensure unique ID for each friend
+				menu.setAttribute('data-bs-toggle', 'dropdown'); // Note the 'bs' for Bootstrap 5
+				menu.setAttribute('aria-expanded', 'false');
+			
+				// Create the dropdown menu
+				let dropdownMenu = document.createElement('ul');
+				dropdownMenu.className = 'dropdown-menu';
+				dropdownMenu.setAttribute('aria-labelledby', 'dropdownMenuButton' + friend.username); // Ensure it matches the button's ID
+			
+				// Create dropdown items
+				let dropdownItem = document.createElement('li');
+				let actionLink = document.createElement('a');
+				actionLink.className = 'dropdown-item';
+				actionLink.href = '#';
+				actionLink.textContent = "block " + friend.username;
+				actionLink.onclick = function() { blockUser(user.email, friend.username); };
+				// Add any specific onclick functionality here
+				dropdownItem.appendChild(actionLink);
+				dropdownMenu.appendChild(dropdownItem);
+			
+				// Append the menu and dropdownMenu to friendDiv
+				friendDiv.appendChild(menu);
+				friendDiv.appendChild(dropdownMenu);
+			
+				// Append friendDiv to friendList
 				friendList.appendChild(friendDiv);
-				friendDiv.innerHTML +=  friend.username;
-				
+			
 			}
 		}
 		else
@@ -397,15 +452,20 @@ async function currentJS() {
 	async function sendChat(){
 		// TODO with user Authentication
 		let text = chatMessage.value;
+		let receiver = document.getElementById('chat-receiver').textContent;
 		text = text.trim();
-		if(text === ""){
+		
+		if(text === "" || receiver === ""){
 			return;
 		}
 		let user = await fetchUserData();
 		let message = {
+			"type"	: "message",
 			"sender": user.username,
+			"receiver": receiver,
 			"message": text,
 		};
+		console.log(message);
 		if (chatSocket.readyState === WebSocket.OPEN) {
 
 		// console.log("message: " + message);
@@ -427,7 +487,7 @@ async function currentJS() {
 		chatWindowWrapper = null;
 		chat.style.height = '3vh';
 		chat.style.width = '5vw';
-		chat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-chat" viewBox="0 0 16 16"><path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"/></svg>';
+		chat.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-chat" viewBox="0 0 16 16"><path d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894m-.493 3.905a22 22 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a10 10 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105"/></svg>';
 		chat.addEventListener('click', openingChat);
 		chat.style.transform = 'translate(0, -100%)';
 	};
@@ -703,7 +763,7 @@ function playerRounds(p1, p2){
 	let currentP2 = p2rounds.getElementsByTagName('svg').length;
 
 	let toAddP1 = p1 - currentP1;
-    let toAddP2 = p2 - currentP2;
+	let toAddP2 = p2 - currentP2;
 
 	for (let i = 0; i < toAddP1; i++){
 		p1rounds.innerHTML += svgTemplate;
@@ -791,7 +851,7 @@ function bind_local_Tournament(localSettings){
 	 if (event.code === 1000) {
 		 console.log(`Connection of LocalTournament closed cleanly, code=${event.code} reason=${event.reason}`);
 	 } else {
-		 console.log('Connection died');
+		 console.log('tournament closed ', event);
 	 }
 	tournamentSocket = null;
  }
@@ -805,9 +865,14 @@ function tournamentStatus(){
 
 function updateTournament(data){
 	let participants = data['participants']
+	let remaining = data['remaining'];
 	for (let i = 0; i < participants.length; i++) {
 		let ids = document.getElementById('p' + (i + 1));
 		ids.innerHTML = participants[i];
+	}
+	for(let i = 0; i < remaining.length; i++){
+		let ids = document.getElementById('r' + (i + 1));
+		ids.innerHTML = remaining[i];
 	}
 	document.getElementById('nextFirst').innerHTML = data['nextUp'][0];
 	document.getElementById('nextSecond').innerHTML = data['nextUp'][1];
@@ -898,7 +963,7 @@ function tournamentMatch(){
 			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
 			}
 
-		if ('game_over' in data){
+		if (data.type === "match_result"){
 			console.log("result =", data)
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
@@ -909,6 +974,7 @@ function tournamentMatch(){
 			gameSocket.close();
 			sounds = false;
 			if (tournamentSocket === WebSocket.OPEN)
+				console.log(data);
 				tournamentSocket.send(JSON.stringify(data));
 			return;
 		}
@@ -922,11 +988,7 @@ function tournamentMatch(){
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
 		tournamentRules = {};
-		if (event.code === 1000) {
-			console.log(`Connection localMatch closed cleanly, code=${event.code} reason=${event.reason}`);
-		} else {
-			console.log('Connection died');
-		}
+		console.log("game ended");
 	}
 
 	gameSocket.onerror = function(error) {

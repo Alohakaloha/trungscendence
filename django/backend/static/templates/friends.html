@@ -21,39 +21,19 @@
 		<span id="successMsg" style="color: green;"></span>
 		<span id="declineMsg" style="color: red"></span>
 	</div>
-	<div class="user-wrapper">
-		<div class="all_users">
-			<h3>All Users:</h3>
-			{% for user in users %}
-			{% if not user.is_superuser %}
-			{% if user not in request.user.friends.all and user != request.user%}
-			<ul> 
-				<form class='friend_request_send' action="send_friend_request/{{ user.user_id }}" method="post">
-					{% csrf_token %}
-					<li/><input type="hidden" id="value" name="request_id" value="{{ user.user_id }}">
-					{{ user.username}} <button type="submit" class='add_friend-button' data-user-id="{{ user.user_id }}">Add friend</button><br>
-				</form>
-			</ul>
-			{% endif %}
-			{% endif %}
-			{% endfor %}
-		</div>
-		<span id="friend-request-sent" style="color: green;"></span> 
-		<span id="alreadySent" style="color: red;"></span>
-	</div>
 	<div class="friends-wrapper">
 
 		<div class="friends">
 			<h3>My friends:</h3>
 			{% for user in request.user.friends.all%}
 			<div class="user-details">
-				<span style="cursor: pointer; text-decoration: underline; color: blue;"> {{ user.username }} </span>
+				<span id="user-detail-id"> {{ user.username }} </span>
 				<a class="user_id" style="display: none" data-user-id="{{ user.user_id }}"></a>
 				{% if user.is_online %}
-				<img src="{% static 'images/online.png' %}" width="22"/>
+				<img class="online-status" src="{% static 'images/online.png' %}"/>
 				<a>Online</a>
 				{% elif user.last_online %}
-				<img src="{% static 'images/last_online.png' %}" width="22"/>
+				<img class="online-status" src="{% static 'images/last_online.png' %}"/>
 				<a>{{ user.get_online_info }} </a>
 				{% endif %}
 				<form class="unfriend" action="unfriend/{{ user.user_id }}" method="post">
@@ -68,5 +48,28 @@
 			{% endfor %}
 		</div>
 	</div>
+	<div class="user-wrapper">
+		<div class="all_users">
+			<h3>All Users:</h3>
+			{% for user in users %}
+			{% if not user.is_superuser %}
+			{% if user not in request.user.friends.all and user != request.user%}
+			<ul> 
+				<form class='friend_request_send' action="send_friend_request/{{ user.user_id }}" method="post">
+					{% csrf_token %}
+					<li>
+						<input type="hidden" id="value" name="request_id" value="{{ user.user_id }}">
+					</li>
+					{{ user.username}} <button type="submit" class='add_friend-button' data-user-id="{{ user.user_id }}">Add friend</button><br>
+				</form>
+			</ul>
+			{% endif %}
+			{% endif %}
+			{% endfor %}
+		</div>
+		<span id="friend-request-sent" style="color: green;"></span> 
+		<span id="alreadySent" style="color: red;"></span>
+	</div>
+
 </div>
 	<script type='module' src="{% static '/js/friend_request.js' %}"></script>
