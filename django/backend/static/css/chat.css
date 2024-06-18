@@ -1,69 +1,84 @@
-#chat-window{
-	display: grid;
-	justify-content: center;
-	width: 45vw;
-	height: 50vh;
-	/* background-color: grey; */
-	overflow: auto;
-	margin-bottom: 5px;
-	border-radius: 10px;
-	border: 1px solid black;
-	font-size: calc(10px + 0.5vw);
-	scrollbar-gutter: stable both-edges;
-	/* padding-top: 10px; */
 
+#chat-window {
+    display: grid;
+    justify-content: center;
+    width: 45vw;
+    height: 50vh;
+    overflow: auto;
+    margin-bottom: 5px;
+    border-radius: 10px;
+    border: 1px solid black;
+    font-size: calc(10px + 0.5vw);
+    scrollbar-gutter: stable both-edges;
 }
 
 @media (max-width: 600px) {
-	#chat-window {
-		font-size: 13px; /* Set a fixed font size for small viewports */
-	}
+    #chat-window {
+        font-size: 13px; /* Set a fixed font size for small viewports */
+    }
 }
 
-#close-chat{
-	background-color: red;
-	width: fit-content;
-	height: fit-content;
-	position: absolute;
-	right:0%;
+#close-chat {
+    background-color: red;
+    width: fit-content;
+    height: fit-content;
+    position: absolute;
+    right: 0%;
 }
 
-#chat-input{
-	display: flex;
-	justify-content: left;
-	width: 30vw;
+#chat-input {
+    display: flex;
+    justify-content: left;
+    width: 30vw;
 }
 
-#chat-button{
-	padding-left: 20px;
-	padding-right: 20px;
+#chat-button {
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
-#chat-text{
-	overflow: auto;
-	position: fixed;
-	width: 29vw;
-	height: 50vh;
-	overflow-y: auto;
+#chat-text {
+    overflow: auto;
+    position: fixed;
+    width: 29vw;
+    height: 50vh;
+    overflow-y: auto;
 }
 
-#chat-message{
-	display: flex;
-	justify-content: center;
-	align-items: center;
+#chat-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-input[type="text"]{
-	flex-grow: 1;
+input[type="text"] {
+    flex-grow: 1;
 }
 
-.user-message{
-	display: flex;
-	justify-content: left;
-	flex-direction: column;
-	overflow-wrap: break-word;
+.user-message {
+    display: flex;
+    justify-content: left;
+    flex-direction: column;
+    overflow-wrap: break-word;
 }
 
-#chat-receiver{
-	height:32px;
+#chat-receiver {
+    height: 32px;
+}
+
+/* Additions for message formatting */
+
+.message-container {
+    margin-bottom: 10px;
+}
+
+.message-timestamp {
+    font-size: 0.8em;
+    color: gray;
+}
+
+.message-content {
+    color: lightblue;
+    margin-left: 10px;
+    font-weight: bold;
 }

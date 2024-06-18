@@ -1,6 +1,6 @@
+
 import json
 from django.utils import timezone
-from django.utils.timezone import now
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 import sys
@@ -22,28 +22,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-        # Send connect message with timestamp
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': f"{self.username} has joined the chat",
                 'sender': 'system',
-                'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'timestamp': self.get_current_timestamp(),
             }
         )
 
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Send disconnect message with timestamp
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': f"{self.username} has left the chat",
                 'sender': 'system',
-                'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'timestamp': self.get_current_timestamp(),
             }
         )
 
@@ -60,7 +58,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             chat_json = json.loads(text_data)
 
-            # Extract action details
             action_type = chat_json.get('type')
             sender_username = chat_json.get('sender')
             message_content = chat_json.get('message')
@@ -82,7 +79,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             'type': 'chat_message',
                             'message': message_content,
                             'sender': sender.username,
-                            'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                            'timestamp': self.get_current_timestamp(),
                         }
                     )
                 else:
@@ -104,7 +101,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'type': 'message',
                         'message': message_content,
                         'sender': sender.username,
-                        'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'timestamp': self.get_current_timestamp(),
                     })
 
             elif action_type == 'block':
@@ -159,6 +156,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # DEBUG
         logprint(f"{sender.username} is blocking {receiver_username}")
+
+    def get_current_timestamp(self):
+        current_time = timezone.now()
+        local_time = timezone.localtime(current_time)
+        return local_time.strftime('%d.%m.%Y %H:%M')
 
 
 

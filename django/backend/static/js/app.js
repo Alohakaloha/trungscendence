@@ -506,18 +506,26 @@ async function currentJS() {
 			let sender = messageData.sender;
 			let message = messageData.message;
 	
-			// Create a div element for the message
-			let messageDiv = document.createElement('div');
-			messageDiv.className = 'user-message';
+			// Create a container div for the message
+			let messageContainer = document.createElement('div');
+			messageContainer.className = 'message-container';
 	
-			// Construct the message text in the desired format
-			let messageText = `${timestamp}: ${sender}: ${message}`;
+			// Create a div for the timestamp and sender
+			let messageTimestamp = document.createElement('div');
+			messageTimestamp.className = 'message-timestamp';
+			messageTimestamp.textContent = timestamp;
 	
-			// Set the innerHTML of the message div
-			messageDiv.textContent = messageText;
+			// Create a div for the message content
+			let messageContent = document.createElement('div');
+			messageContent.className = 'message-content';
+			messageContent.textContent = `${sender}: ${message}`;
 	
-			// Append the message div to the chat text area
-			chatText.appendChild(messageDiv);
+			// Append the timestamp and content to the container
+			messageContainer.appendChild(messageTimestamp);
+			messageContainer.appendChild(messageContent);
+	
+			// Append the message container to the chat text area
+			chatText.appendChild(messageContainer);
 	
 			// Scroll to the bottom of the chat text area
 			chatText.scrollTop = chatText.scrollHeight;
@@ -531,6 +539,7 @@ async function currentJS() {
 			}
 		};
 	}
+	
 
 	async function sendChat() {
 		let text = chatMessage.value;
