@@ -19,7 +19,7 @@
 }
 
 #close-chat {
-    background-color: red;
+    background-color: rgb(39, 39, 39);
     width: fit-content;
     height: fit-content;
     position: absolute;
@@ -85,4 +85,24 @@ input[type="text"] {
 
 .system-message .message-content {
     color: red;
+}
+
+.toast-container {
+    top: 10%;
+    right: auto; /* Reset the right positioning if it's set */
+    bottom: auto; /* Reset the bottom positioning if it's set */
+    transform: translate(0, 0); /* Reset any transforms that might be applied */
+}
+/* 
+#liveToastBtn{
+	border-radius: 50%;
+} */
+
+.custom-smaller{
+	padding: 4px 4px
+}
+
+.custom-smaller svg{
+	width:16px;
+	height:16px;
 }

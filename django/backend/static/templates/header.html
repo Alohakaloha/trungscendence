@@ -34,7 +34,8 @@
 				  </svg>
 				</button>
 
-				<button class="btn btn-dark" id="lastMsg">
+
+
 				</button>
 				<div class="offcanvas offcanvas-start" tabindex="-1" id="navbar01">
 					<div class="offcanvas-header" onclick="changeURL('/', 'Main Page', { main: true });" data-bs-dismiss="offcanvas">
@@ -106,14 +107,33 @@
 				</div>
 			</div>
 		</div>
-		<div id="header_space">
-		</div>
+
 	</div>
-		<span type="button" >
-			<a onclick="changeURL('/profile', 'Profile Page', {	Profile: true });" class="nav-link text-colors">
-				<img id="profile_picture" href="/profile" class="rounded-circle" src="{% static 'images/anonymous.png' %}" alt="user profile picture" width="42" >
-			</svg>Profile</a>
-	</span>
+	<div class="toast-container position-fixed top-20 end-0 p-3">
+		<div id="liveToast" class="toast text-white bg-dark" role="alert" aria-live="assertive" aria-atomic="true">
+		  <!-- <div class="toast-header">
+			<strong class="me-auto">INFO</strong>
+			<small>11 mins ago</small>
+		</div> -->
+		<div class="d-flex">
+
+			<div class="toast-body" id="notification">
+				Hello, world! This is a toast message.
+			</div>
+			<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+		</div>
+		</div>
+	  </div>
+	<div id="profile_wrapper">
+		  <button type="button" class="btn btn-dark custom-smaller" id="liveToastBtn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info" viewBox="0 0 16 16">
+			<path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+		  </svg></button>
+		  <div type="button" >
+			  <a onclick="changeURL('/profile', 'Profile Page', {	Profile: true });" class="nav-link text-colors">
+				  <img id="profile_picture" href="/profile" class="rounded-circle" src="{% static 'images/anonymous.png' %}" alt="user profile picture" width="42" >
+				</svg>Profile</a>
+			</div>
+		</div>
 </nav>
 </div>
 
