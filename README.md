@@ -110,3 +110,18 @@ https://github.com/ayounes9/elk-on-docker
 https://github.com/laradock/laradock/issues/1699#issuecomment-404738158
 
 Run `sudo sysctl -w vm.max_map_count=262144` in the terminal, not in the docker
+
+
+
+
+## TODO CHAT
+ - message model for private messages
+ - load last messages when opening up a private message
+ - system message when user is not connected
+ - unblock button in frontend
+ - block and unblock message model
+ - block functionality
+ - invite to game button in frontend
+ - game invite functionality
+ - refactor
+ - bugfix frontend
