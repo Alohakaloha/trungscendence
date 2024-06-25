@@ -3,9 +3,9 @@ let jsFile;
 const content = document.getElementById('content');
 const chat = document.getElementById('chat');
 
-let resetData = document.getElementById('reset-data');
-let uidb64 = resetData.getAttribute('data-uidb64');
-let token = resetData.getAttribute('data-token');
+// let resetData = document.getElementById('reset-data');
+// let uidb64 = resetData.getAttribute('data-uidb64');
+// let token = resetData.getAttribute('data-token');
 
 
 // const toastTrigger = document.getElementById('ToastBtn')
@@ -96,6 +96,8 @@ function resetPwd(){
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
+	let uidb64;
+	let token;
 
 	try{
 		const user = await fetchUserData();
@@ -117,11 +119,20 @@ async function handleRouting() {
 			}
 		}
 
-		if (uidb64 && token){
-			console.log("Resetting password");
-			resetPwd();
+		// if (uidb64 && token){
+		// 	console.log("Resetting password");
+		// 	resetPwd();
+		// }
+		console.log("before gettoken")
+		let reset_data = await getUidb_token();
+		console.log(reset_data);
+		if (reset_data){
+			uidb64 = reset_data['uidb64'];
+			token = reset_data['token'];
+			console.log("resetting password");
+			resetPwd()
 		}
-		
+		console.log(uidb64, token);
 		switch (page) {
 			case '/':
 				jsFile = './welcome.js';
@@ -315,42 +326,19 @@ async function currentJS() {
 	});
 // RESET
 
-function submitFormHandler(event){
-	event.preventDefault();
-	let new_password1 = document.getElementById('new_password1').value;
-	let new_password2 = document.getElementById('new_password2').value;
-
-	resetPassword(event, new_password1, new_password2);
-}
-async function resetPassword(event, new_password1, new_password2){
-	// let errorMsg = document.getElementById('errorMsg');
-	// let successMsg = document.getElementById('successMsg');
-	let data = {
-		"new_password1": new_password1,
-		"new_password2": new_password2,
-		"uidb64": uidb64,
-		"token" : token
-	};
-	// formData.append('new_password1', new_password1);
-	// formData.append('new_password2', new_password2);
-	console.log(data);
+async function getUidb_token(){
 	try{
-		const response = await fetch(`/password_reset_confirm/password_reset_confirm.html/${uidb64}/${token}/`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': getCookie('csrftoken')
-			},
-			body: JSON.stringify(data),
-		});
-		const responseData = await response.json();
-		if (responseData.success){
-			changeURL ('/login', 'Login', {main:true});
-		} else {
-			alert(responseData.error);
-		}
-	} catch (error){
-		console.error('Error setting the new password: ', error);
+		await fetch('/get_reset_data')
+		.then(response => response.json())
+		.then(data =>{
+			if (data.uidb64 && data.token){
+				return data;
+			}
+			else
+				return null;
+		})
+	} catch(error){
+		console.error("Error with the authentication token: ", error);
 	}
 }
 //        | |         | |  
