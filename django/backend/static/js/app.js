@@ -761,16 +761,18 @@ function playSound(sound){
 
 function connectGame(settings, colors){
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/local/'); //wss only
+	let frame;
+
 	gameSocket.onopen = function(){
+		
 		gameSocket.send(JSON.stringify(settings));
+		frame = setInterval(()=> {})
 		requestUpdate = setInterval(() => {
-			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
-			p1Color = document.getElementById("player1");
-			p2Color = document.getElementById("player2");
+			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 20);
+			let p1Color = document.getElementById("player1");
+			let p2Color = document.getElementById("player2");
 			p1Color.style.boxShadow = "-5px 0px 3px "+ colors.p1Color;
 			p2Color.style.boxShadow ="5px 0px 3px " + colors.p2Color;
-
-
 	}
 
 
@@ -814,7 +816,7 @@ function connectGame(settings, colors){
 
 	gameSocket.onmessage = function(event){
 		let data = JSON.parse(event.data);
-		if ('game_over' in data){
+		if (data.type === "match_result"){
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
 			winner.style.display = 'block';
@@ -834,7 +836,7 @@ function connectGame(settings, colors){
 			playSound(data.sounds);
 		}
 		else{
-			displayPong(data);
+			displayPong(data)
 		}
 	}
 
@@ -895,24 +897,26 @@ function playerRounds(p1, p2){
 }
 
 
+
+
 function displayPong(data)
 {
 
 	let ball = document.getElementById('ball');
 	let game = document.getElementById('pongGame');
 	let headerbar = document.getElementById('header-bar');
-	let name1 = document.getElementById('player1-name');
-	let name2 = document.getElementById('player2-name');
-	let p1score = document.getElementById('player1-score');
-	let p2score = document.getElementById('player2-score');
 	let player1 = document.getElementById('player1');
 	let player2 = document.getElementById('player2');
 	
 	if('player_1_name' in data){
+		let name1 = document.getElementById('player1-name');
+		let name2 = document.getElementById('player2-name');
 		name1.innerHTML = data.player_1_name;
 		name2.innerHTML = data.player_2_name;
 	}
 	if ('score1' in data){
+		let p1score = document.getElementById('player1-score');
+		let p2score = document.getElementById('player2-score');
 		p1score.innerHTML = data.score1;
 		p2score.innerHTML = data.score2;
 	}
@@ -1021,7 +1025,8 @@ function tournamentMatch(){
 		.catch(error => console.log(error));
 
 
-	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/'); //wss only
+	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/');
+
 	gameSocket.onopen = function(){
 		if(tournamentSocket){
 			gameSocket.send(JSON.stringify(tournamentRules))
@@ -1081,11 +1086,10 @@ function tournamentMatch(){
 		if(data.type === 'rules'){
 			gameSocket.send(JSON.stringify({ "update": "update"}));
 			requestUpdate = setInterval(() => {
-			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
+			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 30);
 			}
 
 		if (data.type === "match_result"){
-			console.log("result =", data)
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
 			winner.style.display = 'block';
@@ -1102,7 +1106,7 @@ function tournamentMatch(){
 		if ("sounds" in data)
 			playSound(data.sounds);
 		else
-			displayPong(data);
+			displayPong(data)
 	}
 
 	gameSocket.onclose = function(event){

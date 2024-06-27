@@ -19,7 +19,6 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 		active_rooms.add(self.room_group_name)
 
 		self.connections = 0
-		logprint("Room name: \n", self.room_name, "\nRoom group name: \n", self.room_group_name, "\n")
 
 		await self.channel_layer.group_add(
 			self.room_group_name,
@@ -63,7 +62,7 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 				self.game_active = False
 				self.gaming.cancel()
 				await self.send(json.dumps(self.player.score.final_score()))
-				return
+				self.disconnect()
 			await asyncio.sleep(self.fps)
 
 
@@ -127,14 +126,17 @@ class localTournament(AsyncWebsocketConsumer):
 
 	async def receive(self, text_data):
 		data = json.loads(text_data)
-		logprint(data)
 		if data["type"] == "settings":
 			self.tournament.setRules(data)
+			if self.tournament.winner is not None:
+				await self.send(json.dumps(self.tournament.tournamentResults()))
+				self.disconnect()
+				return
 			await self.send(json.dumps(self.tournament.currentRules()))
 		elif data["type"] == "status":
 			await self.send(json.dumps(self.tournament.tournamentStatus()))
 		elif data["type"] == 'match_result':
-			self.saveMatch(data)
+			self.tournament.saveMatch(data)
 			self.tournament.setReady()
 			self.tournament.nextMatch()
 			await self.send(json.dumps(self.tournament.currentRules()))
@@ -169,8 +171,8 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 			self.connections += 1
 		else:
 			return
-
-		self.fps = 1/60
+		# around 30 fps
+		self.fps = 0.02
 		self.game_active = True
 		self.gaming = asyncio.create_task(self.game_loop())
 

@@ -226,7 +226,7 @@ LOGGING = {
     },
     "loggers": {
         "root": {
-            "level": "INFO", 
+            "level": "CRITICAL", 
             "handlers": ["stdout", "file"],
         },
     },

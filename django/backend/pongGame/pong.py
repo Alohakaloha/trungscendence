@@ -88,7 +88,7 @@ class Ball:
 	def __init__(self):
 		self.x = 50
 		self.y = 50
-		self.radius = 1.25
+		self.radius = 1.5
 		self.speed = 0.36
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
