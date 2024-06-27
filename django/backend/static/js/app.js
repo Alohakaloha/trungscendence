@@ -511,6 +511,7 @@ if (toastTrigger) {
 			let timestamp = messageData.timestamp;
 			let sender = messageData.sender;
 			let message = messageData.message;
+			let directMessage = messageData.direct_message || false;  // Check if it's a direct message
 	
 			// Create a container div for the message
 			let messageContainer = document.createElement('div');
@@ -519,6 +520,8 @@ if (toastTrigger) {
 			// Apply different class for system messages
 			if (sender === "system") {
 				messageContainer.classList.add('system-message');
+			} else if (directMessage) {
+				messageContainer.classList.add('direct-message');
 			}
 	
 			// Create a div for the timestamp and sender
@@ -536,10 +539,10 @@ if (toastTrigger) {
 			messageContainer.appendChild(messageContent);
 	
 			// Append the message container to the chat text area
-			chatText.appendChild(messageContainer);
+			document.getElementById('chat-text').appendChild(messageContainer);
 	
 			// Scroll to the bottom of the chat text area
-			chatText.scrollTop = chatText.scrollHeight;
+			document.getElementById('chat-text').scrollTop = document.getElementById('chat-text').scrollHeight;
 		};
 	
 		chatSocket.onclose = function (event) {
@@ -549,7 +552,8 @@ if (toastTrigger) {
 				console.log('Connection closed unexpectedly:', event);
 			}
 		};
-	}
+	}	
+	
 
 	async function sendChat() {
 		let text = chatMessage.value;

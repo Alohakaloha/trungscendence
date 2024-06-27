@@ -66,7 +66,7 @@ input[type="text"] {
     height: 32px;
 }
 
-/* Additions for message formatting */
+/*message formatting*/
 
 .message-container {
     margin-bottom: 10px;
@@ -86,6 +86,14 @@ input[type="text"] {
 .system-message .message-content {
     color: red;
 }
+
+.direct-message .message-content {
+    color: purple;
+    font-style: italic;
+}
+
+
+/*Toast formatting*/
 
 .toast-container {
     top: 10%;

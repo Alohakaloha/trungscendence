@@ -102,20 +102,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         content=message_content
                     )
 
-                    # Send private message to receiver
+                    # Send private message to receiver and sender
                     receiver_channel = user_channel_mapping.get(receiver_uname)
+                    sender_channel = user_channel_mapping.get(sender_username)
+                    message_event = {
+                        'type': 'chat_message',
+                        'message': message_content,
+                        'sender': sender.username,
+                        'timestamp': self.get_current_timestamp(),
+                        'direct_message': True
+                    }
                     if receiver_channel:
-                        await self.channel_layer.send(
-                            receiver_channel,
-                            {
-                                'type': 'chat_message',
-                                'message': message_content,
-                                'sender': sender.username,
-                                'timestamp': self.get_current_timestamp(),
-                            }
-                        )
-                    else:
-                        logprint(f"Receiver '{receiver_uname}' is not connected.")
+                        await self.channel_layer.send(receiver_channel, message_event)
+                    if sender_channel:
+                        await self.channel_layer.send(sender_channel, message_event)
 
             elif action_type == 'block':
                 logprint("Block action received")
@@ -141,11 +141,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = event['message']
         sender = event['sender']
         timestamp = event['timestamp']
+        direct_message = event.get('direct_message', False)  # Get the direct_message flag
 
         await self.send(text_data=json.dumps({
             'message': message,
             'sender': sender,
             'timestamp': timestamp,
+            'direct_message': direct_message,  # Include the direct_message flag
         }))
 
     async def block_user(self, chat_json):
@@ -163,3 +165,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
         current_time = timezone.now()
         local_time = timezone.localtime(current_time)
         return local_time.strftime('%d.%m.%Y %H:%M')
+    
