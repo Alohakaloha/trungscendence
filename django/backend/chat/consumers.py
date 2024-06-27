@@ -71,12 +71,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
 
+            # Fetch sender asynchronously
             sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
 
             if action_type == 'message':
                 receiver_uname = chat_json.get('receiver')
 
                 if receiver_uname == 'global':
+                    # Broadcast message to the chat room without saving to database
                     await self.channel_layer.group_send(
                         self.room_group_name,
                         {
@@ -87,7 +89,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         }
                     )
                 else:
-                    # Direct message handling
+                    # Private message handling
+                    receiver = await sync_to_async(AppUser.objects.get)(username=receiver_uname)
+
+                    # Find or create chat asynchronously
+                    chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
+
+                    # Create message asynchronously
+                    message = await sync_to_async(Message.objects.create)(
+                        chat=chat,
+                        sender=sender,
+                        content=message_content
+                    )
+
+                    # Send private message to receiver
                     receiver_channel = user_channel_mapping.get(receiver_uname)
                     if receiver_channel:
                         await self.channel_layer.send(
