@@ -1,9 +1,12 @@
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
-from django.contrib.auth import authenticate, login as auth_login, views as auth_views
+from django.contrib.auth import authenticate, get_user_model, login as auth_login, views as auth_views
 from django.core.files.base import ContentFile
-from utils import validateEmail, validatePassword, validateUsername
+from django.contrib.auth.password_validation import validate_password, ValidationError
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from utils import validateEmail, validateUsername
 from .models import AppUser, FriendRequest
 import base64
 import uuid
@@ -18,6 +21,7 @@ def eprint(*args, **kwargs):
 def header_view(request, **kwargs):
 	context = {}
 	if(kwargs):
+		eprint("in header view with kwargs")
 		global uidb, tokn
 		uidb = kwargs['uidb64']
 		tokn = kwargs['token']
@@ -105,7 +109,7 @@ def register_view(request):
 		return render(request, 'register.html')
 	if request.method == 'POST':
 		data = json.loads(request.body)
-		if not validateEmail(data['email']) and not validatePassword(data['password']):
+		if not validateEmail(data['email']) and not validate_password(data['password']):
 			return JsonResponse({'status':'error', 'message':'Invalid Email or password.'})
 		if not validateUsername(data['username']):
 			return JsonResponse({'status': 'error', 'message':'Username not valid'})
@@ -248,22 +252,46 @@ def resetPassword(request, uidb64, token):
 		return {'uidb64': uidb64, 'token' : token}
 
 def resetPasswordForm(request, uidb64, token):
-	global uidb, tokn
-	if  uidb64 != 'null' and token != 'null':
-		uidb = uidb64
-		tokn = token
-	if (request.method == 'GET'):
-		eprint(uidb, tokn)
-		context = {'uidb64': uidb, 'token' : tokn}
-		return render(request, 'password_reset_confirm.html', context)
+	if request.method == 'GET':
+		try:
+			uid = urlsafe_base64_decode(uidb64).decode()
+			user_model = get_user_model()
+			user = get_object_or_404(user_model, pk=uid)
+
+			if not default_token_generator.check_token(user, token):
+				eprint("Invalid token")
+				return render(request, '400.html')
+
+			return render(request, 'password_reset_confirm.html')
+		except (TypeError, ValueError, OverflowError, user_model.DoesNotExist):
+			return render(request, '404.html')
 	if (request.method == 'POST'):
-		eprint("in the post method")
-		data = json.loads(request.body)
-		eprint(data)
-		return JsonResponse({'status':'success'})
+		try:
+			data = json.loads(request.body)
+			new_password = data['new_password']
+			if not new_password:
+				return JsonResponse({'status': 'error', 'message': 'Password is required'}, status=400)
+
+			uid = urlsafe_base64_decode(uidb64).decode()
+			user_model = get_user_model()
+			user = get_object_or_404(user_model, pk=uid)
+
+			if not default_token_generator.check_token(user, token):
+				return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=400)
+
+			try:
+				validate_password(new_password)
+			except ValidationError as e:
+				return JsonResponse({'status': 'error', 'message': str(e)})
+			user.set_password(new_password)
+			user.save()
+			
+			token,uidb64 = '',''
+			return JsonResponse({'status':'success'})
+		except Exception as e:
+			return JsonResponse({'status':'error', 'message': str(e)})
 	
 def get_user_token(request):
-	print(uidb,tokn)
 	if not uidb and not tokn:
 		return JsonResponse({'error': 'invalid data'})
 	return JsonResponse({'uidb64': uidb, 'token' : tokn})

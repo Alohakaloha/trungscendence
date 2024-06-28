@@ -2,6 +2,8 @@
 let jsFile;
 const content = document.getElementById('content');
 const chat = document.getElementById('chat');
+let uidb64;
+let token;
 
 // let resetData = document.getElementById('reset-data');
 // let uidb64 = resetData.getAttribute('data-uidb64');
@@ -96,8 +98,7 @@ function resetPwd(){
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
-	let uidb64;
-	let token;
+
 
 	try{
 		const user = await fetchUserData();
@@ -119,125 +120,125 @@ async function handleRouting() {
 			}
 		}
 
-		// if (uidb64 && token){
-		// 	console.log("Resetting password");
-		// 	resetPwd();
-		// }
-		console.log("before gettoken")
-		let reset_data = await getUidb_token();
-		console.log(reset_data);
-		if (reset_data){
-			uidb64 = reset_data['uidb64'];
-			token = reset_data['token'];
-			console.log("resetting password");
-			resetPwd()
-		}
-		console.log(uidb64, token);
-		switch (page) {
-			case '/':
-				jsFile = './welcome.js';
-				showPage("main/welcome.html");
-				break;
-
-			case '/chat':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/game':
-				// jsFile = './game/tmpGame.js';
-				if (tournamentSocket)
-					changeURL('/game/localTournament', 'Tournament Page', {main : true});
-				else
-					showPage(`game/setupGameMode.html`);
-				break;
-
-			case '/game/localTournament':
-				if(tournamentSocket){
-					showPage(`/game/localTournament.html`);
-					break;
-				}else{
-					changeURL('/game', 'Game Page', {main : true});
-					break;
-					}
-			case '/pong':
-				// jsFile = './game/pong.js';
-				showPage(`game/pong.html`);
-				break;
-
-			case '/profile':
-				if(user.authenticated)
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				else
-					changeURL('/login', 'Login Page', {main : true});
-				break;
-
-			case '/history':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/about':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/settings':
-				if (user.authenticated){
-					jsFile='./settings.js';
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				} 
-				else{
-					changeURL('/login', 'Login Page', {main : true});
-					break;
-				}
-				break;
-
-			case '/friends':
-				if (user.authenticated){
-					jsFile='./friend_request.js';
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-					break;
-				}
-				else{
-					changeURL('/login', 'Login Page', {main : true});
-					break;
-				}
-
-			case '/register':
-				jsFile = './register.js';
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/login':
-				if (user.authenticated){
-					changeURL('/', 'Main Page', {main : true});
-					break;
-				}
-
-				jsFile = './login.js';
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/password_reset':
-				jsFile = './forgot_password.js'
-				await showPage('password_reset');
-				break;
-
-			case '/password_reset_done':
-				await showPage(`password_reset_done`);;
-				break;
-			
-			case '/password_reset_confirm':
-				console.log("in the reset case");
-				jsFile = './reset_password.js';
-				await showPage(`${page.slice(1)}/${page.slice(1)}.html/${uidb64}/${token}`);
-				uidb64 = null;
-				token =	null;
-				break;
-
-			default:
-				console.log('Page not found');
-				console.log(window.location.pathname);
-				break;
+		if (page.startsWith('/reset/')){
+			if (user.authenticated){
+				changeURL('/', 'Home', {main : true});
+				return;
 			}
+			let reset_data = await getUidb_token();
+			if (reset_data){
+				uidb64 = reset_data['uidb64'];
+				token = reset_data['token'];
+				resetPwd()
+			}
+		}
+		else {
+			switch (page) {
+				case '/':
+					jsFile = './welcome.js';
+					showPage("main/welcome.html");
+					break;
+
+				case '/chat':
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/game':
+					// jsFile = './game/tmpGame.js';
+					if (tournamentSocket)
+						changeURL('/game/localTournament', 'Tournament Page', {main : true});
+					else
+						showPage(`game/setupGameMode.html`);
+					break;
+
+				case '/game/localTournament':
+					if(tournamentSocket){
+						showPage(`/game/localTournament.html`);
+						break;
+					}else{
+						changeURL('/game', 'Game Page', {main : true});
+						break;
+						}
+				case '/pong':
+					// jsFile = './game/pong.js';
+					showPage(`game/pong.html`);
+					break;
+
+				case '/profile':
+					if(user.authenticated)
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					else
+						changeURL('/login', 'Login Page', {main : true});
+					break;
+
+				case '/history':
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/about':
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/settings':
+					if (user.authenticated){
+						jsFile='./settings.js';
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					} 
+					else{
+						changeURL('/login', 'Login Page', {main : true});
+						break;
+					}
+					break;
+
+				case '/friends':
+					if (user.authenticated){
+						jsFile='./friend_request.js';
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+						break;
+					}
+					else{
+						changeURL('/login', 'Login Page', {main : true});
+						break;
+					}
+
+				case '/register':
+					jsFile = './register.js';
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/login':
+					if (user.authenticated){
+						changeURL('/', 'Main Page', {main : true});
+						break;
+					}
+
+					jsFile = './login.js';
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/password_reset':
+					jsFile = './forgot_password.js'
+					await showPage('password_reset');
+					break;
+
+				case '/password_reset_done':
+					await showPage(`password_reset_done`);;
+					break;
+				
+				case '/password_reset_confirm':
+					console.log("in the reset case");
+					jsFile = './reset_password.js';
+					await showPage(`${page.slice(1)}/${page.slice(1)}.html/${uidb64}/${token}`);
+					uidb64 = null;
+					token =	null;
+					break;
+
+				default:
+					console.log('Page not found');
+					console.log(window.location.pathname);
+					break;
+				}
+		}
 	} catch (error) {
 		console.error('Error handling routing: ', error);
 	}
@@ -288,6 +289,8 @@ async function currentJS() {
 			break;
 
 		case '/password_reset_confirm':
+			unloadEvents('./reset_password.js');
+			break;
 		default:
 			break;
 	}
@@ -328,17 +331,16 @@ async function currentJS() {
 
 async function getUidb_token(){
 	try{
-		await fetch('/get_reset_data')
-		.then(response => response.json())
-		.then(data =>{
-			if (data.uidb64 && data.token){
+		let response = await fetch('/get_reset_data')
+		data = await response.json();
+			if (data.hasOwnProperty('uidb64') && data.hasOwnProperty('token')){
 				return data;
 			}
 			else
 				return null;
-		})
-	} catch(error){
+		} catch(error){
 		console.error("Error with the authentication token: ", error);
+		return null
 	}
 }
 //        | |         | |  
