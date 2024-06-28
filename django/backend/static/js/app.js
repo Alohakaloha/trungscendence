@@ -3,11 +3,6 @@ const content = document.getElementById('content');
 const chat = document.getElementById('chat');
 let uidb64;
 let token;
-
-// let resetData = document.getElementById('reset-data');
-// let uidb64 = resetData.getAttribute('data-uidb64');
-// let token = resetData.getAttribute('data-token');
-
 let jsFile;
 
 window.onpopstate = function(event) {
@@ -124,30 +119,30 @@ async function handleRouting() {
 				case '/':
 					jsFile = './welcome.js';
 					showPage("main/welcome.html");
-					break;
+			  case '/chat':
+				  showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
 
+			case '/game':
+				// jsFile = './game/tmpGame.js';
+				if (gameSocket)
+					gameSocket.close();
+				if (tournamentSocket)
+					changeURL('/game/localTournament', 'Tournament Page', {main : true});
+				else
+					showPage(`game/setupGameMode.html`);
+				break;
+
+			case '/game/localTournament':
+				if(tournamentSocket){
+					showPage(`/game/localTournament.html`);
+					break;
+				}else{
+					changeURL('/game', 'Game Page', {main : true});
+					break;
 				case '/chat':
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
-
-				case '/game':
-					// jsFile = './game/tmpGame.js';
-					if (gameSocket)
-						gameSocket.close();
-					if (tournamentSocket)
-						changeURL('/game/localTournament', 'Tournament Page', {main : true});
-					else
-						showPage(`game/setupGameMode.html`);
-					break;
-
-				case '/game/localTournament':
-					if(tournamentSocket){
-						showPage(`/game/localTournament.html`);
-						break;
-					}else{
-						changeURL('/game', 'Game Page', {main : true});
-						break;
-						}
 				case '/pong':
 					// jsFile = './game/pong.js';
 					showPage(`game/pong.html`);
@@ -320,8 +315,8 @@ async function currentJS() {
 		}
 
 	});
+  
 // RESET
-
 async function getUidb_token(){
 	try{
 		let response = await fetch('/get_reset_data')
