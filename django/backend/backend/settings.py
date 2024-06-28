@@ -161,6 +161,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+PASSWORD_RESET_TIMEOUT = 600  # 1 day
 
 # login/logut settings
 LOGIN_REDIRECT_URL = 'main'

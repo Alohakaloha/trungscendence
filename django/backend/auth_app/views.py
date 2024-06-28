@@ -1,28 +1,38 @@
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
-from django.contrib.auth import authenticate, login as auth_login, views as auth_views
+from django.contrib.auth import authenticate, get_user_model, login as auth_login, views as auth_views
 from django.core.files.base import ContentFile
-from utils import validateEmail, validatePassword, validateUsername
+from django.contrib.auth.password_validation import validate_password, ValidationError
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from utils import validateEmail, validateUsername
 from .models import AppUser, FriendRequest
 import base64
 import uuid
 import json
 import sys
 
+uidb,tokn = '',''
+
 def eprint(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
-def header_view(request):
+def header_view(request, **kwargs):
+	context = {}
+	if(kwargs):
+		global uidb, tokn
+		uidb = kwargs['uidb64']
+		tokn = kwargs['token']
 	return render(request,'header.html')
 	
 def game(request):
 	return render(request,'game.html')
 
-def profile(request, **args):
-	if args :
+def profile(request, **kwargs):
+	if kwargs :
 		if request.user.is_authenticated:
-			friendUser  = AppUser.objects.get(user_id=args['user_id'])
+			friendUser  = AppUser.objects.get(user_id=kwargs['user_id'])
 
 			if request.user.friends.filter(email=friendUser.email).exists():
 				friend_game_history = friendUser.get_game_history()[:5]
@@ -73,7 +83,7 @@ def game_result(request):
 def login_view(request):
 	if request.method == 'GET':
 		return render(request, 'login.html')
-	if request.method == 'POST':
+	elif request.method == 'POST':
 		try:
 			data = json.loads(request.body)
 		except Exception as e:
@@ -96,9 +106,9 @@ def login_view(request):
 def register_view(request):
 	if request.method == 'GET':
 		return render(request, 'register.html')
-	if request.method == 'POST':
+	elif request.method == 'POST':
 		data = json.loads(request.body)
-		if not validateEmail(data['email']) and not validatePassword(data['password']):
+		if not validateEmail(data['email']) and not validate_password(data['password']):
 			return JsonResponse({'status':'error', 'message':'Invalid Email or password.'})
 		if not validateUsername(data['username']):
 			return JsonResponse({'status': 'error', 'message':'Username not valid'})
@@ -236,15 +246,62 @@ def friends_list_view(request):
 	else:
 		return JsonResponse({'status': 'error', 'message':'You must be logged in to view this page.'})
 
+def resetPassword(request, uidb64, token):
+	if (request.method == 'GET'):
+		return {'uidb64': uidb64, 'token' : token}
+
+def resetPasswordForm(request, uidb64=None, token=None):
+	if uidb64 is None or token is None:
+		return render(request, '404.html')
+	
+	if request.method == 'GET':
+		try:
+			uid = urlsafe_base64_decode(uidb64).decode()
+			user_model = get_user_model()
+			user = get_object_or_404(user_model, pk=uid)
+
+			if not default_token_generator.check_token(user, token):
+				return render(request, '400.html')
+
+			return render(request, 'password_reset_confirm.html')
+		except:
+			return render(request, '404.html')
+	elif (request.method == 'POST'):
+		try:
+			data = json.loads(request.body)
+			new_password = data['new_password']
+			if not new_password:
+				return JsonResponse({'status': 'error', 'message': 'Password is required'}, status=400)
+
+			uid = urlsafe_base64_decode(uidb64).decode()
+			user_model = get_user_model()
+			user = get_object_or_404(user_model, pk=uid)
+
+			if not default_token_generator.check_token(user, token):
+				return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=400)
+
+			try:
+				validate_password(new_password)
+			except ValidationError as e:
+				return JsonResponse({'status': 'error', 'message': str(e)})
+			user.set_password(new_password)
+			user.save()
+			
+			token,uidb64 = '',''
+			return JsonResponse({'status':'success'})
+		except Exception as e:
+			return JsonResponse({'status':'error', 'message': str(e)})
+	
+def get_user_token(request):
+	if not uidb and not tokn:
+		return JsonResponse({'error': 'invalid data'})
+	return JsonResponse({'uidb64': uidb, 'token' : tokn})
+
 class CustomPasswordResetView(auth_views.PasswordResetView):
 	template_name = 'password_reset_form.html'
-# 
+
 class CustomPasswordResetDoneView(auth_views.PasswordResetDoneView):
 	template_name = 'password_reset_done.html'
-# 
-class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
-	template_name = 'password_reset_confirm.html'
-# 
+
 class CustomPasswordResetCompleteView(auth_views.PasswordResetCompleteView):
-	template_name = 'password_reset_complete.html'
-# 
+	template_name = 'password_reset_complete.html' 

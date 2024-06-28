@@ -6,7 +6,7 @@
 		{% else %}
 			<div>
 				<form method="post" enctype="multipart/form-data" id="settingsForm">
-					{% csrf_token %}
+						{% csrf_token %}
 					<ul>
 						<li>
 							<label for="email">Your Email:</label>
@@ -40,4 +40,4 @@
 			</div>
 		{% endif %}
 
-<script type="module" src="{% static 'js/settings.js' %}""></script>
+<script type="module" src="{% static 'js/settings.js' %}"></script>
