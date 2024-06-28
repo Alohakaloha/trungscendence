@@ -26,7 +26,8 @@ class Chat(models.Model):
                 chat = Chat.objects.create(participant1=sender, participant2=receiver)
             else:
                 logprint("Chat found")
-            return chat
+                last_5_messages = Message.objects.filter(chat=chat).order_by('-timestamp')[:5]
+            return self.serialize_chat(last_5_messages)
         except Exception as e:
             logprint(e)
             return None
@@ -38,6 +39,21 @@ class Chat(models.Model):
         #     new_chat = Chat(participant1=participant1, participant2=participant2)
         #     new_chat.save()
         #     return new_chat
+
+    def serialize_chat(self, messages):
+        chat_data = {
+              "messages": [
+               {
+                    "sender": message.sender.username,  # Adjust as needed
+                    "content": message.content,
+                     "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+               }
+                for message in messages
+               ],
+             }
+        return chat_data
+
+
 
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE , related_name='messages')
@@ -51,12 +67,8 @@ class Message(models.Model):
         self.content = content
         self.save()
 
-
-    def last_5_messages(self):
-        return Message.objects.order_by('-timestamp').all()[:5]
-
     def all_messages(self):
-        return Message.objects
+        return Message.objects.order_by('-timestamp').all()
     
 
 

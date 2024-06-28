@@ -91,6 +91,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         }
                     )
             else:
+                sender_channel = user_channel_mapping.get(sender_uname)
                 if action_type == 'message':
                 # Private message handling
                     receiver = await sync_to_async(AppUser.objects.get)(username=chat_json.get('receiver'))
@@ -104,7 +105,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     )
                     # Send private message to receiver and sender
                     receiver_channel = user_channel_mapping.get(receiver_uname)
-                    sender_channel = user_channel_mapping.get(sender_uname)
                     message_event = {
                         'type': 'chat_message',
                         'message': message_content,
@@ -124,7 +124,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 elif action_type == "chatroom":
                     logprint("Chatroom condition met")
                     receiver = await sync_to_async(AppUser.objects.get)(username=chat_json.get('receiver'))
-                    chatroom = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
+                    chat_messages = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
+                    if sender_channel:
+                        await self.send((json.dumps(chat_messages)))
 
                 else:
                     logprint(f"Unknown action type received: {action_type}")
