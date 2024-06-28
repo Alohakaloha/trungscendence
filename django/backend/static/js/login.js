@@ -1,7 +1,5 @@
 import { getCookie, validateEmail } from "./utils.js";
 
-console.log("login.js loaded");
-
 let loginBtn;
 
 

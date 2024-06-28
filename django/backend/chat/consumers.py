@@ -1,62 +1,150 @@
 import json
-from asgiref.sync import async_to_sync
+from django.utils import timezone
+from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 import sys
 
+# Dictionary to map usernames to their WebSocket channels
+user_channel_mapping = {}
+
 def logprint(*args, **kwargs):
-	print(*args, file=sys.stderr, **kwargs)
+    print(*args, file=sys.stderr, **kwargs)
 
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_name = 'chatting'
+        self.room_group_name = f'chat_{self.room_name}'
+        self.username = self.scope['user'].username
 
-class chatConsumer(AsyncWebsocketConsumer):
-	async def connect(self):
-		self.room_name = "all_chat"
-		self.room_group_name = f"chat_{self.room_name}"
+        # Join room group
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
 
-		await self.channel_layer.group_add(
-			self.room_group_name,
-			self.channel_name
-		)
-		await self.accept()
+        # Add user to user_channel_mapping
+        user_channel_mapping[self.username] = self.channel_name
 
-	async def disconnect(self, close_code):
-		# Leave room group
-		await self.channel_layer.group_discard(
-			self.room_group_name,
-			self.channel_name
-		)
-	
-	async def receive(self, text_data):
-		try:
-			chatJSON = json.loads(text_data)
-			message = chatJSON["message"]
-			user = chatJSON["username"]
-		except json.JSONDecodeError:
-			logprint(f"Invalid JSON: {text_data}")
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'chat_message',
+                'message': f"{self.username} has joined the chat",
+                'sender': 'system',
+                'timestamp': self.get_current_timestamp(),
+            }
+        )
 
+        await self.accept()
 
-	async def chat_message(self, event):
-		# Extract the message from the event
-		message = event['message']
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'chat_message',
+                'message': f"{self.username} has left the chat",
+                'sender': 'system',
+                'timestamp': self.get_current_timestamp(),
+            }
+        )
 
-		# Send the message to the WebSocket
-		await self.send(text_data=json.dumps({
-			'message': message
-		}))
+        # Leave room group
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
 
-	async def receive(self, text_data):
-		text_data_json = json.loads(text_data)
-		message = text_data_json['message']
+        # Remove user from user_channel_mapping
+        if self.username in user_channel_mapping:
+            del user_channel_mapping[self.username]
 
-		# Send message to room group
-		await self.channel_layer.group_send(
-			self.room_group_name,
-			{
-				'type': 'chat_message',
-				'message': message
-			}
-		)
+    async def receive(self, text_data):
+        from .models import Chat, Message
+        from auth_app.models import AppUser
 
-		# text_data_json = json.loads(text_data)
+        try:
+            chat_json = json.loads(text_data)
 
-		#json.dumps is a module to convert python object into a json string
-		await self.send(text_data)
+            action_type = chat_json.get('type')
+            sender_username = chat_json.get('sender')
+            message_content = chat_json.get('message')
+
+            logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
+
+            sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
+
+            if action_type == 'message':
+                receiver_uname = chat_json.get('receiver')
+
+                if receiver_uname == 'global':
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            'type': 'chat_message',
+                            'message': message_content,
+                            'sender': sender.username,
+                            'timestamp': self.get_current_timestamp(),
+                        }
+                    )
+                else:
+                    # Direct message handling
+                    receiver_channel = user_channel_mapping.get(receiver_uname)
+                    if receiver_channel:
+                        await self.channel_layer.send(
+                            receiver_channel,
+                            {
+                                'type': 'chat_message',
+                                'message': message_content,
+                                'sender': sender.username,
+                                'timestamp': self.get_current_timestamp(),
+                            }
+                        )
+                    else:
+                        logprint(f"Receiver '{receiver_uname}' is not connected.")
+
+            elif action_type == 'block':
+                logprint("Block action received")
+                await self.block_user(chat_json)
+
+            else:
+                logprint(f"Unknown action type received: {action_type}")
+
+        except KeyError as e:
+            logprint(f"Missing key in JSON data: {e}")
+        except json.JSONDecodeError:
+            logprint(f"Invalid JSON: {text_data}")
+        except AppUser.DoesNotExist as e:
+            receiver_uname = chat_json.get('receiver')
+            if receiver_uname == 'global':
+                logprint("Broadcast action received")
+            else:
+                logprint(f"User '{receiver_uname}' does not exist: {e}")
+        except Exception as e:
+            logprint(f"An error occurred: {e}")
+
+    async def chat_message(self, event):
+        message = event['message']
+        sender = event['sender']
+        timestamp = event['timestamp']
+
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'sender': sender,
+            'timestamp': timestamp,
+        }))
+
+    async def block_user(self, chat_json):
+        from .models import Chat, Message
+        from auth_app.models import AppUser
+
+        sender_username = chat_json.get('sender')
+        receiver_username = chat_json.get('receiver')
+
+        sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
+
+        logprint(f"{sender.username} is blocking {receiver_username}")
+
+    def get_current_timestamp(self):
+        current_time = timezone.now()
+        local_time = timezone.localtime(current_time)
+        return local_time.strftime('%d.%m.%Y %H:%M')

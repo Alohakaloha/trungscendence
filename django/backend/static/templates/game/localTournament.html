@@ -18,51 +18,132 @@
 	</div>
 
 
-	<div id="stage">
-	<div id="localTournament">
-		<h1 style="justify-content: center; display: flex;">TOURNAMENT</h1>
+	<div id="stage" class="container">
 		
-		<div id="t-announcement">
+	<div id="localTournament">
+		<div class="row">
+			<h1 class="col" style="display: flex;justify-content: center;">TOURNAMENT</h1>
+		</div>
+		
+		<div id="t-announcement" class="row">
 			<h3>Next match:</h3>
 			<hr>
-			<div>
-				<div id="nextFirst"></div>
-				<div><hr><h4>vs.</h4><hr></div>
-				<div id="nextSecond"></div>
+			<div id="announcement-wrapper" class="col">
+					<div id="nextFirst" class=""></div>
+					<div><h4>vs.</h4></div>
+					<div id="nextSecond"></div>
 			</div>
 		</div>
-			<button  id="startMatch" class="btn btn-dark" onclick="tournamentMatch()">start the match</button>
 		
 		<div id="results"></div>
-
-		<div id="side-participants">
-
-			<p class="d-inline-flex gap-1">
-				<button class="btn btn-dark" type="button" data-bs-toggle="collapse" data-bs-target="#p-list" aria-expanded="false" aria-controls="p-list">
-					Participants
-				</button>
-			</p>
-			<div class="collapse" id="p-list">
-				<div class="card card-body" style="background: linear-gradient(180deg, #6bd7f1, #3b3671);">
-					<div class="listed-Player" id="p1"></div>
-					<div class="listed-Player" id="p2"></div>
-					<div class="listed-Player" id="p3"></div>
-					<div class="listed-Player" id="p4"></div>
-					<div class="listed-Player" id="p5"></div>
-					<div class="listed-Player" id="p6"></div>
+		
+			
+			<div class="row">
+				<div class="col-sm" style="display: flex; justify-content: center;">
+					<button  id="startMatch" class="btn btn-dark" onclick="tournamentMatch()">start the match</button>
 				</div>
 			</div>
-		</div>
+			
+			<div id="customize" class="container">
+				<div class="row g-2">
+				  <div class="col-4">
+					<div class="p-3 border"><div id="TcolorP1" aria-controls="colorP2">
+						customize left side<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-palette" viewBox="0 0 16 16">
+							<path d="M8 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m4 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M5.5 7a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/>
+							<path d="M16 8c0 3.15-1.866 2.585-3.567 2.07C11.42 9.763 10.465 9.473 10 10c-.603.683-.475 1.819-.351 2.92C9.826 14.495 9.996 16 8 16a8 8 0 1 1 8-8m-8 7c.611 0 .654-.171.655-.176.078-.146.124-.464.07-1.119-.014-.168-.037-.37-.061-.591-.052-.464-.112-1.005-.118-1.462-.01-.707.083-1.61.704-2.314.369-.417.845-.578 1.272-.618.404-.038.812.026 1.16.104.343.077.702.186 1.025.284l.028.008c.346.105.658.199.953.266.653.148.904.083.991.024C14.717 9.38 15 9.161 15 8a7 7 0 1 0-7 7"/>
+						</svg>
+						<div >
+							<div id="inline-options">
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="radio" name="player1Color" id="p1Color0" value="white"checked>
+									<label class="form-check-label" for="player1Color" style="color: aliceblue;">default</label>
+								</div>
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="radio" name="player1Color" id="p1Color1" value="rgb(84, 10, 10)">
+									<label class="form-check-label" for="player1Color" style="color:rgb(84, 10, 10);">Red</label>
+								</div>
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="radio" name="player1Color" id="p1Color2" value="rgb(10, 42, 84)" >
+									<label class="form-check-label" for="player1Color" style="color:rgb(10, 42, 84);">Blue</label>
+								</div>
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="radio" name="player1Color" id="p1Color3" value="teal">
+									<label class="form-check-label" for="player1Color" style="color:teal">Teal</label>
+								</div>
+								
+							</div>
+						</div>
+					</div></div>
+				  </div>
+				  <div class="col-4" style="display: flex; justify-content: center;">
 
-		<div id="remaining">
-				<p class="d-inline-flex gap-1">
-					<button class="btn btn-dark" type="button" data-bs-toggle="collapse" data-bs-target="#r-list" aria-expanded="false" aria-controls="r-list">
-						remaining
-					</button>
-				</p>
-				<div class="collapse" id="r-list">
-					<div class="card card-body" background: linear-gradient(180deg, #6bd7f1, #3b3671);>
-						<div class="listed-Player" id="r1"></div>
+					  <h5>Sound<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-volume-down" viewBox="0 0 16 16">
+						  <path d="M9 4a.5.5 0 0 0-.812-.39L5.825 5.5H3.5A.5.5 0 0 0 3 6v4a.5.5 0 0 0 .5.5h2.325l2.363 1.89A.5.5 0 0 0 9 12zM6.312 6.39 8 5.04v5.92L6.312 9.61A.5.5 0 0 0 6 9.5H4v-3h2a.5.5 0 0 0 .312-.11M12.025 8a4.5 4.5 0 0 1-1.318 3.182L10 10.475A3.5 3.5 0 0 0 11.025 8 3.5 3.5 0 0 0 10 5.525l.707-.707A4.5 4.5 0 0 1 12.025 8"/>
+						</svg></h5>
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" role="switch" id="localSound">
+							<label class="form-check-label" for="localSound"></label>
+						</div>
+					</div>
+				  <div class="col-4">
+					<div class="p-3 border"><div id="TcolorP2" aria-controls="colorP2">
+						customize right side<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-palette" viewBox="0 0 16 16">
+							<path d="M8 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m4 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M5.5 7a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/>
+							<path d="M16 8c0 3.15-1.866 2.585-3.567 2.07C11.42 9.763 10.465 9.473 10 10c-.603.683-.475 1.819-.351 2.92C9.826 14.495 9.996 16 8 16a8 8 0 1 1 8-8m-8 7c.611 0 .654-.171.655-.176.078-.146.124-.464.07-1.119-.014-.168-.037-.37-.061-.591-.052-.464-.112-1.005-.118-1.462-.01-.707.083-1.61.704-2.314.369-.417.845-.578 1.272-.618.404-.038.812.026 1.16.104.343.077.702.186 1.025.284l.028.008c.346.105.658.199.953.266.653.148.904.083.991.024C14.717 9.38 15 9.161 15 8a7 7 0 1 0-7 7"/>
+						</svg>
+						<div>
+							<div id="inline-options">
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="radio" name="player2Color" id="p2Color0" value="white" checked>
+									<label class="form-check-label" for="player2Color" style="color: aliceblue;">default</label>
+								</div>
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="radio" name="player2Color" id="p2Color1" value="rgb(84, 10, 10)">
+									<label class="form-check-label" for="player2Color" style="color:rgb(84, 10, 10)">Red</label>
+								</div>
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="radio" name="player2Color" id="p2Color2" value="rgb(10, 42, 84)">
+									<label class="form-check-label" for="scoplayer2Colorre" style="color:rgb(10, 42, 84);">Blue</label>
+								</div>
+								<div class="form-check form-check-inline">
+									<input class="form-check-input" type="radio" name="player2Color" id="p2Color3" value="teal">
+									<label class="form-check-label" for="player2Color" style="color:teal">Teal</label>
+								</div>
+							</div>
+						</div>
+					</div></div>
+				  </div>
+				</div>
+			  </div>
+
+			<div id="T-player" class="row">
+				<div id="side-participants" class="col-4">
+					<p class="d-inline-flex gap-1">
+						<button class="btn btn-dark" type="button" data-bs-toggle="collapse" data-bs-target="#p-list" aria-expanded="false" aria-controls="p-list">
+							Participants
+						</button>
+					</p>
+					<div class="collapse" id="p-list">
+						<div class="card card-body" style="background: linear-gradient(180deg, #6bd7f1, #3b3671);">
+							<div class="listed-Player" id="p1"></div>
+							<div class="listed-Player" id="p2"></div>
+							<div class="listed-Player" id="p3"></div>
+							<div class="listed-Player" id="p4"></div>
+							<div class="listed-Player" id="p5"></div>
+							<div class="listed-Player" id="p6"></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-4"></div>
+				<div id="remaining" class="col-4">
+					<p class="d-inline-flex gap-1">
+						<button class="btn btn-dark" type="button" data-bs-toggle="collapse" data-bs-target="#r-list" aria-expanded="false" aria-controls="r-list">
+							remaining
+						</button>
+					</p>
+					<div class="collapse" id="r-list">
+						<div class="card card-body" style="background: linear-gradient(180deg, #6bd7f1, #3b3671);">
+							<div class="listed-Player" id="r1"></div>
 						<div class="listed-Player" id="r2"></div>
 						<div class="listed-Player" id="r3"></div>
 						<div class="listed-Player" id="r4"></div>
@@ -70,11 +151,13 @@
 						<div class="listed-Player" id="r6"></div>
 					</div>
 				</div>
-		</div>
-		<div id="lt-rules">
+			</div>
+			</div>
+			<div id="lt-rules">
 			<div id="lt-rule-score"></div>
 			<div id="lt-rule-rounds"></div>
 		</div>
 	</div>
-</div>
+		</div>
+
 </div>
