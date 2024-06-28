@@ -284,29 +284,6 @@ if (toastTrigger) {
 	let chatText;
 	let friendList;
 
-	// {% for user in request.user.friends.all%}
-	// <div class="user-details">
-	// 	<span style="cursor: pointer; text-decoration: underline; color: blue;"> {{ user.username }} </span>
-	// 	<a class="user_id" style="display: none" data-user-id="{{ user.user_id }}"></a>
-	// 	{% if user.is_online %}
-	// 	<img src="{% static 'images/online.png' %}" width="22"/>
-	// 	<a>Online</a>
-	// 	{% elif user.last_online %}
-	// 	<img src="{% static 'images/last_online.png' %}" width="22"/>
-	// 	<a>{{ user.get_online_info }} </a>
-	// 	{% endif %}
-	// 	<form class="unfriend" action="unfriend/{{ user.user_id }}" method="post">
-	// 		{% csrf_token %}
-	// 		<button type="submit" class="unfriend_button" data-user-id="{{ user.user_id }}" style="background-color: red; color: white; width: 100px; height: 30px">Unfriend</button> 
-	// 	</form>
-	// 	<span id="unfriend_msg" style="color: green;"></span>
-	// 	<br>
-	// 	<div class="user-info" style="display: none"></div>
-	// </div>
-	// <br>
-	// {% endfor %}
-
-
 	// user email and receiver userid are being send to the server
 	function chatObject(user, receiver) {
 		let chatRoom = {
@@ -329,6 +306,13 @@ if (toastTrigger) {
 			console.error("Unable to send message: WebSocket not open or not initialized.");
 			return;
 		}
+	}
+
+	function handleSystemNotifications() {
+		console.log("Fetching system notifications");
+	
+		// Placeholder function
+		console.log("System notifications clicked!");
 	}
 
 	function blockUser(user, receiver) {
@@ -360,7 +344,7 @@ if (toastTrigger) {
 			let list = await fetchUserFriends();
 			console.log('User friends fetched successfully:', list.friends);
 	
-			// Create the main container for all chat
+			//  Main container for All Chat
 			let allChat = document.createElement('div');
 			allChat.innerHTML = `
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
@@ -371,6 +355,17 @@ if (toastTrigger) {
 				chatObject(user, "global");
 			};
 			friendList.appendChild(allChat);
+	
+			// Container for system notifications
+			let systemNotifications = document.createElement('div');
+			systemNotifications.innerHTML = `
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bell-fill" viewBox="0 0 16 16">
+				<path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901"/>
+				</svg> System Notifications`
+	
+			systemNotifications.onclick = handleSystemNotifications;
+
+			friendList.appendChild(systemNotifications);
 	
 			// Iterate over each friend and create a div for them
 			for (let friend of list.friends) {
@@ -425,7 +420,7 @@ if (toastTrigger) {
 			console.error('Error fetching user data or user friends:', error);
 		}
 	}
-	
+
 
 	function openingChat() {
 		if (!chatSocket) {
@@ -511,7 +506,7 @@ if (toastTrigger) {
 			let timestamp = messageData.timestamp;
 			let sender = messageData.sender;
 			let message = messageData.message;
-			let directMessage = messageData.direct_message || false;  // Check if it's a direct message
+			let directMessage = messageData.direct_message || false;
 	
 			// Create a container div for the message
 			let messageContainer = document.createElement('div');
