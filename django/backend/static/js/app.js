@@ -226,11 +226,14 @@ async function handleRouting() {
 					break;
 				
 				case '/password_reset_confirm':
-					console.log("in the reset case");
 					jsFile = './reset_password.js';
 					await showPage(`${page.slice(1)}/${page.slice(1)}.html/${uidb64}/${token}`);
 					uidb64 = null;
 					token =	null;
+					break;
+				
+				case '/password_reset_complete':
+					await showPage(`password_reset_complete`);
 					break;
 
 				default:

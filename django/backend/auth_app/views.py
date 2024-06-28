@@ -21,7 +21,6 @@ def eprint(*args, **kwargs):
 def header_view(request, **kwargs):
 	context = {}
 	if(kwargs):
-		eprint("in header view with kwargs")
 		global uidb, tokn
 		uidb = kwargs['uidb64']
 		tokn = kwargs['token']
@@ -84,7 +83,7 @@ def game_result(request):
 def login_view(request):
 	if request.method == 'GET':
 		return render(request, 'login.html')
-	if request.method == 'POST':
+	elif request.method == 'POST':
 		try:
 			data = json.loads(request.body)
 		except Exception as e:
@@ -107,7 +106,7 @@ def login_view(request):
 def register_view(request):
 	if request.method == 'GET':
 		return render(request, 'register.html')
-	if request.method == 'POST':
+	elif request.method == 'POST':
 		data = json.loads(request.body)
 		if not validateEmail(data['email']) and not validate_password(data['password']):
 			return JsonResponse({'status':'error', 'message':'Invalid Email or password.'})
@@ -251,7 +250,10 @@ def resetPassword(request, uidb64, token):
 	if (request.method == 'GET'):
 		return {'uidb64': uidb64, 'token' : token}
 
-def resetPasswordForm(request, uidb64, token):
+def resetPasswordForm(request, uidb64=None, token=None):
+	if uidb64 is None or token is None:
+		return render(request, '404.html')
+	
 	if request.method == 'GET':
 		try:
 			uid = urlsafe_base64_decode(uidb64).decode()
@@ -259,13 +261,12 @@ def resetPasswordForm(request, uidb64, token):
 			user = get_object_or_404(user_model, pk=uid)
 
 			if not default_token_generator.check_token(user, token):
-				eprint("Invalid token")
 				return render(request, '400.html')
 
 			return render(request, 'password_reset_confirm.html')
-		except (TypeError, ValueError, OverflowError, user_model.DoesNotExist):
+		except:
 			return render(request, '404.html')
-	if (request.method == 'POST'):
+	elif (request.method == 'POST'):
 		try:
 			data = json.loads(request.body)
 			new_password = data['new_password']

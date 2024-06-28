@@ -15,7 +15,6 @@ export function init(){
 	return new Promise((resolve, reject) => {
 		form = document.getElementById('passwordForm');
 		if (form) {
-			console.log("password form loaded");
 			form.addEventListener('submit', (event) => submitFormHandler(event));
 			resolve();
 		} else {
@@ -38,7 +37,7 @@ export function unload() {
 
 async function resetPassword(event, new_password1, new_password2){
 	if (!validatePassword(new_password1) || !validatePassword(new_password2)) {
-		document.getElementById('errorMsg').innerHTML = "Passwords must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character";
+		document.getElementById('errorMsg').innerHTML = "Passwords must be at least 8 characters long, <br>contain at least one uppercase letter, <br>one lowercase letter, one number, <br>and one special character";
 		return;
 	}
 	if (new_password1 !== new_password2) {
@@ -55,7 +54,6 @@ async function resetPassword(event, new_password1, new_password2){
 		"uidb64": uidb64,
 		"token" : token
 	};
-	console.log(data);
 	try{
 		const response = await fetch(`/password_reset_confirm/password_reset_confirm.html/${uidb64}/${token}`, {
 			method: 'POST',
@@ -67,7 +65,7 @@ async function resetPassword(event, new_password1, new_password2){
 		});
 		const responseData = await response.json();
 		if (responseData.status == 'success') {
-			changeURL ('/login', 'Login', {main:true});
+			changeURL ('/password_reset_complete', 'Password Reset', {main:true});
 		} else {
 			alert(responseData.error);
 		}
