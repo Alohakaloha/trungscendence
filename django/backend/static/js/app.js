@@ -352,7 +352,7 @@ if (toastTrigger) {
 				</svg> All Chat`;
 	
 			allChat.onclick = function() {
-				chatObject(user, "global");
+				chatObject(user.username, "global");
 			};
 			friendList.appendChild(allChat);
 	
@@ -376,7 +376,7 @@ if (toastTrigger) {
 				let friendPic = document.createElement('img');
 				friendPic.src = friend.profile_picture;
 				friendDiv.onclick = function() {
-					chatObject(user.email, friend.username);
+					chatObject(user.username, friend.username);
 				};
 				friendDiv.appendChild(friendPic);
 	
@@ -404,7 +404,7 @@ if (toastTrigger) {
 				actionLink.href = '#';
 				actionLink.textContent = "block " + friend.username;
 				actionLink.onclick = function() {
-					blockUser(user.email, friend.username);
+					blockUser(user.username, friend.username);
 				};
 				dropdownItem.appendChild(actionLink);
 				dropdownMenu.appendChild(dropdownItem);

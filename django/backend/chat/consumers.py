@@ -1,8 +1,9 @@
+import sys
 import json
 from django.utils import timezone
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-import sys
+import chat
 
 # Dictionary to map usernames to their WebSocket channels
 user_channel_mapping = {}
@@ -64,20 +65,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         try:
             chat_json = json.loads(text_data)
-
+            logprint("_________________")
+            logprint(text_data)
+            logprint("_________________")
             action_type = chat_json.get('type')
-            sender_username = chat_json.get('sender')
-            message_content = chat_json.get('message')
-
-            logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
-
+            sender_uname = chat_json.get('sender')
             # Fetch sender asynchronously
-            sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
+            sender = await sync_to_async(AppUser.objects.get)(username=sender_uname)
+            message_content = chat_json.get('message')
+            receiver_uname = chat_json.get('receiver')
 
-            if action_type == 'message':
-                receiver_uname = chat_json.get('receiver')
+            logprint(f"Received {action_type} from sender {sender}: {message_content}")
 
-                if receiver_uname == 'global':
+
+            
+            if receiver_uname == 'global':
                     # Broadcast message to the chat room without saving to database
                     await self.channel_layer.group_send(
                         self.room_group_name,
@@ -88,27 +90,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             'timestamp': self.get_current_timestamp(),
                         }
                     )
-                else:
-                    # Private message handling
-                    receiver = await sync_to_async(AppUser.objects.get)(username=receiver_uname)
-
+            else:
+                if action_type == 'message':
+                # Private message handling
+                    receiver = await sync_to_async(AppUser.objects.get)(username=chat_json.get('receiver'))
                     # Find or create chat asynchronously
                     chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
-
                     # Create message asynchronously
-                    message = await sync_to_async(Message.objects.create)(
+                    await sync_to_async(Message.objects.create)(
                         chat=chat,
                         sender=sender,
                         content=message_content
                     )
-
                     # Send private message to receiver and sender
                     receiver_channel = user_channel_mapping.get(receiver_uname)
-                    sender_channel = user_channel_mapping.get(sender_username)
+                    sender_channel = user_channel_mapping.get(sender_uname)
                     message_event = {
                         'type': 'chat_message',
                         'message': message_content,
-                        'sender': sender.username,
+                        'sender': sender_uname,
                         'timestamp': self.get_current_timestamp(),
                         'direct_message': True
                     }
@@ -117,23 +117,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     if sender_channel:
                         await self.channel_layer.send(sender_channel, message_event)
 
-            elif action_type == 'block':
-                logprint("Block action received")
-                await self.block_user(chat_json)
+                    elif action_type == 'block':
+                        logprint("Block action received")
+                        await self.block_user(chat_json)
+                
+                elif action_type == "chatroom":
+                    logprint("Chatroom condition met")
+                    receiver = await sync_to_async(AppUser.objects.get)(username=chat_json.get('receiver'))
+                    chatroom = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
 
-            else:
-                logprint(f"Unknown action type received: {action_type}")
+                else:
+                    logprint(f"Unknown action type received: {action_type}")
 
         except KeyError as e:
             logprint(f"Missing key in JSON data: {e}")
         except json.JSONDecodeError:
             logprint(f"Invalid JSON: {text_data}")
-        except AppUser.DoesNotExist as e:
-            receiver_uname = chat_json.get('receiver')
-            if receiver_uname == 'global':
-                logprint("Broadcast action received")
-            else:
-                logprint(f"User '{receiver_uname}' does not exist: {e}")
+        # except receiver as e:
+        #     receiver_uname = chat_json.get('receiver')
+        #     if receiver_uname == 'global':
+        #         logprint("Broadcast action received")
+        #     else:
+        #         logprint(f"User '{receiver_uname}' does not exist: {e}")
         except Exception as e:
             logprint(f"An error occurred: {e}")
 

@@ -54,6 +54,9 @@ class Message(models.Model):
 
     def last_5_messages(self):
         return Message.objects.order_by('-timestamp').all()[:5]
+
+    def all_messages(self):
+        return Message.objects
     
 
 
