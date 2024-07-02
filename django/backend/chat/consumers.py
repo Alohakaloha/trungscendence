@@ -96,14 +96,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 # Private message handling
                     receiver = await sync_to_async(AppUser.objects.get)(username=chat_json.get('receiver'))
                     # Find or create chat asynchronously
+
                     chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
                     # Create message asynchronously
+                    
                     await sync_to_async(Message.objects.create)(
                         chat=chat,
                         sender=sender,
                         content=message_content
                     )
                     # Send private message to receiver and sender
+
                     receiver_channel = user_channel_mapping.get(receiver_uname)
                     message_event = {
                         'type': 'chat_message',
@@ -116,15 +119,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         await self.channel_layer.send(receiver_channel, message_event)
                     if sender_channel:
                         await self.channel_layer.send(sender_channel, message_event)
-
-                    elif action_type == 'block':
+                elif action_type == 'block':
                         logprint("Block action received")
                         await self.block_user(chat_json)
+
                 
                 elif action_type == "chatroom":
                     logprint("Chatroom condition met")
                     receiver = await sync_to_async(AppUser.objects.get)(username=chat_json.get('receiver'))
-                    chat_messages = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
+                    chat_messages = await sync_to_async(Chat().load_history)(sender, receiver)
                     if sender_channel:
                         await self.send((json.dumps(chat_messages)))
 
@@ -151,6 +154,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         direct_message = event.get('direct_message', False)  # Get the direct_message flag
 
         await self.send(text_data=json.dumps({
+            'type': "message",
             'message': message,
             'sender': sender,
             'timestamp': timestamp,

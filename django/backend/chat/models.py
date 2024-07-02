@@ -26,6 +26,33 @@ class Chat(models.Model):
                 chat = Chat.objects.create(participant1=sender, participant2=receiver)
             else:
                 logprint("Chat found")
+                return chat
+            #     last_5_messages = Message.objects.filter(chat=chat).order_by('-timestamp')[:5]
+            # return self.serialize_chat(last_5_messages)
+        except Exception as e:
+            logprint(e)
+            return None
+        # if chat.exists():
+        #  logprint("Chat found")
+        #  return chat.first()
+        # else:
+        #     logprint("Creating a new chat")
+        #     new_chat = Chat(participant1=participant1, participant2=participant2)
+        #     new_chat.save()
+        #     return new_chat
+
+
+    def load_history(self, sender, receiver):
+        try:
+            chat = Chat.objects.filter(
+                Q(participant1=sender, participant2=receiver) |
+                Q(participant1=receiver, participant2=sender)
+            ).first()
+            if chat is None:
+                logprint("Creating a new chat")
+                chat = Chat.objects.create(participant1=sender, participant2=receiver)
+            else:
+                logprint("Chat found")
                 last_5_messages = Message.objects.filter(chat=chat).order_by('-timestamp')[:5]
             return self.serialize_chat(last_5_messages)
         except Exception as e:
@@ -42,10 +69,11 @@ class Chat(models.Model):
 
     def serialize_chat(self, messages):
         chat_data = {
-              "messages": [
+              "type":"history",
+               "conversation" : [
                {
                     "sender": message.sender.username,  # Adjust as needed
-                    "content": message.content,
+                    "message": message.content,
                      "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
                }
                 for message in messages

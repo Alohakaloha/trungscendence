@@ -284,7 +284,7 @@ if (toastTrigger) {
 	let chatText;
 	let friendList;
 
-	// user email and receiver userid are being send to the server
+	// being send to the server
 	function chatObject(user, receiver) {
 		let chatRoom = {
 			"type": "chatroom",
@@ -495,49 +495,68 @@ if (toastTrigger) {
 	chat.addEventListener('click', openingChat);
 
 
+	function receiveMessage(messageData)
+	{
+		console.log("received message")
+		let timestamp = messageData.timestamp;
+		let sender = messageData.sender;
+		let message = messageData.message;
+		let directMessage = messageData.direct_message || false;
+
+		// Create a container div for the message
+		let messageContainer = document.createElement('div');
+		messageContainer.className = 'message-container';
+
+		// Apply different class for system messages
+		if (sender === "system") {
+			messageContainer.classList.add('system-message');
+		} else if (directMessage) {
+			messageContainer.classList.add('direct-message');
+		}
+
+		// Create a div for the timestamp and sender
+		let messageTimestamp = document.createElement('div');
+		messageTimestamp.className = 'message-timestamp';
+		messageTimestamp.textContent = timestamp;
+
+		// Create a div for the message content
+		let messageContent = document.createElement('div');
+		messageContent.className = 'message-content';
+		messageContent.textContent = `${sender}: ${message}`;
+
+		// Append the timestamp and content to the container
+		messageContainer.appendChild(messageTimestamp);
+		messageContainer.appendChild(messageContent);
+
+		// Append the message container to the chat text area
+		document.getElementById('chat-text').appendChild(messageContainer);
+
+		// Scroll to the bottom of the chat text area
+		document.getElementById('chat-text').scrollTop = document.getElementById('chat-text').scrollHeight;
+	}
 
 	function updateChat() {
 		console.log("Chat update started");
 	
 		chatSocket.onmessage = function (event) {
-			console.log(`Data received from server: ${event.data}`);
-	
+			
 			let messageData = JSON.parse(event.data);
-			let timestamp = messageData.timestamp;
-			let sender = messageData.sender;
-			let message = messageData.message;
-			let directMessage = messageData.direct_message || false;
-	
-			// Create a container div for the message
-			let messageContainer = document.createElement('div');
-			messageContainer.className = 'message-container';
-	
-			// Apply different class for system messages
-			if (sender === "system") {
-				messageContainer.classList.add('system-message');
-			} else if (directMessage) {
-				messageContainer.classList.add('direct-message');
+			console.log(messageData)
+			if (messageData["type"] == "history")
+				{
+					console.log("in history")
+				// console.log(`Data received from server: ${event.data}`);
+				let flush = document.getElementById("chat-text");
+				flush.textContent = "";
+				const conversation = messageData.conversation
+				conversation.forEach(message => {
+					receiveMessage(message)
+				  });
 			}
-	
-			// Create a div for the timestamp and sender
-			let messageTimestamp = document.createElement('div');
-			messageTimestamp.className = 'message-timestamp';
-			messageTimestamp.textContent = timestamp;
-	
-			// Create a div for the message content
-			let messageContent = document.createElement('div');
-			messageContent.className = 'message-content';
-			messageContent.textContent = `${sender}: ${message}`;
-	
-			// Append the timestamp and content to the container
-			messageContainer.appendChild(messageTimestamp);
-			messageContainer.appendChild(messageContent);
-	
-			// Append the message container to the chat text area
-			document.getElementById('chat-text').appendChild(messageContainer);
-	
-			// Scroll to the bottom of the chat text area
-			document.getElementById('chat-text').scrollTop = document.getElementById('chat-text').scrollHeight;
+			else if (messageData["type"] == "message"){
+				receiveMessage(messageData)
+		}
+
 		};
 	
 		chatSocket.onclose = function (event) {
