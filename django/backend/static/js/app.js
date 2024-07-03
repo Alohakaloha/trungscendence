@@ -284,20 +284,19 @@ if (toastTrigger) {
 	let chatText;
 	let friendList;
 
-	// being send to the server
 	function chatObject(user, receiver) {
 		let chatRoom = {
 			"type": "chatroom",
 			"sender": user,
 			"receiver": receiver,
 		};
-
+	
 		if (openWindow === true) {
 			let chatReceiver = document.getElementById('chat-receiver');
 			chatReceiver.innerHTML = receiver;
 			console.log(`Chat window updated with receiver: ${receiver}`);
 		}
-
+	
 		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
 			console.log("Sending chat message:");
 			console.log(chatRoom);
@@ -305,6 +304,14 @@ if (toastTrigger) {
 		} else {
 			console.error("Unable to send message: WebSocket not open or not initialized.");
 			return;
+		}
+	}
+
+	function updateChatWindow(receiver) {
+		if (openWindow === true) {
+			let chatReceiver = document.getElementById('chat-receiver');
+			chatReceiver.innerHTML = receiver;
+			console.log(`Chat window updated with receiver: ${receiver}`);
 		}
 	}
 
@@ -332,6 +339,37 @@ if (toastTrigger) {
 		}
 	}
 
+	function displaySystemMessage(message) {
+		let timestamp = new Date();
+		
+		let day = String(timestamp.getDate()).padStart(2, '0');
+		let month = String(timestamp.getMonth() + 1).padStart(2, '0');
+		let year = timestamp.getFullYear();
+		let hours = String(timestamp.getHours()).padStart(2, '0');
+		let minutes = String(timestamp.getMinutes()).padStart(2, '0');
+	
+		let formattedTimestamp = `${day}.${month}.${year} ${hours}:${minutes}`;
+	
+		let sender = "system";
+	
+		let messageContainer = document.createElement('div');
+		messageContainer.className = 'message-container system-message';
+	
+		let messageTimestamp = document.createElement('div');
+		messageTimestamp.className = 'message-timestamp';
+		messageTimestamp.textContent = formattedTimestamp;
+	
+		let messageContent = document.createElement('div');
+		messageContent.className = 'message-content';
+		messageContent.textContent = `${sender}: ${message}`;
+	
+		messageContainer.appendChild(messageTimestamp);
+		messageContainer.appendChild(messageContent);
+	
+		document.getElementById('chat-text').appendChild(messageContainer);
+		document.getElementById('chat-text').scrollTop = document.getElementById('chat-text').scrollHeight;
+	}
+
 	async function showFriends() {
 		try {
 			let user = await fetchUserData();
@@ -352,7 +390,8 @@ if (toastTrigger) {
 				</svg> All Chat`;
 	
 			allChat.onclick = function() {
-				chatObject(user.username, "global");
+				updateChatWindow("global");
+				displaySystemMessage("You are now writing in All Chat");
 			};
 			friendList.appendChild(allChat);
 	
@@ -377,6 +416,7 @@ if (toastTrigger) {
 				friendPic.src = friend.profile_picture;
 				friendDiv.onclick = function() {
 					chatObject(user.username, friend.username);
+					displaySystemMessage(`Conversation with "${friend.username}":`);
 				};
 				friendDiv.appendChild(friendPic);
 	
@@ -539,24 +579,26 @@ if (toastTrigger) {
 		console.log("Chat update started");
 	
 		chatSocket.onmessage = function (event) {
-			
 			let messageData = JSON.parse(event.data);
-			console.log(messageData)
-			if (messageData["type"] == "history")
-				{
-					console.log("in history")
-				// console.log(`Data received from server: ${event.data}`);
-				let flush = document.getElementById("chat-text");
-				flush.textContent = "";
-				const conversation = messageData.conversation
-				conversation.forEach(message => {
-					receiveMessage(message)
-				  });
+			console.log("Message received:", messageData);
+	
+			switch (messageData["type"]) {
+				case "history":
+					console.log("in history");
+					let flush = document.getElementById("chat-text");
+					flush.textContent = "";
+					const conversation = messageData.conversation;
+					conversation.forEach(message => {
+						receiveMessage(message);
+					});
+					break;
+				case "message":
+					receiveMessage(messageData);
+					break;
+				default:
+					console.log(`Unknown message type received: ${messageData["type"]}`);
+					break;
 			}
-			else if (messageData["type"] == "message"){
-				receiveMessage(messageData)
-		}
-
 		};
 	
 		chatSocket.onclose = function (event) {
@@ -567,20 +609,23 @@ if (toastTrigger) {
 			}
 		};
 	}	
-	
 
+	
 	async function sendChat() {
 		let text = chatMessage.value;
 		let receiver = document.getElementById('chat-receiver').textContent;
 		text = text.trim();
 	
 		if (text === "" || receiver === "") {
+			console.log("Cannot send empty message or receiver not selected.");
+			displaySystemMessage("Cannot send empty message or receiver not selected.");
 			return;
 		}
 	
 		let user = await fetchUserData();
 		if (!user.authenticated) {
 			console.log("User not authenticated. Cannot send message.");
+			displaySystemMessage("User not authenticated. Cannot send message.");
 			return;
 		}
 	
@@ -599,7 +644,7 @@ if (toastTrigger) {
 		}
 		chatMessage.value = "";
 	}
-
+	
 
 	function closingChat() {
 		console.log("Closing chat");
