@@ -266,6 +266,40 @@ async function currentJS() {
 //   | (__| | | | (_| | |_ 
 //    \___|_| |_|\__,_|\__|
 
+let debugMode = false; // Set to false to disable debug logs
+
+	function logMessage(type, message) {
+		const timestamp = new Date().toLocaleString('en-GB', { 
+			day: '2-digit', 
+			month: '2-digit', 
+			year: 'numeric', 
+			hour: '2-digit', 
+			minute: '2-digit', 
+			second: '2-digit' 
+		}).replace(',', '');
+
+		if (debugMode) {
+			switch(type) {
+				case 'info':
+					console.info(`[INFO - ${timestamp}]: ${message}`);
+					break;
+				case 'warn':
+					console.warn(`[WARN - ${timestamp}]: ${message}`);
+					break;
+				case 'error':
+					console.error(`[ERROR - ${timestamp}]: ${message}`);
+					break;
+				default:
+					console.log(`[LOG - ${timestamp}]: ${message}`);
+					break;
+			}
+		}
+	}
+
+	function setDebugMode(mode) {
+		debugMode = mode;
+	}
+
 const toastTrigger = document.getElementById('liveToastBtn')
 const toastLiveExample = document.getElementById('liveToast')
 
@@ -294,34 +328,35 @@ if (toastTrigger) {
 		if (openWindow === true) {
 			let chatReceiver = document.getElementById('chat-receiver');
 			chatReceiver.innerHTML = receiver;
-			console.log(`Chat window updated with receiver: ${receiver}`);
+			logMessage('info', `Chat window updated with receiver: ${receiver}`);
 		}
 	
 		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-			console.log("Sending chat message:");
-			console.log(chatRoom);
+			logMessage('info', "Sending chat message:");
+			logMessage('info', JSON.stringify(chatRoom));
 			chatSocket.send(JSON.stringify(chatRoom));
 		} else {
-			console.error("Unable to send message: WebSocket not open or not initialized.");
+			logMessage('error', "Unable to send message: WebSocket not open or not initialized.");
 			return;
 		}
 	}
+	
 
 	function updateChatWindow(receiver) {
 		if (openWindow === true) {
 			let chatReceiver = document.getElementById('chat-receiver');
 			chatReceiver.innerHTML = receiver;
-			console.log(`Chat window updated with receiver: ${receiver}`);
+			logMessage('info', `Chat window updated with receiver: ${receiver}`);
 		}
 	}
-
+	
 	function handleSystemNotifications() {
-		console.log("Fetching system notifications");
+		logMessage('info', "Fetching system notifications");
 	
 		// Placeholder function
-		console.log("System notifications clicked!");
+		logMessage('info', "System notifications clicked!");
 	}
-
+	
 	function blockUser(user, receiver) {
 		let block = {
 			"type": "block",
@@ -330,15 +365,15 @@ if (toastTrigger) {
 		};
 	
 		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-			console.log("Sending block request:");
-			console.log(block);
+			logMessage('info', "Sending block request:");
+			logMessage('info', JSON.stringify(block));
 			chatSocket.send(JSON.stringify(block));
 		} else {
-			console.error("Unable to send block request: WebSocket not open or not initialized.");
+			logMessage('error', "Unable to send block request: WebSocket not open or not initialized.");
 			return;
 		}
 	}
-
+	
 	function displaySystemMessage(message) {
 		let timestamp = new Date();
 		
@@ -375,14 +410,14 @@ if (toastTrigger) {
 			let user = await fetchUserData();
 	
 			if (!user.authenticated) {
-				console.log('User is not authenticated');
+				logMessage('info', 'User is not authenticated');
 				return;
 			}
 	
 			let list = await fetchUserFriends();
-			console.log('User friends fetched successfully:', list.friends);
+			logMessage('info', 'User friends fetched successfully: ' + JSON.stringify(list.friends));
 	
-			//  Main container for All Chat
+			// Main container for All Chat
 			let allChat = document.createElement('div');
 			allChat.innerHTML = `
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
@@ -400,10 +435,10 @@ if (toastTrigger) {
 			systemNotifications.innerHTML = `
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bell-fill" viewBox="0 0 16 16">
 				<path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901"/>
-				</svg> System Notifications`
+				</svg> System Notifications`;
 	
 			systemNotifications.onclick = handleSystemNotifications;
-
+	
 			friendList.appendChild(systemNotifications);
 	
 			// Iterate over each friend and create a div for them
@@ -457,19 +492,19 @@ if (toastTrigger) {
 				friendList.appendChild(friendDiv);
 			}
 		} catch (error) {
-			console.error('Error fetching user data or user friends:', error);
+			logMessage('error', 'Error fetching user data or user friends: ' + error);
 		}
 	}
 
 
 	function openingChat() {
 		if (!chatSocket) {
-			console.log("Chat socket not available. Please log in to use chat.");
+			logMessage('warning', 'Chat socket not available. Please log in to use chat.');
 			alert("Please log in to use chat");
 			return;
 		}
 	
-		console.log("Opening chat");
+		logMessage('info', 'Opening chat');
 	
 		openWindow = true;
 		chat.style.height = 'auto';
@@ -532,59 +567,59 @@ if (toastTrigger) {
 		updateChat();
 	}
 	
-	chat.addEventListener('click', openingChat);
+	chat.addEventListener('click', openingChat);	
 
 
-	function receiveMessage(messageData)
-	{
-		console.log("received message")
+	function receiveMessage(messageData) {
+		logMessage('info', 'Received message');
+		
 		let timestamp = messageData.timestamp;
 		let sender = messageData.sender;
 		let message = messageData.message;
 		let directMessage = messageData.direct_message || false;
-
+	
 		// Create a container div for the message
 		let messageContainer = document.createElement('div');
 		messageContainer.className = 'message-container';
-
+	
 		// Apply different class for system messages
 		if (sender === "system") {
 			messageContainer.classList.add('system-message');
 		} else if (directMessage) {
 			messageContainer.classList.add('direct-message');
 		}
-
+	
 		// Create a div for the timestamp and sender
 		let messageTimestamp = document.createElement('div');
 		messageTimestamp.className = 'message-timestamp';
 		messageTimestamp.textContent = timestamp;
-
+	
 		// Create a div for the message content
 		let messageContent = document.createElement('div');
 		messageContent.className = 'message-content';
 		messageContent.textContent = `${sender}: ${message}`;
-
+	
 		// Append the timestamp and content to the container
 		messageContainer.appendChild(messageTimestamp);
 		messageContainer.appendChild(messageContent);
-
+	
 		// Append the message container to the chat text area
 		document.getElementById('chat-text').appendChild(messageContainer);
-
+	
 		// Scroll to the bottom of the chat text area
 		document.getElementById('chat-text').scrollTop = document.getElementById('chat-text').scrollHeight;
-	}
+	}	
 
 	function updateChat() {
-		console.log("Chat update started");
+		logMessage('info', 'Chat update started');
 	
 		chatSocket.onmessage = function (event) {
 			let messageData = JSON.parse(event.data);
-			console.log("Message received:", messageData);
+			logMessage('info', 'Message received:', messageData);
 	
 			switch (messageData["type"]) {
 				case "history":
-					console.log("in history");
+					logMessage('info', 'Processing chat history');
 					let flush = document.getElementById("chat-text");
 					flush.textContent = "";
 					const conversation = messageData.conversation;
@@ -596,19 +631,19 @@ if (toastTrigger) {
 					receiveMessage(messageData);
 					break;
 				default:
-					console.log(`Unknown message type received: ${messageData["type"]}`);
+					logMessage('warning', `Unknown message type received: ${messageData["type"]}`);
 					break;
 			}
 		};
 	
 		chatSocket.onclose = function (event) {
 			if (event.code === 1000) {
-				console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+				logMessage('info', `Connection closed cleanly, code=${event.code}, reason=${event.reason}`);
 			} else {
-				console.log('Connection closed unexpectedly:', event);
+				logMessage('error', 'Connection closed unexpectedly:', event);
 			}
 		};
-	}	
+	}		
 
 	
 	async function sendChat() {
@@ -617,14 +652,14 @@ if (toastTrigger) {
 		text = text.trim();
 	
 		if (text === "" || receiver === "") {
-			console.log("Cannot send empty message or receiver not selected.");
+			logMessage('error', "Cannot send empty message or receiver not selected.");
 			displaySystemMessage("Cannot send empty message or receiver not selected.");
 			return;
 		}
 	
 		let user = await fetchUserData();
 		if (!user.authenticated) {
-			console.log("User not authenticated. Cannot send message.");
+			logMessage('error', "User not authenticated. Cannot send message.");
 			displaySystemMessage("User not authenticated. Cannot send message.");
 			return;
 		}
@@ -637,17 +672,24 @@ if (toastTrigger) {
 			"message": text,
 		};
 	
-		console.log("Sending message:", message);
+		logMessage('info', "Sending message:");
+		logMessage('info', message);
 	
 		if (chatSocket.readyState === WebSocket.OPEN) {
 			chatSocket.send(JSON.stringify(message));
+		} else {
+			logMessage('error', "WebSocket not open. Cannot send message.");
+			displaySystemMessage("WebSocket not open. Cannot send message.");
+			return;
 		}
+	
+		// Clear chat message input after sending
 		chatMessage.value = "";
 	}
-	
+
 
 	function closingChat() {
-		console.log("Closing chat");
+		logMessage('info', "Closing chat");
 	
 		// Remove close button
 		let closeChat = document.getElementById('close-chat');
@@ -673,7 +715,6 @@ if (toastTrigger) {
 		// Slide chat out of view
 		chat.style.transform = 'translate(0, -100%)';
 	}
-
 
 
 

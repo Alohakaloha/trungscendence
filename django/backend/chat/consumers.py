@@ -65,9 +65,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         try:
             chat_json = json.loads(text_data)
-            logprint("_________________")
-            logprint(text_data)
-            logprint("_________________")
             action_type = chat_json.get('type')
             sender_uname = chat_json.get('sender')
             message_content = chat_json.get('message')
@@ -165,12 +162,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from .models import Chat, Message
         from auth_app.models import AppUser
 
-        sender_username = chat_json.get('sender')
-        receiver_username = chat_json.get('receiver')
+        sender_frontend = chat_json.get('sender')
+        receiver_frontend = chat_json.get('receiver')
 
-        sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
+        sender = await sync_to_async(AppUser.objects.get)(username=sender_frontend)
+        receiver = await sync_to_async(AppUser.objects.get)(username=receiver_frontend)
 
-        logprint(f"{sender.username} is blocking {receiver_username}")
+        logprint(f"{sender.username} is blocking {receiver.username}")
 
     def get_current_timestamp(self):
         current_time = timezone.now()
