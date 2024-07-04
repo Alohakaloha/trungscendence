@@ -403,7 +403,30 @@ if (toastTrigger) {
 	
 		document.getElementById('chat-text').appendChild(messageContainer);
 		document.getElementById('chat-text').scrollTop = document.getElementById('chat-text').scrollHeight;
+
 	}
+// Array to store the last 3 messages received
+let lastThreeMessages = [];
+
+function displayToastMessage(message) {
+    let timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+    lastThreeMessages.unshift(`${timestamp} - ${message}`);
+
+    if (lastThreeMessages.length > 3) {
+        lastThreeMessages.pop(); // Remove the oldest message
+    }
+
+    let toastContent = lastThreeMessages.join('<br>');
+
+    // Set the content of the toast body
+    let toastBody = document.getElementById('notification');
+    toastBody.innerHTML = toastContent;
+
+    let toastElement = document.getElementById('liveToast');
+    let toast = new bootstrap.Toast(toastElement);
+    toast.show();
+}
 
 	async function showFriends() {
 		try {
@@ -427,6 +450,7 @@ if (toastTrigger) {
 			allChat.onclick = function() {
 				updateChatWindow("global");
 				displaySystemMessage("You are now writing in All Chat");
+				displayToastMessage("All Chat")
 			};
 			friendList.appendChild(allChat);
 	
@@ -452,6 +476,7 @@ if (toastTrigger) {
 				friendDiv.onclick = function() {
 					chatObject(user.username, friend.username);
 					displaySystemMessage(`Conversation with "${friend.username}":`);
+					displayToastMessage(`Conversation with "${friend.username}":`);
 				};
 				friendDiv.appendChild(friendPic);
 	
@@ -654,6 +679,7 @@ if (toastTrigger) {
 		if (text === "" || receiver === "") {
 			logMessage('error', "Cannot send empty message or receiver not selected.");
 			displaySystemMessage("Cannot send empty message or receiver not selected.");
+			displayToastMessage("No Receiver or empty message")
 			return;
 		}
 	
@@ -661,6 +687,7 @@ if (toastTrigger) {
 		if (!user.authenticated) {
 			logMessage('error', "User not authenticated. Cannot send message.");
 			displaySystemMessage("User not authenticated. Cannot send message.");
+			displayToastMessage("Not Authenticated")
 			return;
 		}
 	
