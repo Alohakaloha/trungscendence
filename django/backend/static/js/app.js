@@ -352,10 +352,23 @@ if (toastTrigger) {
 	
 	function handleSystemNotifications() {
 		logMessage('info', "Fetching system notifications");
+		
+		// Clear the chat window
+		let chatText = document.getElementById('chat-text');
+		chatText.innerHTML = "";
 	
-		// Placeholder function
-		logMessage('info', "System notifications clicked!");
+		if (allToasts.length === 0) {
+			displaySystemMessage("No previous notifications.");
+			logMessage('info', "No previous notifications.");
+		} else {
+			allToasts.forEach(toast => {
+				displaySystemMessage(`${toast.timestamp} - ${toast.message}`);
+			});
+	
+			logMessage('info', "System notifications displayed!");
+		}
 	}
+
 	
 	function blockUser(user, receiver) {
 		let block = {
@@ -405,28 +418,52 @@ if (toastTrigger) {
 		document.getElementById('chat-text').scrollTop = document.getElementById('chat-text').scrollHeight;
 
 	}
-// Array to store the last 3 messages received
-let lastThreeMessages = [];
+// Array to store all received messages
+let allToasts = [];
 
-function displayToastMessage(message) {
+// Array to store the last 3 messages displayed in the toast
+let lastToasts = [];
+
+function displayToastMessage(message, type = 'info', style = {}) {
+
     let timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
-    lastThreeMessages.unshift(`${timestamp} - ${message}`);
+    allToasts.push({ timestamp, message, type, style });
 
-    if (lastThreeMessages.length > 3) {
-        lastThreeMessages.pop(); // Remove the oldest message
+    lastToasts.unshift({ timestamp, message, type, style });
+
+    // Keep only the last 3 messages in the lastToasts array
+    if (lastToasts.length > 3) {
+        lastToasts.pop();
     }
 
-    let toastContent = lastThreeMessages.join('<br>');
+    let toastContent = lastToasts.map(msg => {
+        let styleStr = Object.keys(msg.style).map(key => `${key}: ${msg.style[key]};`).join(' ');
+        return `<div class="toast-message ${msg.type}" style="${styleStr}">
+                    <span class="timestamp">${msg.timestamp}</span> - ${msg.message}
+                </div>`;
+    }).join('<br>');
 
     // Set the content of the toast body
     let toastBody = document.getElementById('notification');
     toastBody.innerHTML = toastContent;
 
+    // Show the Bootstrap Toast with specific styling
     let toastElement = document.getElementById('liveToast');
     let toast = new bootstrap.Toast(toastElement);
     toast.show();
 }
+
+// Function to retrieve all stored messages
+function getallToasts() {
+    return allToasts;
+}
+
+/* // Example usage with custom styles
+displayToastMessage("Success message!", "success", { fontWeight: 'bold' });
+displayToastMessage("Error message!", "error", { fontStyle: 'italic' });
+displayToastMessage("Info message!", "info");
+displayToastMessage("Warning message!", "warning", { color: 'orange' }); */
 
 	async function showFriends() {
 		try {
@@ -450,7 +487,7 @@ function displayToastMessage(message) {
 			allChat.onclick = function() {
 				updateChatWindow("global");
 				displaySystemMessage("You are now writing in All Chat");
-				displayToastMessage("All Chat")
+				displayToastMessage("Writing in All Chat", "info");
 			};
 			friendList.appendChild(allChat);
 	
@@ -476,7 +513,7 @@ function displayToastMessage(message) {
 				friendDiv.onclick = function() {
 					chatObject(user.username, friend.username);
 					displaySystemMessage(`Conversation with "${friend.username}":`);
-					displayToastMessage(`Conversation with "${friend.username}":`);
+					displayToastMessage(`Conversation with ${friend.username}`, "info");
 				};
 				friendDiv.appendChild(friendPic);
 	
@@ -679,7 +716,7 @@ function displayToastMessage(message) {
 		if (text === "" || receiver === "") {
 			logMessage('error', "Cannot send empty message or receiver not selected.");
 			displaySystemMessage("Cannot send empty message or receiver not selected.");
-			displayToastMessage("No Receiver or empty message")
+			displayToastMessage("Empty message or no receiver", "error");
 			return;
 		}
 	
@@ -687,7 +724,7 @@ function displayToastMessage(message) {
 		if (!user.authenticated) {
 			logMessage('error', "User not authenticated. Cannot send message.");
 			displaySystemMessage("User not authenticated. Cannot send message.");
-			displayToastMessage("Not Authenticated")
+			displayToastMessage("User not authenticated", "error");
 			return;
 		}
 	

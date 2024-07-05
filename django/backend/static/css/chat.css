@@ -93,24 +93,94 @@ input[type="text"] {
 }
 
 
-/*Toast formatting*/
+/* Toast formatting */
 
 .toast-container {
     top: 10%;
-    right: auto; /* Reset the right positioning if it's set */
-    bottom: auto; /* Reset the bottom positioning if it's set */
-    transform: translate(0, 0); /* Reset any transforms that might be applied */
-}
-/* 
-#liveToastBtn{
-	border-radius: 50%;
-} */
-
-.custom-smaller{
-	padding: 4px 4px
+    right: 0; /* Align the container to the right side */
+    padding: 1rem;
+    z-index: 1050; /* Ensure it appears above other elements */
 }
 
-.custom-smaller svg{
-	width:16px;
-	height:16px;
+.toast {
+    background-color: #343a40; /* Dark background color */
+    color: white;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif; /* Default font family */
+}
+
+.toast-body {
+    padding: 1rem;
+}
+
+.toast-header {
+    background-color: #495057; /* Slightly lighter dark background */
+    color: white;
+    border-bottom: 1px solid #6c757d;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+}
+
+.toast-header strong {
+    flex-grow: 1;
+    font-size: 1rem;
+}
+
+.toast-header small {
+    color: #adb5bd; /* Muted text color */
+}
+
+.toast .btn-close {
+    color: white;
+    opacity: 0.7;
+}
+
+.toast .btn-close:hover {
+    opacity: 1;
+}
+
+.custom-smaller {
+    padding: 4px 4px;
+}
+
+.custom-smaller svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Additional custom styles */
+
+.toast-message {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.timestamp {
+    color: #ced4da;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+}
+
+/* Custom styles for different message types */
+
+.toast-message.success {
+    color: green;
+    font-weight: bold;
+}
+
+.toast-message.error {
+    color: red;
+    font-style: italic;
+}
+
+.toast-message.info {
+    color: rgb(255, 0, 157);
+    font-weight: bold;
+}
+
+.toast-message.warning {
+    color: orange;
+    font-weight: bold;
 }
