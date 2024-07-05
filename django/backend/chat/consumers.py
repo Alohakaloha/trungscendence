@@ -124,13 +124,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         await self.channel_layer.send(sender_channel, message_event)
                 elif action_type == 'block':
                     logprint("Block action received")
-                    await self.block_user(chat_json)
                 elif action_type == "chatroom":
                     logprint("Chatroom condition met")
                     receiver = await sync_to_async(AppUser.objects.get)(username=receiver_uname)
                     chat_messages = await sync_to_async(Chat().load_history)(sender, receiver)
                     if sender_channel:
-                        await self.send(json.dumps(chat_messages))
+                        await self.send(text_data=json.dumps(chat_messages))
                 else:
                     logprint(f"Unknown action type received: {action_type}")
 

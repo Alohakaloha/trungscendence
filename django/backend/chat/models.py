@@ -42,6 +42,8 @@ class Chat(models.Model):
         #     return new_chat
 
 
+
+
     def load_history(self, sender, receiver):
         try:
             chat = Chat.objects.filter(
@@ -51,36 +53,29 @@ class Chat(models.Model):
             if chat is None:
                 logprint("Creating a new chat")
                 chat = Chat.objects.create(participant1=sender, participant2=receiver)
-            else:
-                logprint("Chat found")
-                last_5_messages = Message.objects.filter(chat=chat).order_by('-timestamp')[:5]
-            return self.serialize_chat(last_5_messages)
+            logprint("Chat found")
+            # Fetch the newest 5 messages by ordering them in descending order of timestamp
+            newest_messages = Message.objects.filter(chat=chat).order_by('-timestamp')[:5]
+            # Reverse the order of messages for correct display
+            newest_messages_reversed = reversed(newest_messages)
+            return self.serialize_chat(newest_messages_reversed)
         except Exception as e:
             logprint(e)
             return None
-        # if chat.exists():
-        #  logprint("Chat found")
-        #  return chat.first()
-        # else:
-        #     logprint("Creating a new chat")
-        #     new_chat = Chat(participant1=participant1, participant2=participant2)
-        #     new_chat.save()
-        #     return new_chat
 
     def serialize_chat(self, messages):
         chat_data = {
-              "type":"history",
-               "conversation" : [
-               {
-                    "sender": message.sender.username,  # Adjust as needed
+            "type": "history",
+            "conversation": [
+                {
+                    "sender": message.sender.username,
                     "message": message.content,
-                     "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-               }
+                    "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                }
                 for message in messages
-               ],
-             }
+            ],
+        }
         return chat_data
-
 
 
 class Message(models.Model):

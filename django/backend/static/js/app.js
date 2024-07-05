@@ -266,7 +266,7 @@ async function currentJS() {
 //   | (__| | | | (_| | |_ 
 //    \___|_| |_|\__,_|\__|
 
-let debugMode = false; // Set to false to disable debug logs
+let debugMode = true; // Set to false to disable debug logs
 
 	function logMessage(type, message) {
 		const timestamp = new Date().toLocaleString('en-GB', { 
