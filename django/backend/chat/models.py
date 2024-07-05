@@ -70,6 +70,7 @@ class Chat(models.Model):
                     "sender": message.sender.username,
                     "message": message.content,
                     "timestamp": timezone.localtime(message.timestamp).strftime("%d.%m.%Y %H:%M"),
+                    'direct_message': True
                 }
                 for message in messages
             ],
