@@ -10,6 +10,17 @@ def logprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 # Create your models here.
+
+class Block(models.Model):
+    blocker = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name='blocking')
+    blocked = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name='blocked')
+
+    class Meta:
+        unique_together = ('blocker', 'blocked')
+
+    def __str__(self):
+        return f"{self.blocker.username} blocked {self.blocked.username}"
+
 class Chat(models.Model):
     participant1 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant1')
     participant2 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant2')

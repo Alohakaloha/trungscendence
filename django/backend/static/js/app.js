@@ -512,7 +512,7 @@ displayToastMessage("Warning message!", "warning", { color: 'orange' }); */
 				friendPic.src = friend.profile_picture;
 				friendDiv.onclick = function() {
 					chatObject(user.username, friend.username);
-					displaySystemMessage(`Conversation with "${friend.username}":`);
+					displaySystemMessage(`Conversation with "${friend.username}"`);
 					displayToastMessage(`Conversation with ${friend.username}`, "info");
 				};
 				friendDiv.appendChild(friendPic);
@@ -682,8 +682,8 @@ displayToastMessage("Warning message!", "warning", { color: 'orange' }); */
 			switch (messageData["type"]) {
 				case "history":
 					logMessage('info', 'Processing chat history');
-					let flush = document.getElementById("chat-text");
-					flush.textContent = "";
+					// let flush = document.getElementById("chat-text");
+					// flush.textContent = "";
 					const conversation = messageData.conversation;
 					conversation.forEach(message => {
 						receiveMessage(message);

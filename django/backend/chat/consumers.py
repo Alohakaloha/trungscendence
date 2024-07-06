@@ -153,8 +153,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.channel_layer.send(sender_channel, system_message_event)
 
     async def block_user(self, chat_json):
-        from .models import Chat, Message
         from auth_app.models import AppUser
+        from .models import Block
 
         sender_username = chat_json.get('sender')
         receiver_username = chat_json.get('receiver')
@@ -162,7 +162,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
         sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
         receiver = await sync_to_async(AppUser.objects.get)(username=receiver_username)
 
-        logprint(f"{sender.username} is blocking {receiver.username}")
+        # Check if the block already exists
+        block_exists = await sync_to_async(Block.objects.filter(blocker=sender, blocked=receiver).exists)()
+        if not block_exists:
+            # Create a new block record
+            await sync_to_async(Block.objects.create)(blocker=sender, blocked=receiver)
+            logprint(f"{sender.username} has blocked {receiver.username}")
+
+            await self.send(text_data=json.dumps({
+                'type': 'message',
+                'message': f"You have blocked {receiver.username}",
+                'sender': 'system',
+                'timestamp': self.get_current_timestamp(),
+            }))
+        else:
+            logprint(f"{sender.username} had already blocked {receiver.username}")
+
+            await self.send(text_data=json.dumps({
+                'type': 'message',
+                'message': f"You have already blocked {receiver.username}",
+                'sender': 'system',
+                'timestamp': self.get_current_timestamp(),
+            }))
 
     async def handle_chatroom(self, sender_username, receiver_username):
         from .models import Chat, Message
