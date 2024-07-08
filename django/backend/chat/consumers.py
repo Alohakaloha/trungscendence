@@ -4,7 +4,6 @@ from django.utils import timezone
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-# Constants
 DEFAULT_ROOM_NAME = 'chatting'
 
 # Dictionary to map usernames to their WebSocket channels
@@ -22,7 +21,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f'chat_{self.room_name}'
         self.username = self.scope['user'].username
 
-        # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
         # Add user to user_channel_mapping
@@ -105,7 +103,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         from .models import Block
         from auth_app.models import AppUser
 
-        # Get the sender object asynchronously
         sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
 
         # Fetch all users who have blocked the sender asynchronously
@@ -127,13 +124,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
 
     async def send_private_message(self, sender, receiver_username, message_content):
-        from .models import Chat, Message
+        from .models import Chat, Message, Block
         from auth_app.models import AppUser
+
+        receiver = await sync_to_async(AppUser.objects.get)(username=receiver_username)
+        blocked = await sync_to_async(Block.objects.filter(blocker=receiver, blocked=sender).exists)()
+
+        if blocked:
+            logprint(f"Message from {sender.username} to {receiver.username} is blocked and will not be delivered.")
+            
+            sender_channel = user_channel_mapping.get(sender.username)
+            # Inform the sender that they have been blocked
+            if sender_channel:
+                system_message_event = {
+                    'type': 'chat_message',
+                    'message': f"You have been blocked by {receiver_username} and your message was not delivered.",
+                    'sender': 'system',
+                    'timestamp': self.get_current_timestamp(),
+                }
+                await self.channel_layer.send(sender_channel, system_message_event)
+            
+            return
 
         receiver_channel = user_channel_mapping.get(receiver_username)
 
         if receiver_channel:
-            receiver = await sync_to_async(AppUser.objects.get)(username=receiver_username)
             chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
             await sync_to_async(Message.objects.create)(
                 chat=chat,
@@ -157,7 +172,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             logprint(f"Receiver '{receiver_username}' is not connected")
             system_message_event = {
                 'type': 'chat_message',
-                'message': f"{receiver_username} is not connected but will receive your message once coming online",
+                'message': f"{receiver_username} is not connected",
                 'sender': 'system',
                 'timestamp': self.get_current_timestamp(),
             }
