@@ -76,6 +76,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.handle_message(sender_username, receiver_username, message_content)
             elif action_type == 'block':
                 await self.block_user(chat_json)
+            elif action_type == 'unblock':
+                await self.unblock_user(chat_json)
             elif action_type == 'chatroom':
                 await self.handle_chatroom(sender_username, receiver_username)
             else:
@@ -162,10 +164,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
         receiver = await sync_to_async(AppUser.objects.get)(username=receiver_username)
 
-        # Check if the block already exists
         block_exists = await sync_to_async(Block.objects.filter(blocker=sender, blocked=receiver).exists)()
         if not block_exists:
-            # Create a new block record
             await sync_to_async(Block.objects.create)(blocker=sender, blocked=receiver)
             logprint(f"{sender.username} has blocked {receiver.username}")
 
@@ -181,6 +181,38 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({
                 'type': 'message',
                 'message': f"You have already blocked {receiver.username}",
+                'sender': 'system',
+                'timestamp': self.get_current_timestamp(),
+            }))
+
+    async def unblock_user(self, chat_json):
+        from .models import Block
+        from auth_app.models import AppUser
+
+        sender_username = chat_json.get('sender')
+        receiver_username = chat_json.get('receiver')
+
+        sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
+        receiver = await sync_to_async(AppUser.objects.get)(username=receiver_username)
+
+        block_exists = await sync_to_async(Block.objects.filter(blocker=sender, blocked=receiver).exists)()
+        if block_exists:
+            block = await sync_to_async(Block.objects.get)(blocker=sender, blocked=receiver)
+            await sync_to_async(block.delete)()
+            logprint(f"{sender.username} has unblocked {receiver.username}")
+
+            await self.send(text_data=json.dumps({
+                'type': 'message',
+                'message': f"You have unblocked {receiver.username}",
+                'sender': 'system',
+                'timestamp': self.get_current_timestamp(),
+            }))
+        else:
+            logprint(f"{sender.username} has not blocked {receiver.username}")
+
+            await self.send(text_data=json.dumps({
+                'type': 'message',
+                'message': f"{receiver.username} was not blocked",
                 'sender': 'system',
                 'timestamp': self.get_current_timestamp(),
             }))
