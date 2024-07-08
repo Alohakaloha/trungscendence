@@ -102,18 +102,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.send_private_message(sender, receiver_username, message_content)
 
     async def broadcast_message(self, message_content, sender_username):
-        from .models import Chat, Message
+        from .models import Block
         from auth_app.models import AppUser
 
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message_content,
-                'sender': sender_username,
-                'timestamp': self.get_current_timestamp(),
-            }
-        )
+        # Get the sender object asynchronously
+        sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
+
+        # Fetch all users who have blocked the sender asynchronously
+        blocked_users = await sync_to_async(lambda: list(Block.objects.filter(blocked=sender).values_list('blocker__username', flat=True)))()
+        blocked_users = set(blocked_users)
+
+        # Loop through all connected users
+        for username, channel in user_channel_mapping.items():
+            if username not in blocked_users:
+                await self.channel_layer.send(
+                    channel,
+                    {
+                        'type': 'chat_message',
+                        'message': message_content,
+                        'sender': sender_username,
+                        'timestamp': self.get_current_timestamp(),
+                        'direct_message': False,
+                    }
+                )
 
     async def send_private_message(self, sender, receiver_username, message_content):
         from .models import Chat, Message
