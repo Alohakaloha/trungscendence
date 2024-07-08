@@ -404,7 +404,18 @@ if (toastTrigger) {
 		}
 	}
 
+
+	function viewProfile(username) {
+		logMessage('info', `Viewing profile of ${username}`);
+		// Placeholder function for viewing profile
+	}
 	
+	function gameInvite(username) {
+		logMessage('info', `Inviting ${username} to a game`);
+		// Placeholder function for inviting to a game
+	}
+
+
 	function displaySystemMessage(message) {
 		let timestamp = new Date();
 		
@@ -551,6 +562,7 @@ async function showFriends() {
                 if (event.target.classList.contains('clickable-text')) {
                     chatObject(user.username, friend.username);
                     displaySystemMessage(`Conversation with "${friend.username}"`);
+                    displayToastMessage(`Conversation with ${friend.username}`, "info");
                 }
             };
 
@@ -577,7 +589,7 @@ async function showFriends() {
             blockLink.href = '#';
             blockLink.textContent = "Block " + friend.username;
             blockLink.onclick = function(event) {
-                event.stopPropagation(); // Stop the event from propagating to the parent elements
+                event.stopPropagation();
                 blockUser(user.username, friend.username);
             };
             blockItem.appendChild(blockLink);
@@ -588,13 +600,38 @@ async function showFriends() {
             unblockLink.href = '#';
             unblockLink.textContent = "Unblock " + friend.username;
             unblockLink.onclick = function(event) {
-                event.stopPropagation(); // Stop the event from propagating to the parent elements
+                event.stopPropagation();
                 unblockUser(user.username, friend.username);
             };
             unblockItem.appendChild(unblockLink);
 
+            let viewProfileItem = document.createElement('li');
+            let viewProfileLink = document.createElement('a');
+            viewProfileLink.className = 'dropdown-item';
+            viewProfileLink.href = '#';
+            viewProfileLink.textContent = "View Profile";
+            viewProfileLink.onclick = function(event) {
+                event.stopPropagation();
+                viewProfile(friend.username);
+            };
+            viewProfileItem.appendChild(viewProfileLink);
+
+            let gameInviteItem = document.createElement('li');
+            let gameInviteLink = document.createElement('a');
+            gameInviteLink.className = 'dropdown-item';
+            gameInviteLink.href = '#';
+            gameInviteLink.textContent = "Invite to Game";
+            gameInviteLink.onclick = function(event) {
+                event.stopPropagation();
+                gameInvite(friend.username);
+            };
+            gameInviteItem.appendChild(gameInviteLink);
+
+			dropdownMenu.appendChild(viewProfileItem);
+            dropdownMenu.appendChild(gameInviteItem);
             dropdownMenu.appendChild(blockItem);
             dropdownMenu.appendChild(unblockItem);
+
 
             // Append the menu and dropdownMenu to friendDiv
             friendDiv.appendChild(menu);
