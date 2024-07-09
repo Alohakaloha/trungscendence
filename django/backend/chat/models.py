@@ -1,8 +1,11 @@
+import sys
+
+from auth_app.models import AppUser
 from django.db import models
 from django.utils import timezone
 from django.db.models import Q
-from auth_app.models import AppUser
-import sys
+
+
 
 User = AppUser
 
@@ -50,8 +53,6 @@ class Chat(models.Model):
         #     new_chat = Chat(participant1=participant1, participant2=participant2)
         #     new_chat.save()
         #     return new_chat
-
-
 
 
     def load_history(self, sender, receiver):
