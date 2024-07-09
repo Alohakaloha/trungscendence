@@ -1,7 +1,7 @@
 import sys
 import json
-from django.utils import timezone
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 DEFAULT_ROOM_NAME = 'chatting'
@@ -79,7 +79,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def broadcast_message(self, message_content, sender_username):
         blocked_users = await self.get_blocked_users(sender_username)
-        
+
         for username, channel in user_channel_mapping.items():
             if username not in blocked_users:
                 await self.channel_layer.send(
