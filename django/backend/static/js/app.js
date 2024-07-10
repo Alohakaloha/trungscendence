@@ -350,8 +350,8 @@ if (toastTrigger) {
 		}
 	}
 	
-	function handleSystemNotifications() {
-		logMessage('info', "Fetching system notifications");
+	function handleNotifications() {
+		logMessage('info', "Fetching notifications");
 		
 		// Clear the chat window
 		let chatText = document.getElementById('chat-text');
@@ -365,7 +365,7 @@ if (toastTrigger) {
 				displaySystemMessage(`${toast.message}`);
 			});
 	
-			logMessage('info', "System notifications displayed!");
+			logMessage('info', "Frontend notifications displayed!");
 		}
 	}
 
@@ -492,7 +492,7 @@ displayToastMessage("Error message!", "error", { fontStyle: 'italic' });
 displayToastMessage("Info message!", "info");
 displayToastMessage("Warning message!", "warning", { color: 'orange' }); */
 
-async function showFriends() {
+async function showSideChat() {
     try {
         let user = await fetchUserData();
 
@@ -504,145 +504,166 @@ async function showFriends() {
         let list = await fetchUserFriends();
         logMessage('info', 'User friends fetched successfully: ' + JSON.stringify(list.friends));
 
-        // Main container for All Chat
-        let allChat = document.createElement('div');
-        allChat.classList.add('clickable-area');
-        allChat.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-people clickable-text" viewBox="0 0 16 16">
-                <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
-            </svg> <span class="clickable-text">All Chat</span>`;
+		let communityHeader = document.createElement('div');
+		communityHeader.textContent = 'Community';
+		communityHeader.classList.add('community-header');
+		friendList.appendChild(communityHeader);
 
-        allChat.onclick = function(event) {
-            if (event.target.classList.contains('clickable-text')) {
-                updateChatWindow("global");
-                displaySystemMessage("You are now writing in All Chat");
-                displayToastMessage("Writing in All Chat", "info");
-            }
-        };
-        friendList.appendChild(allChat);
+        // Render UI components
+        renderAllChat();
+        renderNotifications();
+        renderFriendList(user, list);
 
-        // Container for system notifications
-        let systemNotifications = document.createElement('div');
-        systemNotifications.classList.add('clickable-area');
-        systemNotifications.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bell-fill clickable-text" viewBox="0 0 16 16">
-            <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901"/>
-            </svg> <span class="clickable-text">System Notifications</span>`;
-
-        systemNotifications.onclick = function(event) {
-            if (event.target.classList.contains('clickable-text')) {
-                handleSystemNotifications();
-            }
-        };
-
-        friendList.appendChild(systemNotifications);
-
-        // Iterate over each friend and create a div for them
-        for (let friend of list.friends) {
-            let friendDiv = document.createElement('div');
-            friendDiv.className = 'friends-window d-flex align-items-center justify-content-between';
-
-            // Add friend's profile picture
-            let friendPic = document.createElement('img');
-            friendPic.src = friend.profile_picture;
-            friendPic.classList.add('clickable-text');
-
-            // Display friend's username
-            let friendName = document.createElement('span');
-            friendName.classList.add('clickable-text');
-            friendName.textContent = friend.username;
-
-            // Add picture and name to a wrapper
-            let friendContent = document.createElement('div');
-            friendContent.className = 'd-flex align-items-center clickable-area';
-            friendContent.appendChild(friendPic);
-            friendContent.appendChild(friendName);
-
-            friendContent.onclick = function(event) {
-                if (event.target.classList.contains('clickable-text')) {
-                    chatObject(user.username, friend.username);
-                    displaySystemMessage(`Conversation with "${friend.username}"`);
-                    displayToastMessage(`Conversation with ${friend.username}`, "info");
-                }
-            };
-
-            friendDiv.appendChild(friendContent);
-
-            // Create the dropdown button
-            let menu = document.createElement('button');
-            menu.style.borderRadius = '50%';
-            menu.className = 'btn btn-dark dropdown-toggle';
-            menu.setAttribute('type', 'button');
-            menu.setAttribute('id', 'dropdownMenuButton' + friend.username); // Ensure unique ID for each friend
-            menu.setAttribute('data-bs-toggle', 'dropdown'); // Note the 'bs' for Bootstrap 5
-            menu.setAttribute('aria-expanded', 'false');
-
-            // Create the dropdown menu
-            let dropdownMenu = document.createElement('ul');
-            dropdownMenu.className = 'dropdown-menu';
-            dropdownMenu.setAttribute('aria-labelledby', 'dropdownMenuButton' + friend.username);
-
-            // Create dropdown items
-            let blockItem = document.createElement('li');
-            let blockLink = document.createElement('a');
-            blockLink.className = 'dropdown-item';
-            blockLink.href = '#';
-            blockLink.textContent = "Block " + friend.username;
-            blockLink.onclick = function(event) {
-                event.stopPropagation();
-                blockUser(user.username, friend.username);
-            };
-            blockItem.appendChild(blockLink);
-
-            let unblockItem = document.createElement('li');
-            let unblockLink = document.createElement('a');
-            unblockLink.className = 'dropdown-item';
-            unblockLink.href = '#';
-            unblockLink.textContent = "Unblock " + friend.username;
-            unblockLink.onclick = function(event) {
-                event.stopPropagation();
-                unblockUser(user.username, friend.username);
-            };
-            unblockItem.appendChild(unblockLink);
-
-            let viewProfileItem = document.createElement('li');
-            let viewProfileLink = document.createElement('a');
-            viewProfileLink.className = 'dropdown-item';
-            viewProfileLink.href = '#';
-            viewProfileLink.textContent = "View Profile";
-            viewProfileLink.onclick = function(event) {
-                event.stopPropagation();
-                viewProfile(friend.username);
-            };
-            viewProfileItem.appendChild(viewProfileLink);
-
-            let gameInviteItem = document.createElement('li');
-            let gameInviteLink = document.createElement('a');
-            gameInviteLink.className = 'dropdown-item';
-            gameInviteLink.href = '#';
-            gameInviteLink.textContent = "Invite to Game";
-            gameInviteLink.onclick = function(event) {
-                event.stopPropagation();
-                gameInvite(friend.username);
-            };
-            gameInviteItem.appendChild(gameInviteLink);
-
-			dropdownMenu.appendChild(viewProfileItem);
-            dropdownMenu.appendChild(gameInviteItem);
-            dropdownMenu.appendChild(blockItem);
-            dropdownMenu.appendChild(unblockItem);
-
-
-            // Append the menu and dropdownMenu to friendDiv
-            friendDiv.appendChild(menu);
-            friendDiv.appendChild(dropdownMenu);
-
-            // Append friendDiv to friendList
-            friendList.appendChild(friendDiv);
-        }
     } catch (error) {
         logMessage('error', 'Error fetching user data or user friends: ' + error);
     }
+}
+
+function renderAllChat() {
+    // Main container for All Chat
+    let allChat = document.createElement('div');
+    allChat.classList.add('clickable-area');
+    allChat.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-people clickable-text" viewBox="0 0 16 16">
+            <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
+        </svg> <span class="clickable-text">All Chat</span>`;
+
+    allChat.onclick = function(event) {
+        if (event.target.classList.contains('clickable-text')) {
+            updateChatWindow("global");
+            displaySystemMessage("You are now writing in All Chat");
+            displayToastMessage("Writing in All Chat", "info");
+        }
+    };
+
+    friendList.appendChild(allChat);
+}
+
+function renderNotifications() {
+    // Container for system notifications
+    let systemNotifications = document.createElement('div');
+    systemNotifications.classList.add('clickable-area');
+    systemNotifications.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bell-fill clickable-text" viewBox="0 0 16 16">
+            <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901"/>
+        </svg> <span class="clickable-text">Notifications</span>`;
+
+    systemNotifications.onclick = function(event) {
+        if (event.target.classList.contains('clickable-text')) {
+            handleNotifications();
+        }
+    };
+
+    friendList.appendChild(systemNotifications);
+}
+
+function renderFriendList(user, list) {
+    // Add the Friends list header
+    let friendsHeader = document.createElement('div');
+    friendsHeader.textContent = 'Friends';
+    friendsHeader.classList.add('friend-list-header');
+    friendList.appendChild(friendsHeader);
+
+    // Check if there are no friends in the list
+    if (list.friends.length === 0) {
+        let noFriendsMessage = document.createElement('div');
+        noFriendsMessage.textContent = 'No Friends added yet';
+        noFriendsMessage.classList.add('no-friends-message');
+        friendList.appendChild(noFriendsMessage);
+        return;
+    }
+
+    // Iterate over each friend and create a div for them
+    for (let friend of list.friends) {
+        let friendDiv = document.createElement('div');
+        friendDiv.className = 'friends-window d-flex align-items-center justify-content-between';
+
+        // Add friend's profile picture
+        let friendPic = document.createElement('img');
+        friendPic.src = friend.profile_picture;
+        friendPic.classList.add('clickable-text');
+
+        // Display friend's username
+        let friendName = document.createElement('span');
+        friendName.classList.add('clickable-text');
+        friendName.textContent = friend.username;
+
+        // Add picture and name to a wrapper
+        let friendContent = document.createElement('div');
+        friendContent.className = 'd-flex align-items-center clickable-area';
+        friendContent.appendChild(friendPic);
+        friendContent.appendChild(friendName);
+
+        friendContent.onclick = function(event) {
+            if (event.target.classList.contains('clickable-text')) {
+                chatObject(user.username, friend.username);
+                displaySystemMessage(`Conversation with "${friend.username}"`);
+                displayToastMessage(`Conversation with ${friend.username}`, "info");
+            }
+        };
+
+        friendDiv.appendChild(friendContent);
+
+        // Render dropdown menu for each friend
+        renderDropdownMenu(friendDiv, user.username, friend.username);
+
+        // Append friendDiv to friendList
+        friendList.appendChild(friendDiv);
+    }
+}
+
+function renderDropdownMenu(friendDiv, username, friendUsername) {
+    // Create the dropdown button
+    let menu = document.createElement('button');
+    menu.style.borderRadius = '50%';
+    menu.className = 'btn btn-dark dropdown-toggle';
+    menu.setAttribute('type', 'button');
+    menu.setAttribute('id', 'dropdownMenuButton' + friendUsername); // Ensure unique ID for each friend
+    menu.setAttribute('data-bs-toggle', 'dropdown'); // Note the 'bs' for Bootstrap 5
+    menu.setAttribute('aria-expanded', 'false');
+
+    // Create the dropdown menu
+    let dropdownMenu = document.createElement('ul');
+    dropdownMenu.className = 'dropdown-menu';
+    dropdownMenu.setAttribute('aria-labelledby', 'dropdownMenuButton' + friendUsername);
+
+    // Create dropdown items
+    let blockItem = createDropdownItem("Block " + friendUsername, function(event) {
+        event.stopPropagation();
+        blockUser(username, friendUsername);
+    });
+    let unblockItem = createDropdownItem("Unblock " + friendUsername, function(event) {
+        event.stopPropagation();
+        unblockUser(username, friendUsername);
+    });
+    let viewProfileItem = createDropdownItem("View Profile", function(event) {
+        event.stopPropagation();
+        viewProfile(friendUsername);
+    });
+    let gameInviteItem = createDropdownItem("Invite to Game", function(event) {
+        event.stopPropagation();
+        gameInvite(friendUsername);
+    });
+
+    dropdownMenu.appendChild(viewProfileItem);
+    dropdownMenu.appendChild(gameInviteItem);
+    dropdownMenu.appendChild(blockItem);
+    dropdownMenu.appendChild(unblockItem);
+
+    // Append the menu and dropdownMenu to friendDiv
+    friendDiv.appendChild(menu);
+    friendDiv.appendChild(dropdownMenu);
+}
+
+function createDropdownItem(text, onClickHandler) {
+    let dropdownItem = document.createElement('li');
+    let dropdownLink = document.createElement('a');
+    dropdownLink.className = 'dropdown-item';
+    dropdownLink.href = '#';
+    dropdownLink.textContent = text;
+    dropdownLink.onclick = onClickHandler;
+    dropdownItem.appendChild(dropdownLink);
+    return dropdownItem;
 }
 
 
@@ -705,7 +726,7 @@ async function showFriends() {
 		chatWindowWrapper = document.getElementById('chatWindow-Wrapper');
 		chatWindowWrapper.insertBefore(friendList, chatWindowWrapper.firstChild);
 		chatText = document.getElementById('chat-text');
-		showFriends(chatText);
+		showSideChat(chatText);
 	
 		// Listen for Enter key to send chat
 		chatMessage.addEventListener('keydown', function(event) {

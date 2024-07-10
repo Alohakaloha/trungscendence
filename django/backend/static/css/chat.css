@@ -66,6 +66,36 @@ input[type="text"] {
     height: 32px;
 }
 
+.community-header {
+    font-size: 1em;
+    font-weight: bold;
+    padding: 8px;
+    background-color: #343a40;
+    color: white;
+    border-bottom: 1px solid #6c757d;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    margin-bottom: 10px;
+}
+
+
+.friend-list-header {
+    font-size: 1em;
+    font-weight: bold;
+    padding: 8px;
+    background-color: #343a40;
+    color: white;
+    border-bottom: 1px solid #6c757d;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    margin-bottom: 10px;
+}
+
+.no-friends-message::before {
+    content: '\2022';
+    margin-right: 0.5em;
+}
+
 /*message formatting*/
 
 .message-container {
