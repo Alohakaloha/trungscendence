@@ -91,6 +91,10 @@ input[type="text"] {
     margin-bottom: 10px;
 }
 
+#friend-list{
+    overflow: auto;
+}
+
 .friend-window {
     margin-bottom: 1px; /* Reduced margin bottom */
     padding: 6px; /* Smaller padding */

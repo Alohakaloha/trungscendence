@@ -938,6 +938,7 @@ function renderAllUsersList(user, allUsers) {
 		chat.removeChild(closeChat);
 	
 		// Reset chat window state
+		friendList = null;
 		openWindow = false;
 		chatText = null;
 		chatWindowWrapper = null;
