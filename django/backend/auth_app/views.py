@@ -236,6 +236,13 @@ def friends_list_view(request):
 	else:
 		return JsonResponse({'status': 'error', 'message':'You must be logged in to view this page.'})
 
+def all_user(request):
+	if request.user.is_authenticated:
+		users = AppUser.objects.exclude(user_id=request.user.user_id)
+		users = users.exclude(user_id__in=request.user.friends.values_list('user_id', flat=True))
+		serialized_users = list(users.values('user_id', 'username', 'profile_picture'))
+		return JsonResponse({'users': serialized_users})
+
 class CustomPasswordResetView(auth_views.PasswordResetView):
 	template_name = 'password_reset_form.html'
 # 

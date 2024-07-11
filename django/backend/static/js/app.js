@@ -24,6 +24,16 @@ async function fetchUserData(){
 	}
 }
 
+async function fetchAllUser(){
+	try {
+		const response = await fetch('/all_user');
+		return await response.json();
+	} catch (error){
+		console.error('Error fetching users data', error);
+		return null;
+	}
+}
+
 async function fetchUserFriends(){
 	try {
 		const response = await fetch('/friends_list');
@@ -502,17 +512,23 @@ async function showSideChat() {
         }
 
         let list = await fetchUserFriends();
+		let allUsers = await fetchAllUser();
         logMessage('info', 'User friends fetched successfully: ' + JSON.stringify(list.friends));
 
-		let communityHeader = document.createElement('div');
-		communityHeader.textContent = 'Community';
-		communityHeader.classList.add('community-header');
-		friendList.appendChild(communityHeader);
+		// let communityHeader = document.createElement('div');
+		// communityHeader.textContent = 'Community';
+		// communityHeader.classList.add('community-header');
+		// friendList.appendChild(communityHeader);
 
         // Render UI components
         renderAllChat();
         renderNotifications();
         renderFriendList(user, list);
+		console.log(list);
+		console.log("____________________");
+		console.log(allUsers);
+
+		renderAllUsersList(user, allUsers); //## NOT IMPLEMENTED YET
 
     } catch (error) {
         logMessage('error', 'Error fetching user data or user friends: ' + error);
@@ -576,7 +592,7 @@ function renderFriendList(user, list) {
     // Iterate over each friend and create a div for them
     for (let friend of list.friends) {
         let friendDiv = document.createElement('div');
-        friendDiv.className = 'friends-window d-flex align-items-center justify-content-between';
+        friendDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
         // Add friend's profile picture
         let friendPic = document.createElement('img');
@@ -610,6 +626,7 @@ function renderFriendList(user, list) {
         // Append friendDiv to friendList
         friendList.appendChild(friendDiv);
     }
+
 }
 
 function renderDropdownMenu(friendDiv, username, friendUsername) {
@@ -664,6 +681,57 @@ function createDropdownItem(text, onClickHandler) {
     dropdownLink.onclick = onClickHandler;
     dropdownItem.appendChild(dropdownLink);
     return dropdownItem;
+}
+
+function renderAllUsersList(user, allUsers) {
+    
+    let allUsersHeader = document.createElement('div');
+    allUsersHeader.textContent = 'All Users';
+    allUsersHeader.classList.add('friend-list-header');
+    friendList.appendChild(allUsersHeader);
+
+    // Check if there are no users in the list
+    if (allUsers.length === 0) {
+        let noUsersMessage = document.createElement('div');
+        noUsersMessage.textContent = 'No other users';
+        noUsersMessage.classList.add('no-friends-message'); // Using the same style as no-friends-message
+        friendList.appendChild(noUsersMessage);
+        return;
+    }
+
+    // Iterate over each user and create a div for them
+    for (let user of allUsers.users) {
+        let userDiv = document.createElement('div');
+        userDiv.className = 'friend-window';
+
+        // Add user's profile picture
+        let userPic = document.createElement('img');
+        userPic.src = user.profile_picture;
+        userPic.classList.add('clickable-text');
+
+        // Display user's username
+        let userName = document.createElement('span');
+        userName.classList.add('clickable-text');
+        userName.textContent = user.username;
+
+        // Add picture and name to a wrapper
+        let userContent = document.createElement('div');
+        userContent.className = 'd-flex align-items-center clickable-area';
+        userContent.appendChild(userPic);
+        userContent.appendChild(userName);
+
+        userContent.onclick = function(event) {
+            if (event.target.classList.contains('clickable-text')) {
+                displaySystemMessage(`Conversation with "${user.username}"`);
+                displayToastMessage(`Conversation with ${user.username}`, "info");
+            }
+        };
+
+        userDiv.appendChild(userContent);
+
+        // Append userDiv to friendList
+        friendList.appendChild(userDiv);
+    }
 }
 
 

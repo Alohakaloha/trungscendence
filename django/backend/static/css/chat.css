@@ -91,10 +91,45 @@ input[type="text"] {
     margin-bottom: 10px;
 }
 
+.friend-window {
+    margin-bottom: 1px; /* Reduced margin bottom */
+    padding: 6px; /* Smaller padding */
+    background-color: #343a40; /* Dark grey background */
+    border: 1px solid #6c757d; /* Border color */
+    border-radius: 0.25rem;
+    display: flex; /* Ensure flex layout for alignment */
+    align-items: center; /* Center items vertically */
+}
+
+.friend-window:hover {
+    background-color: #495057; /* Darker grey background on hover */
+    cursor: pointer;
+}
+
+.friend-window img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 8px; /* Increased margin right for spacing */
+}
+
+.friend-window .clickable-text {
+    color: white; /* White text color for usernames */
+    font-weight: bold;
+    font-size: 0.9em; /* Slightly smaller font size */
+}
+
+.friend-window .clickable-area {
+    cursor: pointer;
+    flex-grow: 1; /* Expand to fill remaining space */
+}
+
 .no-friends-message::before {
     content: '\2022';
-    margin-right: 0.5em;
+    margin-right: 0.5em; /* Adjusted margin right for bullet point */
+    color: white;
 }
+
 
 /*message formatting*/
 
