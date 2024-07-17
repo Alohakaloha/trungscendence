@@ -700,19 +700,19 @@ function renderAllUsersList(user, allUsers) {
     }
 
     // Iterate over each user and create a div for them
-    for (let user of allUsers.users) {
+    for (let otherUser of allUsers.users) {
         let userDiv = document.createElement('div');
-        userDiv.className = 'friend-window';
+        userDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
         // Add user's profile picture
         let userPic = document.createElement('img');
-        userPic.src = user.profile_picture;
+        userPic.src = otherUser.profile_picture;
         userPic.classList.add('clickable-text');
 
         // Display user's username
         let userName = document.createElement('span');
         userName.classList.add('clickable-text');
-        userName.textContent = user.username;
+        userName.textContent = otherUser.username;
 
         // Add picture and name to a wrapper
         let userContent = document.createElement('div');
@@ -722,17 +722,21 @@ function renderAllUsersList(user, allUsers) {
 
         userContent.onclick = function(event) {
             if (event.target.classList.contains('clickable-text')) {
-                displaySystemMessage(`Conversation with "${user.username}"`);
-                displayToastMessage(`Conversation with ${user.username}`, "info");
+                displaySystemMessage(`Conversation with "${otherUser.username}"`);
+                displayToastMessage(`Conversation with ${otherUser.username}`, "info");
             }
         };
 
         userDiv.appendChild(userContent);
 
+        // Render dropdown menu for each user
+        renderDropdownMenu(userDiv, user.username, otherUser.username);
+
         // Append userDiv to friendList
         friendList.appendChild(userDiv);
     }
 }
+
 
 
 	function openingChat() {
