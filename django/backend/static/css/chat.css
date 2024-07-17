@@ -134,6 +134,10 @@ input[type="text"] {
     color: white;
 }
 
+.hidden {
+    display: none;
+}
+
 
 /*message formatting*/
 

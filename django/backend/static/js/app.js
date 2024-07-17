@@ -277,6 +277,7 @@ async function currentJS() {
 //    \___|_| |_|\__,_|\__|
 
 let debugMode = true; // Set to false to disable debug logs
+let openWindow = false;
 
 	function logMessage(type, message) {
 		const timestamp = new Date().toLocaleString('en-GB', { 
@@ -528,7 +529,7 @@ async function showSideChat() {
 		console.log("____________________");
 		console.log(allUsers);
 
-		renderAllUsersList(user, allUsers); //## NOT IMPLEMENTED YET
+		renderAllUsersList(user, allUsers);
 
     } catch (error) {
         logMessage('error', 'Error fetching user data or user friends: ' + error);
@@ -574,37 +575,41 @@ function renderNotifications() {
 }
 
 function renderFriendList(user, list) {
-    // Add the Friends list header
     let friendsHeader = document.createElement('div');
     friendsHeader.textContent = 'Friends';
     friendsHeader.classList.add('friend-list-header');
-    friendList.appendChild(friendsHeader);
 
-    // Check if there are no friends in the list
+    let friendsContainer = document.createElement('div');
+    friendsContainer.classList.add('friends-container'); // Add a class for styling
+    friendList.appendChild(friendsHeader);
+    friendList.appendChild(friendsContainer);
+
+    friendsHeader.onclick = function() {
+		logMessage('info', 'FriendsHeader clicked');
+        friendsContainer.classList.toggle('hidden');
+		logMessage('info', 'Toggled friends list visibility');
+    };
+
     if (list.friends.length === 0) {
         let noFriendsMessage = document.createElement('div');
         noFriendsMessage.textContent = 'No Friends added yet';
         noFriendsMessage.classList.add('no-friends-message');
-        friendList.appendChild(noFriendsMessage);
+        friendsContainer.appendChild(noFriendsMessage);
         return;
     }
 
-    // Iterate over each friend and create a div for them
     for (let friend of list.friends) {
         let friendDiv = document.createElement('div');
         friendDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
-        // Add friend's profile picture
         let friendPic = document.createElement('img');
         friendPic.src = friend.profile_picture;
         friendPic.classList.add('clickable-text');
 
-        // Display friend's username
         let friendName = document.createElement('span');
         friendName.classList.add('clickable-text');
         friendName.textContent = friend.username;
 
-        // Add picture and name to a wrapper
         let friendContent = document.createElement('div');
         friendContent.className = 'd-flex align-items-center clickable-area';
         friendContent.appendChild(friendPic);
@@ -619,14 +624,64 @@ function renderFriendList(user, list) {
         };
 
         friendDiv.appendChild(friendContent);
-
-        // Render dropdown menu for each friend
         renderDropdownMenu(friendDiv, user.username, friend.username);
+        friendsContainer.appendChild(friendDiv);
+    }
+}
 
-        // Append friendDiv to friendList
-        friendList.appendChild(friendDiv);
+function renderAllUsersList(user, allUsers) {
+    let allUsersHeader = document.createElement('div');
+    allUsersHeader.textContent = 'All Users';
+    allUsersHeader.classList.add('friend-list-header');
+
+    let allUsersContainer = document.createElement('div');
+    allUsersContainer.classList.add('users-container', 'hidden');
+    friendList.appendChild(allUsersHeader);
+    friendList.appendChild(allUsersContainer);
+
+    allUsersHeader.onclick = function() {
+		logMessage('info', 'AllUserHeader clicked');
+        allUsersContainer.classList.toggle('hidden');
+		logMessage('info', 'Toggled Alluser list visibility');
+    };
+
+    if (allUsers.length === 0) {
+        let noUsersMessage = document.createElement('div');
+        noUsersMessage.textContent = 'No other users';
+        noUsersMessage.classList.add('no-friends-message');
+        allUsersContainer.appendChild(noUsersMessage);
+        return;
     }
 
+    for (let otherUser of allUsers.users) {
+        let userDiv = document.createElement('div');
+        userDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
+
+        let userPic = document.createElement('img');
+        userPic.src = otherUser.profile_picture;
+        userPic.classList.add('clickable-text');
+
+        let userName = document.createElement('span');
+        userName.classList.add('clickable-text');
+        userName.textContent = otherUser.username;
+
+        let userContent = document.createElement('div');
+        userContent.className = 'd-flex align-items-center clickable-area';
+        userContent.appendChild(userPic);
+        userContent.appendChild(userName);
+
+        userContent.onclick = function(event) {
+            if (event.target.classList.contains('clickable-text')) {
+				chatObject(user.username, otherUser.username);
+                displaySystemMessage(`Conversation with "${otherUser.username}"`);
+                displayToastMessage(`Conversation with ${otherUser.username}`, "info");
+            }
+        };
+
+        userDiv.appendChild(userContent);
+        renderDropdownMenu(userDiv, user.username, otherUser.username);
+        allUsersContainer.appendChild(userDiv);
+    }
 }
 
 function renderDropdownMenu(friendDiv, username, friendUsername) {
@@ -682,62 +737,6 @@ function createDropdownItem(text, onClickHandler) {
     dropdownItem.appendChild(dropdownLink);
     return dropdownItem;
 }
-
-function renderAllUsersList(user, allUsers) {
-    
-    let allUsersHeader = document.createElement('div');
-    allUsersHeader.textContent = 'All Users';
-    allUsersHeader.classList.add('friend-list-header');
-    friendList.appendChild(allUsersHeader);
-
-    // Check if there are no users in the list
-    if (allUsers.length === 0) {
-        let noUsersMessage = document.createElement('div');
-        noUsersMessage.textContent = 'No other users';
-        noUsersMessage.classList.add('no-friends-message'); // Using the same style as no-friends-message
-        friendList.appendChild(noUsersMessage);
-        return;
-    }
-
-    // Iterate over each user and create a div for them
-    for (let otherUser of allUsers.users) {
-        let userDiv = document.createElement('div');
-        userDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
-
-        // Add user's profile picture
-        let userPic = document.createElement('img');
-        userPic.src = otherUser.profile_picture;
-        userPic.classList.add('clickable-text');
-
-        // Display user's username
-        let userName = document.createElement('span');
-        userName.classList.add('clickable-text');
-        userName.textContent = otherUser.username;
-
-        // Add picture and name to a wrapper
-        let userContent = document.createElement('div');
-        userContent.className = 'd-flex align-items-center clickable-area';
-        userContent.appendChild(userPic);
-        userContent.appendChild(userName);
-
-        userContent.onclick = function(event) {
-            if (event.target.classList.contains('clickable-text')) {
-                displaySystemMessage(`Conversation with "${otherUser.username}"`);
-                displayToastMessage(`Conversation with ${otherUser.username}`, "info");
-            }
-        };
-
-        userDiv.appendChild(userContent);
-
-        // Render dropdown menu for each user
-        renderDropdownMenu(userDiv, user.username, otherUser.username);
-
-        // Append userDiv to friendList
-        friendList.appendChild(userDiv);
-    }
-}
-
-
 
 	function openingChat() {
 		if (!chatSocket) {
