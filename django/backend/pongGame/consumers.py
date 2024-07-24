@@ -131,8 +131,13 @@ class localTournament(AsyncWebsocketConsumer):
 		if data["type"] == "settings":
 			self.tournament.setRules(data)
 			await self.send(json.dumps(self.tournament.currentRules()))
-		if data["type"] == "status":
+		elif data["type"] == "status":
 			await self.send(json.dumps(self.tournament.tournamentStatus()))
+		elif data["type"] == 'match_result':
+			self.saveMatch(data)
+			self.tournament.setReady()
+			self.tournament.nextMatch()
+			await self.send(json.dumps(self.tournament.currentRules()))
 
 
 	async def disconnect(self, close_code):
@@ -144,7 +149,6 @@ class localTournament(AsyncWebsocketConsumer):
 
 class localTournamentMatch(AsyncWebsocketConsumer):
 	async def connect(self):
-		logprint("local tournament match started")
 		self.room_name = pong.randomCode()
 		self.room_group_name = "game_"+ self.room_name
 		active_rooms.add(self.room_group_name)

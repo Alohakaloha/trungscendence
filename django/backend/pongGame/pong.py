@@ -239,7 +239,7 @@ class Rules:
 
 	def final_score(self):
 		game_result = {
-			'game_over' : 'true',
+			'type' : 'match_result',
 			'player1_rounds' : self.player_1_rounds,
 			'player2_rounds' : self.player_2_rounds,
 			'winner' : self.winner,

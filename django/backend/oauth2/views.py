@@ -8,8 +8,6 @@ import http.client as http_client
 from auth_app.models import AppUser
 import secrets
 
-
-
 CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
 CLIENT_SECRET =os.getenv("OAUTH_CLIENT_SECRET")
 REDIRECT_URI="https://localhost/oauth2/redirect/"
