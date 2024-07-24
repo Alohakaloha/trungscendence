@@ -243,7 +243,7 @@ services:
     volumes:
       - logstashdata01:/usr/share/logstash/data
       - certs:/usr/share/logstash/certs
-      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
       - "./log/nginx:/nginx_logs"
       - "./log/django:/django_logs"
     environment:
