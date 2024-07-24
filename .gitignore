@@ -6,3 +6,4 @@ venv/
 django/backend/media
 */migrations
 *.log
+*.dump
