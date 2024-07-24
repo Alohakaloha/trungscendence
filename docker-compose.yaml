@@ -27,12 +27,12 @@ services:
     restart: on-failure
 
   django:
-    container_name: django_web
+    container_name: django
     build:
       context: ./django
       dockerfile: Dockerfile
     ports:
-      - "7000:7000"
+      - "7000:8000"
     networks:
       - t_network
     command:

@@ -14,7 +14,7 @@ volumes:
 
 services:
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.45.6
     container_name: prometheus
     restart: unless-stopped
     volumes:
@@ -32,7 +32,7 @@ services:
       - t_network
 
   grafana:
-    image: grafana/grafana-enterprise
+    image: grafana/grafana-oss:11.1.0-ubuntu
     container_name: grafana
     restart: unless-stopped
     environment:
@@ -44,7 +44,8 @@ services:
       - '3000:3000'
     volumes:
       # - ./monitoring/grafana/custom.ini:/etc/grafana/custom.ini
-      # - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+      - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/
       - 'grafana_storage:/var/lib/grafana'
     networks:
       - t_network
@@ -53,8 +54,8 @@ services:
     container_name: blackbox
     image: prom/blackbox-exporter:latest
     # privileged: true
-    # volumes:
-    #   - ./monitoring/blackbox/config.yml:/etc/blackbox_exporter/config.yml
+    volumes:
+      - ./monitoring/blackbox/config.yml:/etc/blackbox_exporter/config.yml
     ports:
       - '9115:9115'
     networks:
@@ -175,6 +176,7 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
     mem_limit: ${ES_MEM_LIMIT}
     ulimits:
       memlock:
