@@ -414,13 +414,59 @@ if (toastTrigger) {
 			return;
 		}
 	}
+// IMPORT NOT WORKING >.<
+// import { friend_details } from './friend_request.js';
+// import { fetchUserData } from './friend_request.js'; CAVE: NAMING PROBLEM: RENAME FUNCTION IN APP JS!!!!
+// console.log('friend_details:', friend_details);
 
-
-	function viewProfile(username) {
-		logMessage('info', `Viewing profile of ${username}`);
-		// Placeholder function for viewing profile
+	function extractFriendUsernames(friendsObject) {
+		if (friendsObject && Array.isArray(friendsObject.friends)) {
+			return friendsObject.friends.map(friend => friend.username);
+		}
+		console.error('Invalid friends object:', friendsObject);
+		return [];
 	}
+
+	async function viewProfile(username) {
+		try {
+			const user = await fetchUserData(); 
+			if (!user.authenticated) {
+				changeURL('/login', 'Login Page', { main: true });
+				return;
+			}
 	
+			const friendsObject = await fetchUserData(); // CAVE THIS IS THE WRONG FUNCTION, NEEDS TO BE IMPORTED FROM FRIEND REQUEST
+			const friendUsernames = extractFriendUsernames(friendsObject);
+	
+			const isFriend = friendUsernames.includes(username);
+	
+			if (isFriend) {
+				changeURL('/friends', 'Friends Page', { friends: true });
+				// Delay might be needed here!
+				// Find the .user-details div containing the username
+				console.log(`Looking for user details with username: ${username}`);
+				const userData = await fetchUserFriends(username);
+				console.log("User Data:", userData);
+
+				// const userInfoDiv = document.querySelector(`.user-details[data-username="${username}"] .user-info`);
+				
+				// if (userInfoDiv) {
+				// 	userInfoDiv.innerHTML = friend_details(userData); // should be import from friend_request.js -> not working
+				// 	userInfoDiv.style.display = 'block';
+				// 	console.log(`Entered if condition userInfoDiv`);
+				// } else {
+				// 	console.error('User details not found.');
+				//}
+			} else {
+				displaySystemMessage(`You have to be friends to view '${username}'s Profile`);
+				console.log(`Else Condition, not friends: Looking for user details with username: ${username}`);
+				changeURL('/friends', 'Friends Page', { friends: true });
+			}
+		} catch (error) {
+			console.error('Error viewing profile: ', error);
+		}
+	}
+
 	function gameInvite(username) {
 		logMessage('info', `Inviting ${username} to a game`);
 		// Placeholder function for inviting to a game

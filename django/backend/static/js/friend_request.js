@@ -199,7 +199,7 @@ async function fetchUserData(user_id){
 
 function friend_details(data){
 	div = document.createElement('div');
-	console.log("im here");
+	console.log('friend_details function called');
 	let stats = data.stats;
 	let games_history = stats.games_history;
 	div.innerHTML = `
