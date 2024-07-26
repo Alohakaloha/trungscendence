@@ -1,4 +1,4 @@
-// on refresh handle the routing
+	// on refresh handle the routing
 const content = document.getElementById('content');
 const chat = document.getElementById('chat');
 
@@ -85,6 +85,13 @@ function loadModule(str) {
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
+	let unique_id;
+	if(page.startsWith("/details/")){
+		console.log("current url ", page);
+		const parts = page.split("/");
+		unique_id = parts[2]; // Extract the unique ID from the URL
+		page = "/details";
+	}
 	try{
 		const user = await fetchUserData();
 		
@@ -173,7 +180,11 @@ async function handleRouting() {
 					changeURL('/login', 'Login Page', {main : true});
 					break;
 				}
-
+			case '/details':
+				if (unique_id)
+					showPage(unique_id);
+					console.log("Case /details: ", unique_id);
+				break;
 			case '/register':
 				jsFile = './register.js';
 				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
@@ -414,54 +425,13 @@ if (toastTrigger) {
 			return;
 		}
 	}
-// IMPORT NOT WORKING >.<
-// import { friend_details } from './friend_request.js';
-// import { fetchUserData } from './friend_request.js'; CAVE: NAMING PROBLEM: RENAME FUNCTION IN APP JS!!!!
-// console.log('friend_details:', friend_details);
-
-	function extractFriendUsernames(friendsObject) {
-		if (friendsObject && Array.isArray(friendsObject.friends)) {
-			return friendsObject.friends.map(friend => friend.username);
-		}
-		console.error('Invalid friends object:', friendsObject);
-		return [];
-	}
 
 	async function viewProfile(username) {
 		try {
-			const user = await fetchUserData(); 
-			if (!user.authenticated) {
-				changeURL('/login', 'Login Page', { main: true });
-				return;
-			}
-	
-			const friendsObject = await fetchUserData(); // CAVE THIS IS THE WRONG FUNCTION, NEEDS TO BE IMPORTED FROM FRIEND REQUEST
-			const friendUsernames = extractFriendUsernames(friendsObject);
-	
-			const isFriend = friendUsernames.includes(username);
-	
-			if (isFriend) {
-				changeURL('/friends', 'Friends Page', { friends: true });
-				// Delay might be needed here!
-				// Find the .user-details div containing the username
-				console.log(`Looking for user details with username: ${username}`);
-				const userData = await fetchUserFriends(username);
-				console.log("User Data:", userData);
-
-				// const userInfoDiv = document.querySelector(`.user-details[data-username="${username}"] .user-info`);
-				
-				// if (userInfoDiv) {
-				// 	userInfoDiv.innerHTML = friend_details(userData); // should be import from friend_request.js -> not working
-				// 	userInfoDiv.style.display = 'block';
-				// 	console.log(`Entered if condition userInfoDiv`);
-				// } else {
-				// 	console.error('User details not found.');
-				//}
-			} else {
-				displaySystemMessage(`You have to be friends to view '${username}'s Profile`);
-				console.log(`Else Condition, not friends: Looking for user details with username: ${username}`);
-				changeURL('/friends', 'Friends Page', { friends: true });
-			}
+			displaySystemMessage(`Viewing '${username}'s Profile`);
+			console.log(`username:, ${username}`);
+			changeURL('/details/1', 'Friends Page', { friends: true });
+			
 		} catch (error) {
 			console.error('Error viewing profile: ', error);
 		}
@@ -777,7 +747,6 @@ function createDropdownItem(text, onClickHandler) {
     let dropdownItem = document.createElement('li');
     let dropdownLink = document.createElement('a');
     dropdownLink.className = 'dropdown-item';
-    dropdownLink.href = '#';
     dropdownLink.textContent = text;
     dropdownLink.onclick = onClickHandler;
     dropdownItem.appendChild(dropdownLink);

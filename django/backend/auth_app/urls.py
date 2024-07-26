@@ -16,6 +16,8 @@ urlpatterns = [
 	path('logout', auth_views.LogoutView.as_view(), name='logout'),
 	path('friends', views.header_view, name='friends'),
 	path("friends/friends.html", views.friends_view, name="friends_view"),
+	path("details", views.header_view, name="friends_view"),
+	path("details/<int:user_id>", views.unique_friend_view, name="friends_view"),
 	path('settings', views.header_view),
 	path('settings/settings.html', views.settings_view, name='settings'),
 	path('send_friend_request/<int:user_id>', views.send_friend_request_view, name='send_friend_request'),
@@ -39,5 +41,5 @@ urlpatterns = [
 	path('about/about.html', views.about),
 	path('getUserData', views.getUserData_view, name='fetch_user_data'),
 	path('friends_list', views.friends_list_view, name='friends_list'),
-	path('all_user', views.all_user, name='all_user')
+	path('all_user', views.all_user, name='all_user'),
 ]

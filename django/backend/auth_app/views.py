@@ -158,6 +158,13 @@ def friends_view(request):
 		users = AppUser.objects.exclude(user_id__in=exclude_users)
 		return render (request, 'friends.html', {'users': users, 'friend_requests' : friend_requests})
 
+def unique_friend_view(request, user_id):
+	try:
+		user = AppUser.objects.get(user_id=user_id)
+	except AppUser.DoesNotExist:
+		return render (request, "404.html")
+	return render (request, "friend_detail.html")
+
 def send_friend_request_view(request, user_id):
 	if request.method == 'POST':
 		from_user = request.user
