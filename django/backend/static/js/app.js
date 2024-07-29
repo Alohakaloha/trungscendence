@@ -108,14 +108,14 @@ async function handleRouting() {
 				// jsFile = './game/tmpGame.js';
 				if (gameSocket)
 					gameSocket.close();
-				if (tournamentSocket)
+				if (lobbySocket)
 					changeURL('/game/localTournament', 'Tournament Page', {main : true});
 				else
 					showPage(`game/setupGameMode.html`);
 				break;
 
 			case '/game/localTournament':
-				if(tournamentSocket){
+				if(lobbySocket){
 					showPage(`/game/localTournament.html`);
 					break;
 				}else{
@@ -706,8 +706,8 @@ async function startLocalTournament(){
 
 
 function cancelTH(){
-	if(tournamentSocket)
-		tournamentSocket.close();
+	if(lobbySocket)
+		lobbySocket.close();
 	changeURL('/game', 'Game Page', {main : true});
 }
 
@@ -952,18 +952,18 @@ function displayPong(data)
 |_|\___/ \___\__,_|_|  \__\___/ \__,_|_|  |_| |_|\__,_|_| |_| |_|\___|_| |_|\__|
 */
 
-let tournamentSocket;
+let lobbySocket;
 let tournamentRules;
 
 function bind_local_Tournament(localSettings){
- tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
+ lobbySocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
 
- tournamentSocket.onopen = function(){
+ lobbySocket.onopen = function(){
 	console.log(localSettings);
-	tournamentSocket.send(JSON.stringify(localSettings));
+	lobbySocket.send(JSON.stringify(localSettings));
  }
 
- tournamentSocket.onmessage = function(event){
+ lobbySocket.onmessage = function(event){
 	 let data = JSON.parse(event.data);
 	 if(data.type === 'rules'){
 		 tournamentRules = data;
@@ -972,19 +972,19 @@ function bind_local_Tournament(localSettings){
 		updateTournament(data);
  }
 
- tournamentSocket.onclose = function(event){
+ lobbySocket.onclose = function(event){
 	 if (event.code === 1000) {
 		 console.log(`Connection of LocalTournament closed cleanly, code=${event.code} reason=${event.reason}`);
 	 } else {
 		 console.log('tournament closed ', event);
 	 }
-	tournamentSocket = null;
+	lobbySocket = null;
  }
 
 }
 
 function tournamentStatus(){
-	tournamentSocket.send(JSON.stringify({"type": "status"}));
+	lobbySocket.send(JSON.stringify({"type": "status"}));
 }
 
 
@@ -999,6 +999,7 @@ function updateTournament(data){
 		let ids = document.getElementById('r' + (i + 1));
 		ids.innerHTML = remaining[i];
 	}
+	console.log(data)
 	document.getElementById('nextFirst').innerHTML = data['nextUp'][0];
 	document.getElementById('nextSecond').innerHTML = data['nextUp'][1];
 }
@@ -1028,7 +1029,7 @@ function tournamentMatch(){
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/');
 
 	gameSocket.onopen = function(){
-		if(tournamentSocket){
+		if(lobbySocket){
 			gameSocket.send(JSON.stringify(tournamentRules))
 			p1Color = document.getElementById("player1");
 			p2Color = document.getElementById("player2");
@@ -1098,9 +1099,9 @@ function tournamentMatch(){
 			backBtn.style.display = 'block';
 			gameSocket.close();
 			sounds = false;
-			if (tournamentSocket === WebSocket.OPEN)
+			if (lobbySocket === WebSocket.OPEN)
 				console.log(data);
-				tournamentSocket.send(JSON.stringify(data));
+				lobbySocket.send(JSON.stringify(data));
 			return;
 		}
 		if ("sounds" in data)
@@ -1119,4 +1120,38 @@ function tournamentMatch(){
 	gameSocket.onerror = function(error) {
 		console.log(`Error: ${error.message}`);
 	};
+}
+
+// ██████  ███████ ███    ███  ██████  ████████ ███████     ███    ███  █████  ████████  ██████ ██   ██ 
+// ██   ██ ██      ████  ████ ██    ██    ██    ██          ████  ████ ██   ██    ██    ██      ██   ██ 
+// ██████  █████   ██ ████ ██ ██    ██    ██    █████       ██ ████ ██ ███████    ██    ██      ███████ 
+// ██   ██ ██      ██  ██  ██ ██    ██    ██    ██          ██  ██  ██ ██   ██    ██    ██      ██   ██ 
+// ██   ██ ███████ ██      ██  ██████     ██    ███████     ██      ██ ██   ██    ██     ██████ ██   ██
+
+
+
+function create_lobby(){
+	lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_match/');
+
+
+	lobbySocket.onopen = async function(){
+		try {
+			const user = await fetchUserData();
+			if (user.authenticated)
+				lobbySocket.send(JSON.stringify({ "request": "created", "user": user }));
+			else{
+				lobbySocket.close()
+				console.log("not authenticated and closed")
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	}
+	lobbySocket.onclose = function(){
+		console.log("remote closed")
+	}
+
+	lobbySocket.onmessage = function(event){
+		console.log(event)
+	}
 }

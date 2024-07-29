@@ -59,30 +59,25 @@ class tournamentHandler():
 		self.nextStage.append(match["winner"])
 
 	def nextMatch(self):
-		if self.th_status == "idle":
-				if(len(self.remaining) > 1):
+			if(len(self.remaining) > 1):
 					self.nextUp = random.sample(self.remaining, 2)
-				else:
-					self.remaining = copy.deepcopy(self.nextStage)
-					self.stage += 1
-					self.nextStage = []
-					logprint(len(self.remaining))
-					if(len(self.remaining) < 2):
-						if  not self.nextStage:
-							self.th_status = "finished"
-							self.winner = self.remaining
-						else:
-							self.nextUp = self.remaining
-							return
-					self.nextUp = random.sample(self.remaining, 2)
-		return self.nextUp
-
-	def luckyWinner(self):
-		if len(self.participants) % 2 != 0:
-			lucky = random.randint(0, len(self.participants) - 1)
-			lucky_participant = self.participants[lucky]
-			del self.remaining[lucky]
-			self.nextStage.append(lucky_participant)
+			elif(len(self.remaining) == 0 and len(self.nextStage) == 1):
+				logprint("winner set")
+				self.th_status = "finished"
+				self.winner = self.nextStage[0]
+				return
+			elif len(self.remaining) == 1 and len(self.nextStage) == 0:
+				logprint("winner set")
+				self.th_status = "finished"
+				self.winner = self.remaining
+				return
+			else:
+				self.nextStage.append([copy.deepcopy(item) for item in self.remaining])
+				self.remaining  = copy.deepcopy(self.nextStage)
+				self.stage += 1
+				self.nextStage = []
+				self.nextUp = random.sample(self.remaining, 2)
+			return
 
 	def tournamentResults(self, winner):
 		winner = {
