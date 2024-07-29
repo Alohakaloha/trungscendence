@@ -1,3 +1,13 @@
+#chat{
+	margin-right : 4px;
+}
+
+#chat-wrapper{
+	background: linear-gradient(to bottom, #212529, #171a1d);
+	position: absolute;
+	bottom:0;
+	right:0;
+}
 
 #chat-window {
     display: grid;
