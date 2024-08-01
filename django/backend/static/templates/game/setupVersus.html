@@ -47,14 +47,14 @@
 			<label class="form-check-label" for="roundsToWin">3</label>
 		</div>
 	</form>
-	<button type="button" onclick="create_lobby()" class="btn btn-dark">Create</button>
+	<button type="button" onclick="join_lobby('created')" class="btn btn-dark">Create</button>
 	<div>
 		<h2>JOIN A GAME</h2>
-		<div class="mb-3" id="game_id">
-			<label for="game_id" class="form-label"><h5>GAME ID</h5></label>
-			<input type="Text" class="form-control" id="Tournament" value="">
+		<div class="mb-3" id="lobby">
+			<label for="lobby" class="form-label"><h5>GAME ID</h5></label>
+			<input type="Text" class="form-control" id="lobbyID" value="">
 		</div>
 	</div>
-	<button type="button" onclick="join_lobby()" class="btn btn-dark">Join</button>
+	<button type="button" onclick="join_lobby('join')" class="btn btn-dark">Join</button>
 </div>
 

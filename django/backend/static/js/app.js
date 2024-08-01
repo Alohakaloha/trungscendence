@@ -1130,19 +1130,33 @@ function tournamentMatch(){
 
 
 
-function create_lobby(){
-	lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_match/');
+async function join_lobby(requestType){
+	const user = await fetchUserData();
+	let lobbyID;
+	if (!user.authenticated)
+		return;
+	if(requestType === "join"){
+		lobbyID = document.getElementById('lobbyID').value.trim();
+		console.log(lobbyID)
+	}
+	else if(requestType === "invite"){
+
+	}
+
+	if(!lobbySocket)
+		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_match/' + user.username );
 
 
 	lobbySocket.onopen = async function(){
 		try {
-			const user = await fetchUserData();
-			if (user.authenticated)
-				lobbySocket.send(JSON.stringify({ "request": "created", "user": user }));
-			else{
-				lobbySocket.close()
-				console.log("not authenticated and closed")
+			if (requestType === "join"){
+				if(lobbyID.lenght < 1)
+					//todo change notification in toast not a valid lobby
+					return;
+				lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username, "lobby" : lobbyID }));
 			}
+			else if (requestType === "created")
+				lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username }));
 		} catch (error) {
 			console.error(error);
 		}

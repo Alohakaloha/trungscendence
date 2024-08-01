@@ -1,16 +1,43 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .localTournament import tournamentHandler as tH
+from asgiref.sync import sync_to_async
+from . import pong
 import json
 import asyncio
-from . import pong
 import sys
 
-#map users to the room
-active_rooms = {}
+
+#map users to the lobby 
+class multimap:
+	def __init__(self):
+		self.map = {}
+
+	def add(self, key, value):
+		if key not in self.map:
+			self.map[key] = []
+		self.map[key].append(value)
+
+	def remove(self, key, value):
+		if key in self.map:
+			if value in self._map[key]:
+				self.map[key].remove(value)
+				if not self.map[key]:
+					del self.map[key]
+
+	def get(self, key):
+		return self._map.get(key, [])
+
+	def get_all(self):
+		return self.map
+
+	def print_multimap(self):
+		for key, values in self.map.items():
+			logprint(f"{key}: {values}")
 
 def logprint(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
+active_rooms = multimap()
 
 class localPongGameConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
@@ -243,28 +270,48 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 
 
 class remote_match(AsyncWebsocketConsumer):
-	async def connect(self):
-		self.room_name = "remote"
-		self.room_group = ""
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.players = []
+		self.connections = 0
 
+	async def connect(self):
+		from auth_app.models import AppUser as App
+		self.request_uname = self.scope['url_route']['kwargs']['room_name']
+		self.request = await sync_to_async(App.objects.get)(username=self.request_uname)
+		self.room_group_name = str(self.request.user_id)
 		await self.accept()
 		await self.channel_layer.group_add(
 			self.room_group_name,
 			self.channel_name
 		)
-
+		active_rooms.add(self.scope["user"].user_id, self.channel_name)
 
 	async def disconnect(self, close_code):
-		await self.disconnect()
-
-
+		await self.channel_layer.group_discard(
+			self.room_group_name,
+			self.channel_name
+		)
+		active_rooms.remove(self.scope["user"].user_id)
 
 	async def receive(self, text_data):
 		try:
 			data = json.loads(text_data)
 			if data["request"] == "created":
-				self.host = self.scope["user"].user_id
-
-
+				self.players = []
+				self.host = str(self.scope["user"].user_id)
+				self.players.append(str(self.scope["user"].user_id))
+				self.connections + 1
+				await self.send(json.dumps({"type": "lobby","owner":str(self.scope["user"].username)}))
+			elif data["request"] == "join":
+				lobby_id = data["lobby"]
+				if lobby_id is None:
+					self.disconnect()
+					return
+				self.players.append(str(self.scope["user"].user_id))
+				self.connections + 1
+				active_rooms.add(self.scope["user"].user_id, lobby_id)
+				active_rooms.print_multimap()
+				await self.send(json.dumps({"type": "lobby","client":str(self.scope["user"].username)}))
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data} 3")
