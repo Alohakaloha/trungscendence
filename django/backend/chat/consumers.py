@@ -48,6 +48,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             chat_json = json.loads(text_data)
+            logprint(chat_json)
+            logprint("___________")
             action_type = chat_json.get('type')
             sender_username = chat_json.get('sender')
             message_content = chat_json.get('message')
@@ -63,6 +65,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.unblock_user(chat_json)
             elif action_type == 'chatroom':
                 await self.handle_chatroom(sender_username, receiver_username)
+            elif action_type == 'invitation':
+                await self.game_invite(sender_username, receiver_username)
             else:
                 logprint(f"Unknown action type received: {action_type}")
 
@@ -175,6 +179,74 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'sender': 'system',
                 'timestamp': self.get_current_timestamp(),
             }))
+
+    async def game_invite(self, sender_username, receiver_username):
+
+        from .models import Block
+        from auth_app.models import AppUser
+
+        sender = await sync_to_async(AppUser.objects.get)(username=sender_username)
+        receiver = await sync_to_async(AppUser.objects.get)(username=receiver_username)
+        blocked = await sync_to_async(Block.objects.filter(blocker=receiver, blocked=sender).exists)()
+
+        if blocked:
+            logprint(f"Invite from {sender.username} to {receiver.username} is blocked and will not be received.")
+            sender_channel = user_channel_mapping.get(sender.username)
+            if sender_channel:
+                await self.channel_layer.send(sender_channel, {
+                    'type': 'chat_message',
+                    'message': f"You have been blocked by {receiver_username}.",
+                    'sender': 'system',
+                    'timestamp': self.get_current_timestamp(),
+                })
+            return
+        
+        logprint("HERE AFTER BLOCKCHECK")
+        
+        receiver_channel = user_channel_mapping.get(receiver_username)
+        logprint(receiver_channel)
+        if receiver_channel:
+            logprint("RECEIVER CHANNEL")
+    
+            message_event = {
+                'type': 'invitation',
+                'message': f"You have been invited by {sender_username}",
+                'sender': 'system',
+                'timestamp': self.get_current_timestamp(),
+            }
+
+            await self.channel_layer.send(receiver_channel, message_event)
+            sender_channel = user_channel_mapping.get(sender.username)
+            if sender_channel:
+
+                invite_event = {
+                'type': 'message',
+                'message': f"You have invited {receiver_username} to a game",
+                'sender': 'system',
+                'timestamp': self.get_current_timestamp(),
+            }
+            await self.channel_layer.send(sender_channel, invite_event)
+            return
+        else:
+            logprint(f"Receiver '{receiver_username}' is not connected")
+            sender_channel = user_channel_mapping.get(sender.username)
+            if sender_channel:
+                await self.channel_layer.send(sender_channel, {
+                    'type': 'chat_message',
+                    'message': f"{receiver_username} is not connected",
+                    'sender': 'system',
+                    'timestamp': self.get_current_timestamp(),
+                })
+
+        logprint(f"{sender_username} has invited {receiver_username}")
+
+        # for username, channel in user_channel_mapping.items():
+        #     await self.send(text_data=json.dumps({
+        #         'type': 'invite',
+        #         'message': f"You have been invited by {sender_username}",
+        #         'sender': 'system',
+        #         'timestamp': self.get_current_timestamp(),
+        #     }))
 
     async def unblock_user(self, chat_json):
         from .models import Block

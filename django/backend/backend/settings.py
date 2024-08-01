@@ -226,7 +226,7 @@ LOGGING = {
     },
     "loggers": {
         "root": {
-            "level": "INFO", 
+            "level": "DEBUG", 
             "handlers": ["stdout", "file"],
         },
     },

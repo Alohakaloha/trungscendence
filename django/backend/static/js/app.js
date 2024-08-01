@@ -430,9 +430,23 @@ if (toastTrigger) {
 		}
 	}
 
-	function gameInvite(username) {
-		logMessage('info', `Inviting ${username} to a game`);
-		// Placeholder function for inviting to a game
+	function gameInvite(user, receiver) {
+		logMessage('info', `${receiver} got invited by ${user} to a game`);
+
+		let invite = {
+			"type": "invitation",
+			"sender": user,
+			"receiver": receiver,
+		};
+
+		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+			logMessage('info', "Sending game invite:");
+			logMessage('info', JSON.stringify(invite));
+			chatSocket.send(JSON.stringify(invite));
+		} else {
+			logMessage('error', "Unable to send game invite: WebSocket not open or not initialized.");
+			return;
+		}
 	}
 
 
@@ -723,7 +737,7 @@ function renderDropdownMenu(friendDiv, username, friendUsername) {
     });
     let gameInviteItem = createDropdownItem("Invite to Game", function(event) {
         event.stopPropagation();
-        gameInvite(friendUsername);
+        gameInvite(username, friendUsername);
     });
 
     dropdownMenu.appendChild(viewProfileItem);
@@ -820,13 +834,18 @@ function createDropdownItem(text, onClickHandler) {
 	function receiveMessage(messageData) {
 		logMessage('info', 'Received message');
 		
+		let messageContainer
 		let timestamp = messageData.timestamp;
 		let sender = messageData.sender;
 		let message = messageData.message;
 		let directMessage = messageData.direct_message || false;
 	
 		// Create a container div for the message
-		let messageContainer = document.createElement('div');
+
+		if (messageData["type"] === 'invitation')
+			messageContainer = document.createElement('button');
+		else
+			messageContainer = document.createElement('div');
 		messageContainer.className = 'message-container';
 	
 		// Apply different class for system messages
@@ -876,6 +895,9 @@ function createDropdownItem(text, onClickHandler) {
 					});
 					break;
 				case "message":
+					receiveMessage(messageData);
+					break;
+				case "invitation":
 					receiveMessage(messageData);
 					break;
 				default:
