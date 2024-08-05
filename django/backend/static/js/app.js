@@ -1,3 +1,4 @@
+
 	// on refresh handle the routing
 const content = document.getElementById('content');
 const chat = document.getElementById('chat');
@@ -87,7 +88,6 @@ async function handleRouting() {
 	let page = window.location.pathname;
 	let unique_id;
 	if(page.startsWith("/details/")){
-		console.log("current url ", page);
 		const parts = page.split("/");
 		unique_id = parts[2]; // Extract the unique ID from the URL
 		page = "/details";
@@ -176,9 +176,11 @@ async function handleRouting() {
 					break;
 				}
 			case '/details':
-				if (unique_id)
-					showPage(unique_id);
-					console.log("Case /details: ", unique_id);
+				if (unique_id){
+					const div = friend_details(await fetchUserDataById(unique_id));
+					await showPage(unique_id);
+					document.getElementById('friend_details').appendChild(div);
+				}
 				break;
 			case '/register':
 				jsFile = './register.js';
@@ -242,7 +244,7 @@ async function currentJS() {
 		
 		
 		async function showPage(path) {
-			return await fetch(path)
+		return await fetch(path)
 		.then(response => response.text())
 		.then(data => {
 			document.getElementById('content').innerHTML = data;
@@ -419,11 +421,67 @@ if (toastTrigger) {
 		}
 	}
 
+	async function get_friends_UID(username) {
+		try {
+			const response = await fetch('/get_UID/' + username);
+			const data = await response.json();
+			return data;
+		} catch (error){
+			console.error('Error fetching user data', error);
+			return null;
+		}
+		
+	}
+
+	async function fetchUserDataById(user_id){
+		try {
+			const response = await fetch(`/profile/${user_id}`);
+			const responseData = await response.json();
+			if (responseData.status === "error"){
+				throw new Error(responseData.message);
+			}
+			return responseData;
+		} catch (error){
+			console.error('Error fetching user data: ', error);
+			return null;
+		}
+	}
+
+	function friend_details(data){
+		div = document.createElement('div');
+		let stats = data.stats;
+		let games_history = stats.games_history;
+		div.innerHTML = `
+			<img src="${stats.profile_picture}" class="rounded-circle" width="100" height="100">
+			<ul>
+				<li> games played: ${stats.games_played}</li>
+				<li> wins: ${stats.wins} </li>
+				<li> losses: ${stats.losses} </li>
+				<li> draws: ${stats.draws} </li>
+				<h5> Recent Games: </h5>
+				${stats.games_played > 0 ? games_history.slice(0, 5).map(game => 
+						`<ul>
+							<li>Game date: ${game.game_date}</li>
+							<li>Opponets: ${game.player_one} vs ${game.player_two}</li>
+							<li>Final Score: ${game.player_one_score} : ${game.player_two_score}</li>
+							<li><a>Final Result: <br>${game.tie? "Tie" : "Winner: " + game.winner}</a></li>
+						</ul>
+						`
+					).join('') : 'No recent games played'}
+			</ul>
+		`;
+		return div;
+	}
+
 	async function viewProfile(username) {
 		try {
+			const data = await get_friends_UID(username);
+			if (data.status === "error"){
+				displaySystemMessage(data.message);
+				return
+			}
 			displaySystemMessage(`Viewing '${username}'s Profile`);
-			console.log(`username:, ${username}`);
-			changeURL('/details/1', 'Friends Page', { friends: true });
+			changeURL(`/details/${data.user_id}`, 'Friends Page', { friends: true });
 			
 		} catch (error) {
 			console.error('Error viewing profile: ', error);

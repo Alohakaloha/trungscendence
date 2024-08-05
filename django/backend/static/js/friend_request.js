@@ -183,7 +183,7 @@ function handleSubmit(event, button){
 	}
 };
 
-async function fetchUserData(user_id){
+export async function fetchUserDataById(user_id){
 	try {
 		const response = await fetch(`/profile/${user_id}`);
 		const responseData = await response.json();
@@ -197,7 +197,7 @@ async function fetchUserData(user_id){
 	}
 }
 
-function friend_details(data){
+export function friend_details(data){
 	div = document.createElement('div');
 	console.log('friend_details function called');
 	let stats = data.stats;
