@@ -895,9 +895,11 @@ function createDropdownItem(text, onClickHandler) {
 					});
 					break;
 				case "message":
+					logMessage('info', 'Processing message type');
 					receiveMessage(messageData);
 					break;
 				case "invitation":
+					logMessage('info', 'Processing invitation type');
 					receiveMessage(messageData);
 					break;
 				default:

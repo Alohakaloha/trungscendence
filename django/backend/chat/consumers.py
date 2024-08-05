@@ -181,7 +181,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }))
 
     async def game_invite(self, sender_username, receiver_username):
-
         from .models import Block
         from auth_app.models import AppUser
 
@@ -200,14 +199,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'timestamp': self.get_current_timestamp(),
                 })
             return
-        
-        logprint("HERE AFTER BLOCKCHECK")
-        
+
         receiver_channel = user_channel_mapping.get(receiver_username)
         logprint(receiver_channel)
         if receiver_channel:
-            logprint("RECEIVER CHANNEL")
-    
             message_event = {
                 'type': 'invitation',
                 'message': f"You have been invited by {sender_username}",
@@ -216,17 +211,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
 
             await self.channel_layer.send(receiver_channel, message_event)
+
             sender_channel = user_channel_mapping.get(sender.username)
             if sender_channel:
-
                 invite_event = {
-                'type': 'message',
-                'message': f"You have invited {receiver_username} to a game",
-                'sender': 'system',
-                'timestamp': self.get_current_timestamp(),
-            }
-            await self.channel_layer.send(sender_channel, invite_event)
-            return
+                    'type': 'chat_message',
+                    'message': f"You have invited {receiver_username} to a game",
+                    'sender': 'system',
+                    'timestamp': self.get_current_timestamp(),
+                }
+                await self.channel_layer.send(sender_channel, invite_event)
         else:
             logprint(f"Receiver '{receiver_username}' is not connected")
             sender_channel = user_channel_mapping.get(sender.username)
@@ -240,13 +234,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         logprint(f"{sender_username} has invited {receiver_username}")
 
-        # for username, channel in user_channel_mapping.items():
-        #     await self.send(text_data=json.dumps({
-        #         'type': 'invite',
-        #         'message': f"You have been invited by {sender_username}",
-        #         'sender': 'system',
-        #         'timestamp': self.get_current_timestamp(),
-        #     }))
+
+    async def invitation(self, event):
+        message = event['message']
+        sender = event['sender']
+        timestamp = event['timestamp']
+
+        # Send the message to WebSocket
+        await self.send(text_data=json.dumps({
+            'type': 'invitation',
+            'message': message,
+            'sender': sender,
+            'timestamp': timestamp,
+        }))
+
 
     async def unblock_user(self, chat_json):
         from .models import Block
