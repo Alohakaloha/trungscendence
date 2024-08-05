@@ -572,7 +572,6 @@ function renderAllChat() {
         if (allChat.contains(event.target)) {
             updateChatWindow("global");
             displaySystemMessage("You are now writing in All Chat");
-            displayToastMessage("Writing in All Chat", "info");
         }
     };
 
@@ -644,7 +643,6 @@ function renderFriendList(user, list) {
             if (friendContent.contains(event.target)) {
                 chatObject(user.username, friend.username);
                 displaySystemMessage(`Conversation with "${friend.username}"`);
-                displayToastMessage(`Conversation with ${friend.username}`, "info");
             }
         };
 
@@ -700,7 +698,6 @@ function renderAllUsersList(user, allUsers) {
             if (userContent.contains(event.target)) {
                 chatObject(user.username, otherUser.username);
                 displaySystemMessage(`Conversation with "${otherUser.username}"`);
-                displayToastMessage(`Conversation with ${otherUser.username}`, "info");
             }
         };
 
@@ -927,17 +924,15 @@ function createDropdownItem(text, onClickHandler) {
 		text = text.trim();
 	
 		if (text === "" || receiver === "") {
-			logMessage('error', "Cannot send empty message or receiver not selected.");
+			logMessage('warn', "Cannot send empty message or receiver not selected.");
 			displaySystemMessage("Cannot send empty message or receiver not selected.");
-			displayToastMessage("Empty message or no receiver", "error");
 			return;
 		}
 	
 		let user = await fetchUserData();
 		if (!user.authenticated) {
-			logMessage('error', "User not authenticated. Cannot send message.");
-			displaySystemMessage("User not authenticated. Cannot send message.");
-			displayToastMessage("User not authenticated", "error");
+			logMessage('warn', "User not authenticated. Cannot send message.");
+			displayToastMessage("User not authenticated. Cannot send message", "warning");
 			return;
 		}
 	

@@ -48,8 +48,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             chat_json = json.loads(text_data)
-            logprint(chat_json)
-            logprint("___________")
             action_type = chat_json.get('type')
             sender_username = chat_json.get('sender')
             message_content = chat_json.get('message')
@@ -117,34 +115,39 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 })
             return
 
+        # Create or get the chat between sender and receiver
+        chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
+
+        # Store the message in the database
+        await sync_to_async(Message.objects.create)(
+            chat=chat,
+            sender=sender,
+            content=message_content
+        )
+
+        # Prepare the message event
+        message_event = {
+            'type': 'chat_message',
+            'message': message_content,
+            'sender': sender.username,
+            'timestamp': self.get_current_timestamp(),
+            'direct_message': True
+        }
+
+        # Get receiver's channel and send the message if they are connected
         receiver_channel = user_channel_mapping.get(receiver_username)
         if receiver_channel:
-            chat = await sync_to_async(Chat().find_or_create_chat)(sender, receiver)
-            await sync_to_async(Message.objects.create)(
-                chat=chat,
-                sender=sender,
-                content=message_content
-            )
-
-            message_event = {
-                'type': 'chat_message',
-                'message': message_content,
-                'sender': sender.username,
-                'timestamp': self.get_current_timestamp(),
-                'direct_message': True
-            }
-
             await self.channel_layer.send(receiver_channel, message_event)
-            sender_channel = user_channel_mapping.get(sender.username)
-            if sender_channel:
-                await self.channel_layer.send(sender_channel, message_event)
-        else:
-            logprint(f"Receiver '{receiver_username}' is not connected")
-            sender_channel = user_channel_mapping.get(sender.username)
-            if sender_channel:
+
+        # Notify the sender that the message has been sent and whether the receiver is online
+        sender_channel = user_channel_mapping.get(sender.username)
+        if sender_channel:
+            await self.channel_layer.send(sender_channel, message_event)  # The written message
+
+            if not receiver_channel:
                 await self.channel_layer.send(sender_channel, {
                     'type': 'chat_message',
-                    'message': f"{receiver_username} is not connected",
+                    'message': f"{receiver_username} is not currently connected. Your message has been stored and will be delivered when they come online.",
                     'sender': 'system',
                     'timestamp': self.get_current_timestamp(),
                 })
