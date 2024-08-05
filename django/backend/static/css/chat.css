@@ -230,6 +230,39 @@ input[type="text"] {
     display: none;
 }
 
+/* Invite button formatting*/
+
+.invitation-container {
+    background-color: #7c7c7c; /* Slightly darker grey background for invitations */
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    display: block;
+    margin-bottom: 10px;
+    cursor: pointer; /* Pointer cursor for buttons */
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    width: 90%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.invitation-container .message-timestamp {
+    color: #666666; /* Grey color for timestamps */
+    font-size: 12px; /* Slightly smaller text size for timestamps */
+    margin-bottom: 5px; /* Space between timestamp and message */
+}
+
+.invitation-container .message-content {
+    font-weight: bold; /* Bold text for message content */
+    color: #00ff00; /* Neon green text for invitations */
+    font-size: 16px; /* Standard text size for message content */
+}
+
+.invitation-container:hover {
+    background-color: #a52a2a; /* Matte red on hover */
+    color: #ffffff; /* White text on hover for better readability */
+}
 
 
 /*message formatting*/

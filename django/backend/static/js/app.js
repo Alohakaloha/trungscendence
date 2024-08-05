@@ -539,11 +539,6 @@ async function showSideChat() {
 		let allUsers = await fetchAllUser();
         logMessage('info', 'User friends fetched successfully: ' + JSON.stringify(list.friends));
 
-		// let communityHeader = document.createElement('div');
-		// communityHeader.textContent = 'Community';
-		// communityHeader.classList.add('community-header');
-		// friendList.appendChild(communityHeader);
-
         // Render UI components
         renderAllChat();
         renderNotifications();
@@ -834,47 +829,56 @@ function createDropdownItem(text, onClickHandler) {
 	function receiveMessage(messageData) {
 		logMessage('info', 'Received message');
 		
-		let messageContainer
-		let timestamp = messageData.timestamp;
-		let sender = messageData.sender;
-		let message = messageData.message;
-		let directMessage = messageData.direct_message || false;
+		// Get the chat text area element
+		const chatTextArea = document.getElementById('chat-text');
+		
+		// If the chat text area exists, update it
+		if (chatTextArea) {
+			let messageContainer;
+			let timestamp = messageData.timestamp;
+			let sender = messageData.sender;
+			let message = messageData.message;
+			let directMessage = messageData.direct_message || false;
 	
-		// Create a container div for the message
-
-		if (messageData["type"] === 'invitation')
-			messageContainer = document.createElement('button');
-		else
-			messageContainer = document.createElement('div');
-		messageContainer.className = 'message-container';
+			// Create a button for invitation messages
+			if (messageData["type"] === 'invitation') {
+				messageContainer = document.createElement('button');
+				messageContainer.className = 'invitation-container';
+			} else {
+				messageContainer = document.createElement('div');
+				messageContainer.className = 'message-container';
+			}
 	
-		// Apply different class for system messages
-		if (sender === "system") {
-			messageContainer.classList.add('system-message');
-		} else if (directMessage) {
-			messageContainer.classList.add('direct-message');
+			// Apply different class for system messages
+			if (sender === "system") {
+				messageContainer.classList.add('system-message');
+			} else if (directMessage) {
+				messageContainer.classList.add('direct-message');
+			}
+	
+			// Create a div for the timestamp and sender
+			let messageTimestamp = document.createElement('div');
+			messageTimestamp.className = 'message-timestamp';
+			messageTimestamp.textContent = timestamp;
+	
+			// Create a div for the message content
+			let messageContent = document.createElement('div');
+			messageContent.className = 'message-content';
+			messageContent.textContent = `${sender}: ${message}`;
+	
+			// Append the timestamp and content to the container
+			messageContainer.appendChild(messageTimestamp);
+			messageContainer.appendChild(messageContent);
+	
+			// Append the message container to the chat text area
+			chatTextArea.appendChild(messageContainer);
+	
+			// Scroll to the bottom of the chat text area
+			chatTextArea.scrollTop = chatTextArea.scrollHeight;
 		}
 	
-		// Create a div for the timestamp and sender
-		let messageTimestamp = document.createElement('div');
-		messageTimestamp.className = 'message-timestamp';
-		messageTimestamp.textContent = timestamp;
-	
-		// Create a div for the message content
-		let messageContent = document.createElement('div');
-		messageContent.className = 'message-content';
-		messageContent.textContent = `${sender}: ${message}`;
-	
-		// Append the timestamp and content to the container
-		messageContainer.appendChild(messageTimestamp);
-		messageContainer.appendChild(messageContent);
-	
-		// Append the message container to the chat text area
-		document.getElementById('chat-text').appendChild(messageContainer);
-	
-		// Scroll to the bottom of the chat text area
-		document.getElementById('chat-text').scrollTop = document.getElementById('chat-text').scrollHeight;
-	}	
+		inviteToast(messageData);
+	}
 
 	function updateChat() {
 		logMessage('info', 'Chat update started');
@@ -915,8 +919,26 @@ function createDropdownItem(text, onClickHandler) {
 				logMessage('error', 'Connection closed unexpectedly:', event);
 			}
 		};
-	}		
+	}
 
+	async function inviteToast(messageData) {
+		try {
+			// Fetch user data
+			let user = await fetchUserData();
+	
+			// Check if the message is for the current user
+			if (messageData.receiver === user.username) {
+				console.log(`Invitation for ${user.username} from ${messageData.sender}`);
+				if (messageData.type === "invitation") {
+					displayToastMessage(`Game invite from ${messageData.sender}`, "info");
+				}
+			} else {
+				console.log(`Invitation from ${messageData.sender} is not for ${user.username}`);
+			}
+		} catch (error) {
+			console.error('Error in inviteToast:', error);
+		}
+	}
 	
 	async function sendChat() {
 		let text = chatMessage.value;

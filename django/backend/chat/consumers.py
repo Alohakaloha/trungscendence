@@ -208,8 +208,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if receiver_channel:
             message_event = {
                 'type': 'invitation',
-                'message': f"You have been invited by {sender_username}",
-                'sender': 'system',
+                'message': "You have been invited to a game",
+                'sender': sender_username,
+                'receiver': receiver_username,
                 'timestamp': self.get_current_timestamp(),
             }
 
@@ -241,6 +242,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def invitation(self, event):
         message = event['message']
         sender = event['sender']
+        receiver = event.get('receiver')
         timestamp = event['timestamp']
 
         # Send the message to WebSocket
@@ -248,6 +250,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'type': 'invitation',
             'message': message,
             'sender': sender,
+            'receiver': receiver,
             'timestamp': timestamp,
         }))
 
