@@ -24,17 +24,27 @@
 
 @media (max-width: 600px) {
     #chat-window {
-        font-size: 13px; /* Set a fixed font size for small viewports */
+        font-size: 13px;
     }
 }
 
 #close-chat {
-    background-color: rgb(39, 39, 39);
-    width: fit-content;
-    height: fit-content;
     position: absolute;
-    right: 0%;
+    top: 1px;
+    right: 10px;
+    z-index: 10;
+    cursor: pointer;
 }
+
+.bi-x {
+    fill: red;
+    transition: transform 0.2s ease;
+}
+
+#close-chat:hover .bi-x {
+    transform: scale(1.2);
+}
+
 
 #chat-input { 
     display: flex;
@@ -74,6 +84,18 @@ input[type="text"] {
 
 #chat-receiver {
     height: 32px;
+    color: #d3d3d3;
+    padding-left: 20px;
+    position: relative;
+}
+
+#chat-receiver::before {
+    content: '\2709'; /* Unicode character for envelope symbol */
+    margin-right: 8px;
+    color: #d3d3d3;
+    font-size: 1.2em;
+    position: absolute;
+    left: 3px;
 }
 
 .community-header {
@@ -105,6 +127,31 @@ input[type="text"] {
     overflow: auto;
 }
 
+/* General container styling */
+.clickable-area {
+    display: flex;
+    align-items: center;
+    padding: 8px; /* Adds spacing inside the clickable area */
+    border-radius: 0.25rem;
+    border: 1px solid transparent; /* Base border for hover effect */
+    transition: background-color 0.2s ease, border-color 0.2s ease; /* Smooth transition for hover */
+}
+
+.clickable-area:hover {
+    background-color: #495057; /* Darker grey background on hover */
+    border-color: #6c757d; /* Visible border on hover */
+    cursor: pointer;
+}
+
+/* Specific styling for SVG icons and text */
+.clickable-text {
+    color: lightgray; /* Light grey text color */
+    font-weight: bold;
+    font-size: 0.9em; /* Slightly smaller font size */
+    margin-left: 8px; /* Space between icon and text */
+}
+
+/* Styling for friend window */
 .friend-window {
     margin-bottom: 1px; /* Reduced margin bottom */
     padding: 6px; /* Smaller padding */
@@ -113,11 +160,7 @@ input[type="text"] {
     border-radius: 0.25rem;
     display: flex; /* Ensure flex layout for alignment */
     align-items: center; /* Center items vertically */
-}
-
-.friend-window:hover {
-    background-color: #495057; /* Darker grey background on hover */
-    cursor: pointer;
+    justify-content: space-between; /* Space out elements */
 }
 
 .friend-window img {
@@ -127,26 +170,66 @@ input[type="text"] {
     margin-right: 8px; /* Increased margin right for spacing */
 }
 
-.friend-window .clickable-text {
-    color: white; /* White text color for usernames */
+/* Header styling for lists */
+.friend-list-header {
+    background-color: #343a40; /* Dark grey background */
+    color: white;
+    padding: 10px;
     font-weight: bold;
-    font-size: 0.9em; /* Slightly smaller font size */
-}
-
-.friend-window .clickable-area {
     cursor: pointer;
-    flex-grow: 1; /* Expand to fill remaining space */
+    margin-top: 10px; /* Space before the header */
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
 }
 
+/* Container for friends */
+.friends-container, .users-container {
+    padding: 5px;
+    border-radius: 0.25rem;
+}
+
+/* Message styling for no friends or users */
 .no-friends-message::before {
-    content: '\2022';
-    margin-right: 0.5em; /* Adjusted margin right for bullet point */
+    content: '\2022'; /* Unicode for bullet point */
+    margin-right: 0.5em;
     color: white;
 }
 
+.no-friends-message {
+    color: lightgrey;
+    font-style: italic;
+}
+
+/* Dropdown menu button */
+.btn-dark.dropdown-toggle {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #343a40;
+    border: none;
+    cursor: pointer;
+}
+
+/* Dropdown items */
+.dropdown-item {
+    cursor: pointer;
+    color: #212529; /* Dark text for dropdown */
+    transition: background-color 0.2s ease; /* Smooth transition on hover */
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa; /* Light background on hover */
+}
+
+/* Hidden class for toggling visibility */
 .hidden {
     display: none;
 }
+
 
 
 /*message formatting*/

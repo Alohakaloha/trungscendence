@@ -569,7 +569,7 @@ function renderAllChat() {
         </svg> <span class="clickable-text">All Chat</span>`;
 
     allChat.onclick = function(event) {
-        if (event.target.classList.contains('clickable-text')) {
+        if (allChat.contains(event.target)) {
             updateChatWindow("global");
             displaySystemMessage("You are now writing in All Chat");
             displayToastMessage("Writing in All Chat", "info");
@@ -578,6 +578,7 @@ function renderAllChat() {
 
     friendList.appendChild(allChat);
 }
+
 
 function renderNotifications() {
     // Container for system notifications
@@ -589,7 +590,7 @@ function renderNotifications() {
         </svg> <span class="clickable-text">Notifications</span>`;
 
     systemNotifications.onclick = function(event) {
-        if (event.target.classList.contains('clickable-text')) {
+        if (systemNotifications.contains(event.target)) {
             handleNotifications();
         }
     };
@@ -603,14 +604,14 @@ function renderFriendList(user, list) {
     friendsHeader.classList.add('friend-list-header');
 
     let friendsContainer = document.createElement('div');
-    friendsContainer.classList.add('friends-container'); // Add a class for styling
+    friendsContainer.classList.add('friends-container');
     friendList.appendChild(friendsHeader);
     friendList.appendChild(friendsContainer);
 
     friendsHeader.onclick = function() {
-		logMessage('info', 'FriendsHeader clicked');
+        logMessage('info', 'FriendsHeader clicked');
         friendsContainer.classList.toggle('hidden');
-		logMessage('info', 'Toggled friends list visibility');
+        logMessage('info', 'Toggled friends list visibility');
     };
 
     if (list.friends.length === 0) {
@@ -639,7 +640,8 @@ function renderFriendList(user, list) {
         friendContent.appendChild(friendName);
 
         friendContent.onclick = function(event) {
-            if (event.target.classList.contains('clickable-text')) {
+            // Check if the click was inside the clickable-area
+            if (friendContent.contains(event.target)) {
                 chatObject(user.username, friend.username);
                 displaySystemMessage(`Conversation with "${friend.username}"`);
                 displayToastMessage(`Conversation with ${friend.username}`, "info");
@@ -663,9 +665,9 @@ function renderAllUsersList(user, allUsers) {
     friendList.appendChild(allUsersContainer);
 
     allUsersHeader.onclick = function() {
-		logMessage('info', 'AllUserHeader clicked');
+        logMessage('info', 'AllUserHeader clicked');
         allUsersContainer.classList.toggle('hidden');
-		logMessage('info', 'Toggled Alluser list visibility');
+        logMessage('info', 'Toggled Alluser list visibility');
     };
 
     if (allUsers.length === 0) {
@@ -694,8 +696,9 @@ function renderAllUsersList(user, allUsers) {
         userContent.appendChild(userName);
 
         userContent.onclick = function(event) {
-            if (event.target.classList.contains('clickable-text')) {
-				chatObject(user.username, otherUser.username);
+            // Check if the click was inside the clickable-area
+            if (userContent.contains(event.target)) {
+                chatObject(user.username, otherUser.username);
                 displaySystemMessage(`Conversation with "${otherUser.username}"`);
                 displayToastMessage(`Conversation with ${otherUser.username}`, "info");
             }
