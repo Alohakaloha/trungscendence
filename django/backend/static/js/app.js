@@ -1135,8 +1135,14 @@ async function join_lobby(requestType){
 	let lobbyID;
 	if (!user.authenticated)
 		return;
-	if(requestType === "join"){
+	if(requestType === "join" || requestType === "created"){
 		lobbyID = document.getElementById('lobbyID').value.trim();
+		if(lobbyID === ""){
+			//todo change notification in toast not a valid lobby
+			console.log("lobbyID empty. return")
+			return;
+		}
+		console.log(lobbyID.length)
 		console.log(lobbyID)
 	}
 	else if(requestType === "invite"){
@@ -1149,14 +1155,7 @@ async function join_lobby(requestType){
 
 	lobbySocket.onopen = async function(){
 		try {
-			if (requestType === "join"){
-				if(lobbyID.lenght < 1)
-					//todo change notification in toast not a valid lobby
-					return;
-				lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username, "lobby" : lobbyID }));
-			}
-			else if (requestType === "created")
-				lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username }));
+			lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username, "lobby" : lobbyID}));
 		} catch (error) {
 			console.error(error);
 		}

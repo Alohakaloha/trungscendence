@@ -24,8 +24,29 @@ class multimap:
 				if not self.map[key]:
 					del self.map[key]
 
+	def lobby_exist(self, id):
+		for item in self.map.values():
+			if isinstance(item, list):
+				for sub_item in item:
+					if isinstance(sub_item, dict) and 'lobby' in sub_item:
+						if sub_item['lobby'] == id:
+							return True
+		return False
+
+
+	def find_lobby(self, user_id):
+		for item in self.get(user_id):
+			if isinstance(item, dict) and 'lobby' in item:
+				return item['lobby']
+		return None
+
+	def remove_all(self, key):
+		if key in self.map:
+			del self.map[key]
+
+
 	def get(self, key):
-		return self._map.get(key, [])
+		return self.map.get(key, [])
 
 	def get_all(self):
 		return self.map
@@ -34,10 +55,13 @@ class multimap:
 		for key, values in self.map.items():
 			logprint(f"{key}: {values}")
 
+
 def logprint(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
-active_rooms = multimap()
+user_mapping = multimap()
+active_rooms = dict()
+
 
 class localPongGameConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
@@ -285,33 +309,50 @@ class remote_match(AsyncWebsocketConsumer):
 			self.room_group_name,
 			self.channel_name
 		)
-		active_rooms.add(self.scope["user"].user_id, self.channel_name)
+		user_mapping.add(self.scope["user"].user_id, {"channel":self.channel_name})
 
 	async def disconnect(self, close_code):
 		await self.channel_layer.group_discard(
 			self.room_group_name,
 			self.channel_name
 		)
-		active_rooms.remove(self.scope["user"].user_id)
+
+		user_lobbies = user_mapping.get(self.scope["user"].user_id, [])
+		for entry in user_lobbies:
+			if 'lobby' in entry:
+				lobby_id = entry['lobby']
+				logprint(f"Found lobby: {lobby_id}")
+		logprint("disconnect in remote")
+		user_mapping.remove(self.scope["user"].user_id)
+		#todo remove the user in the active room
 
 	async def receive(self, text_data):
 		try:
 			data = json.loads(text_data)
 			if data["request"] == "created":
-				self.players = []
-				self.host = str(self.scope["user"].user_id)
-				self.players.append(str(self.scope["user"].user_id))
-				self.connections + 1
-				await self.send(json.dumps({"type": "lobby","owner":str(self.scope["user"].username)}))
+				lobby_id = str(data["lobby"])
+				if active_rooms.get(lobby_id) is None:
+					active_rooms[lobby_id] = []
+					active_rooms[lobby_id].append(self.scope["user"].user_id)
+					user_mapping[self.scope["user"].user_id].append({"lobby":lobby_id})
+					logprint(active_rooms[lobby_id])
+					await self.send(json.dumps({"type": "lobby","message":"created", "lobby_id" : lobby_id, "players": active_rooms[lobby_id]}))
 			elif data["request"] == "join":
-				lobby_id = data["lobby"]
+				lobby_id = str(data["lobby"])
 				if lobby_id is None:
+					logprint("Room does not exist")
 					self.disconnect()
 					return
 				self.players.append(str(self.scope["user"].user_id))
-				self.connections + 1
-				active_rooms.add(self.scope["user"].user_id, lobby_id)
-				active_rooms.print_multimap()
-				await self.send(json.dumps({"type": "lobby","client":str(self.scope["user"].username)}))
+				if (active_rooms[lobby_id] is True):
+					active_rooms[lobby_id].append(self.scope["user"].user_id)
+					user_mapping[self.scope["user"].user_id].append({"lobby":lobby_id})
+					logprint(active_rooms[lobby_id])
+					await self.send(json.dumps({"type": "info","message": "joined the lobby"}))
+				else:
+					logprint("Room does not exist")
+					await self.send(json.dumps({"type": "info","message": "invalid lobby id"}))
+					self.disconnect()
+				# user_mapping.print_multimap()
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data} 3")
