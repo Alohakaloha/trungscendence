@@ -268,7 +268,7 @@ input[type="email"]{
 
 
 
-#chat{
+/* #chat{
 	box-shadow: #ababab 0px 0px 5px;
 	width: 7vw;
 	height:3vh;
@@ -280,7 +280,7 @@ input[type="email"]{
 	align-items: center;
 	right: 0%;
 	bottom:2%;
-}
+} */
 
 #chat:hover{
 	background-image: linear-gradient(to bottom, #212529 , rgb(21, 21, 21)) ;

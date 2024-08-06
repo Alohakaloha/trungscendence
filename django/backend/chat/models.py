@@ -1,8 +1,11 @@
+import sys
+
+from auth_app.models import AppUser
 from django.db import models
 from django.utils import timezone
 from django.db.models import Q
-from auth_app.models import AppUser
-import sys
+
+
 
 User = AppUser
 
@@ -10,6 +13,17 @@ def logprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 # Create your models here.
+
+class Block(models.Model):
+    blocker = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name='blocking')
+    blocked = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name='blocked')
+
+    class Meta:
+        unique_together = ('blocker', 'blocked')
+
+    def __str__(self):
+        return f"{self.blocker.username} blocked {self.blocked.username}"
+
 class Chat(models.Model):
     participant1 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant1')
     participant2 = models.ForeignKey('auth_app.AppUser', on_delete=models.CASCADE, null = True, blank=True, related_name='participant2')
@@ -26,7 +40,8 @@ class Chat(models.Model):
                 chat = Chat.objects.create(participant1=sender, participant2=receiver)
             else:
                 logprint("Chat found")
-            return chat
+                return chat
+
         except Exception as e:
             logprint(e)
             return None
@@ -38,6 +53,42 @@ class Chat(models.Model):
         #     new_chat = Chat(participant1=participant1, participant2=participant2)
         #     new_chat.save()
         #     return new_chat
+
+
+    def load_history(self, sender, receiver):
+        try:
+            chat = Chat.objects.filter(
+                Q(participant1=sender, participant2=receiver) |
+                Q(participant1=receiver, participant2=sender)
+            ).first()
+            if chat is None:
+                logprint("Creating a new chat")
+                chat = Chat.objects.create(participant1=sender, participant2=receiver)
+            logprint("Chat found")
+            # Fetch the newest 5 messages by ordering them in descending order of timestamp
+            newest_messages = Message.objects.filter(chat=chat).order_by('-timestamp')[:5]
+            # Reverse the order of messages for correct display
+            newest_messages_reversed = reversed(newest_messages)
+            return self.serialize_chat(newest_messages_reversed)
+        except Exception as e:
+            logprint(e)
+            return None
+
+    def serialize_chat(self, messages):
+        chat_data = {
+            "type": "history",
+            "conversation": [
+                {
+                    "sender": message.sender.username,
+                    "message": message.content,
+                    "timestamp": timezone.localtime(message.timestamp).strftime("%d.%m.%Y %H:%M"),
+                    'direct_message': True
+                }
+                for message in messages
+            ],
+        }
+        return chat_data
+
 
 class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE , related_name='messages')
@@ -51,34 +102,5 @@ class Message(models.Model):
         self.content = content
         self.save()
 
-
-    def last_5_messages(self):
-        return Message.objects.order_by('-timestamp').all()[:5]
-    
-
-
-# # chat/models.py
-# from django.db import models
-# from django.contrib.auth import get_user_model
-
-
-# class ChatMessage(models.Model):
-#     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-#     room_name = models.CharField(max_length=255)
-#     message = models.TextField()
-#     timestamp = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.user.username} in {self.room_name} at {self.timestamp}"
-
-# class DirectMessage(models.Model):
-#     sender = models.ForeignKey(get_user_model(), related_name='sent_messages', on_delete=models.CASCADE)
-#     recipient = models.ForeignKey(get_user_model(), related_name='received_messages', on_delete=models.CASCADE)
-#     message = models.TextField()
-#     timestamp = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.sender.username} to {self.recipient.username} at {self.timestamp}"
-
-
-# add admin model for messages
+    def all_messages(self):
+        return Message.objects.order_by('-timestamp').all()

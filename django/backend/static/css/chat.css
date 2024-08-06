@@ -1,3 +1,13 @@
+#chat{
+	margin-right : 4px;
+}
+
+#chat-wrapper{
+	background: linear-gradient(to bottom, #212529, #171a1d);
+	position: absolute;
+	bottom:0;
+	right:0;
+}
 
 #chat-window {
     display: grid;
@@ -14,19 +24,29 @@
 
 @media (max-width: 600px) {
     #chat-window {
-        font-size: 13px; /* Set a fixed font size for small viewports */
+        font-size: 13px;
     }
 }
 
 #close-chat {
-    background-color: rgb(39, 39, 39);
-    width: fit-content;
-    height: fit-content;
     position: absolute;
-    right: 0%;
+    top: 1px;
+    right: 10px;
+    z-index: 10;
+    cursor: pointer;
 }
 
-#chat-input {
+.bi-x {
+    fill: red;
+    transition: transform 0.2s ease;
+}
+
+#close-chat:hover .bi-x {
+    transform: scale(1.2);
+}
+
+
+#chat-input { 
     display: flex;
     justify-content: left;
     width: 30vw;
@@ -64,9 +84,188 @@ input[type="text"] {
 
 #chat-receiver {
     height: 32px;
+    color: #d3d3d3;
+    padding-left: 20px;
+    position: relative;
 }
 
-/* Additions for message formatting */
+#chat-receiver::before {
+    content: '\2709'; /* Unicode character for envelope symbol */
+    margin-right: 8px;
+    color: #d3d3d3;
+    font-size: 1.2em;
+    position: absolute;
+    left: 3px;
+}
+
+.community-header {
+    font-size: 1em;
+    font-weight: bold;
+    padding: 8px;
+    background-color: #343a40;
+    color: white;
+    border-bottom: 1px solid #6c757d;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    margin-bottom: 10px;
+}
+
+
+.friend-list-header {
+    font-size: 1em;
+    font-weight: bold;
+    padding: 8px;
+    background-color: #343a40;
+    color: white;
+    border-bottom: 1px solid #6c757d;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    margin-bottom: 10px;
+}
+
+#friend-list{
+    overflow: auto;
+}
+
+/* General container styling */
+.clickable-area {
+    display: flex;
+    align-items: center;
+    padding: 8px; /* Adds spacing inside the clickable area */
+    border-radius: 0.25rem;
+    border: 1px solid transparent; /* Base border for hover effect */
+    transition: background-color 0.2s ease, border-color 0.2s ease; /* Smooth transition for hover */
+}
+
+.clickable-area:hover {
+    background-color: #495057; /* Darker grey background on hover */
+    border-color: #6c757d; /* Visible border on hover */
+    cursor: pointer;
+}
+
+/* Specific styling for SVG icons and text */
+.clickable-text {
+    color: lightgray; /* Light grey text color */
+    font-weight: bold;
+    font-size: 0.9em; /* Slightly smaller font size */
+    margin-left: 8px; /* Space between icon and text */
+}
+
+/* Styling for friend window */
+.friend-window {
+    margin-bottom: 1px; /* Reduced margin bottom */
+    padding: 6px; /* Smaller padding */
+    background-color: #343a40; /* Dark grey background */
+    border: 1px solid #6c757d; /* Border color */
+    border-radius: 0.25rem;
+    display: flex; /* Ensure flex layout for alignment */
+    align-items: center; /* Center items vertically */
+    justify-content: space-between; /* Space out elements */
+}
+
+.friend-window img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 8px; /* Increased margin right for spacing */
+}
+
+/* Header styling for lists */
+.friend-list-header {
+    background-color: #343a40; /* Dark grey background */
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px; /* Space before the header */
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Container for friends */
+.friends-container, .users-container {
+    padding: 5px;
+    border-radius: 0.25rem;
+}
+
+/* Message styling for no friends or users */
+.no-friends-message::before {
+    content: '\2022'; /* Unicode for bullet point */
+    margin-right: 0.5em;
+    color: white;
+}
+
+.no-friends-message {
+    color: lightgrey;
+    font-style: italic;
+}
+
+/* Dropdown menu button */
+.btn-dark.dropdown-toggle {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #343a40;
+    border: none;
+    cursor: pointer;
+}
+
+/* Dropdown items */
+.dropdown-item {
+    cursor: pointer;
+    color: #212529; /* Dark text for dropdown */
+    transition: background-color 0.2s ease; /* Smooth transition on hover */
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa; /* Light background on hover */
+}
+
+/* Hidden class for toggling visibility */
+.hidden {
+    display: none;
+}
+
+/* Invite button formatting*/
+
+.invitation-container {
+    background-color: #7c7c7c; /* Slightly darker grey background for invitations */
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    display: block;
+    margin-bottom: 10px;
+    cursor: pointer; /* Pointer cursor for buttons */
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    width: 90%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.invitation-container .message-timestamp {
+    color: #666666; /* Grey color for timestamps */
+    font-size: 12px; /* Slightly smaller text size for timestamps */
+    margin-bottom: 5px; /* Space between timestamp and message */
+}
+
+.invitation-container .message-content {
+    font-weight: bold; /* Bold text for message content */
+    color: #00ff00; /* Neon green text for invitations */
+    font-size: 16px; /* Standard text size for message content */
+}
+
+.invitation-container:hover {
+    background-color: #a52a2a; /* Matte red on hover */
+    color: #ffffff; /* White text on hover for better readability */
+}
+
+
+/*message formatting*/
 
 .message-container {
     margin-bottom: 10px;
@@ -87,22 +286,100 @@ input[type="text"] {
     color: red;
 }
 
+.direct-message .message-content {
+    color: purple;
+    font-style: italic;
+}
+
+
+/* Toast formatting */
+
 .toast-container {
     top: 10%;
-    right: auto; /* Reset the right positioning if it's set */
-    bottom: auto; /* Reset the bottom positioning if it's set */
-    transform: translate(0, 0); /* Reset any transforms that might be applied */
-}
-/* 
-#liveToastBtn{
-	border-radius: 50%;
-} */
-
-.custom-smaller{
-	padding: 4px 4px
+    right: 0; /* Align the container to the right side */
+    padding: 1rem;
+    z-index: 1050; /* Ensure it appears above other elements */
 }
 
-.custom-smaller svg{
-	width:16px;
-	height:16px;
+.toast {
+    background-color: #343a40; /* Dark background color */
+    color: white;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif; /* Default font family */
+}
+
+.toast-body {
+    padding: 1rem;
+}
+
+.toast-header {
+    background-color: #495057; /* Slightly lighter dark background */
+    color: white;
+    border-bottom: 1px solid #6c757d;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+}
+
+.toast-header strong {
+    flex-grow: 1;
+    font-size: 1rem;
+}
+
+.toast-header small {
+    color: #adb5bd; /* Muted text color */
+}
+
+.toast .btn-close {
+    color: white;
+    opacity: 0.7;
+}
+
+.toast .btn-close:hover {
+    opacity: 1;
+}
+
+.custom-smaller {
+    padding: 4px 4px;
+}
+
+.custom-smaller svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Additional custom styles */
+
+.toast-message {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.timestamp {
+    color: #ced4da;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+}
+
+/* Custom styles for different message types */
+
+.toast-message.success {
+    color: green;
+    font-weight: bold;
+}
+
+.toast-message.error {
+    color: red;
+    font-style: italic;
+}
+
+.toast-message.info {
+    color: rgb(255, 0, 157);
+    font-weight: bold;
+}
+
+.toast-message.warning {
+    color: orange;
+    font-weight: bold;
 }
