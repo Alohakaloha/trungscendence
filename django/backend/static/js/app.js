@@ -1,7 +1,8 @@
 // on refresh handle the routing
 const content = document.getElementById('content');
 const chat = document.getElementById('chat');
-
+let uidb64;
+let token;
 let jsFile;
 
 window.onpopstate = function(event) {
@@ -72,14 +73,20 @@ function loadModule(str) {
 	});
 }
 
+function resetPwd(){
+	 changeURL(`/password_reset_confirm`, 'Reset password', {main:true});
+}
+
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
+
+
 	try{
 		const user = await fetchUserData();
 		
 		if (user.authenticated){
-			document.getElementById('profile_picture').src = user.profile_picture;
+			document.getElementById('user_profile_picture').src = user.profile_picture;
 			if (chatSocket){
 			}else{
 				chatSocket = new WebSocket('wss://' + window.location.host + '/ws/chatting/');
@@ -94,14 +101,26 @@ async function handleRouting() {
 				chatSocket = null;
 			}
 		}
-		switch (page) {
-			case '/':
-				jsFile = './welcome.js';
-				showPage("main/welcome.html");
-				break;
 
-			case '/chat':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+		if (page.startsWith('/reset/')){
+			if (user.authenticated){
+				changeURL('/', 'Home', {main : true});
+				return;
+			}
+			let reset_data = await getUidb_token();
+			if (reset_data){
+				uidb64 = reset_data['uidb64'];
+				token = reset_data['token'];
+				resetPwd()
+			}
+		}
+		else {
+			switch (page) {
+				case '/':
+					jsFile = './welcome.js';
+					showPage("main/welcome.html");
+			  case '/chat':
+				  showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 				break;
 
 			case '/game':
@@ -121,71 +140,92 @@ async function handleRouting() {
 				}else{
 					changeURL('/game', 'Game Page', {main : true});
 					break;
+				case '/chat':
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+				case '/pong':
+					// jsFile = './game/pong.js';
+					showPage(`game/pong.html`);
+					break;
+
+				case '/profile':
+					if(user.authenticated)
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					else
+						changeURL('/login', 'Login Page', {main : true});
+					break;
+
+				case '/history':
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/about':
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/settings':
+					if (user.authenticated){
+						jsFile='./settings.js';
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					} 
+					else{
+						changeURL('/login', 'Login Page', {main : true});
+						break;
 					}
-			case '/pong':
-				// jsFile = './game/pong.js';
-				showPage(`game/pong.html`);
-				break;
-
-			case '/profile':
-				if(user.authenticated)
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				else
-					changeURL('/login', 'Login Page', {main : true});
-				break;
-
-			case '/history':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/about':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/settings':
-				if (user.authenticated){
-					jsFile='./settings.js';
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				} 
-				else{
-					changeURL('/login', 'Login Page', {main : true});
 					break;
-				}
 
-				break;
-			case '/friends':
-				if (user.authenticated){
-					jsFile='./friend_request.js';
+				case '/friends':
+					if (user.authenticated){
+						jsFile='./friend_request.js';
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+						break;
+					}
+					else{
+						changeURL('/login', 'Login Page', {main : true});
+						break;
+					}
+
+				case '/register':
+					jsFile = './register.js';
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
-				}
-				else{
-					changeURL('/login', 'Login Page', {main : true});
+
+				case '/login':
+					if (user.authenticated){
+						changeURL('/', 'Main Page', {main : true});
+						break;
+					}
+
+					jsFile = './login.js';
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/password_reset':
+					jsFile = './forgot_password.js'
+					await showPage('password_reset');
+					break;
+
+				case '/password_reset_done':
+					await showPage(`password_reset_done`);;
+					break;
+				
+				case '/password_reset_confirm':
+					jsFile = './reset_password.js';
+					await showPage(`${page.slice(1)}/${page.slice(1)}.html/${uidb64}/${token}`);
+					uidb64 = null;
+					token =	null;
+					break;
+				
+				case '/password_reset_complete':
+					await showPage(`password_reset_complete`);
+					break;
+
+				default:
+					console.log('Page not found');
+					console.log(window.location.pathname);
 					break;
 				}
-
-			case '/register':
-				jsFile = './register.js';
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/login':
-				if (user.authenticated){
-					changeURL('/', 'Main Page', {main : true});
-					break;
-				}
-
-				jsFile = './login.js';
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/password_reset':
-				showPage('password_reset')
-			default:
-				console.log('Page not found');
-				console.log(window.location.pathname);
-				break;
-			}
+		}
 	} catch (error) {
 		console.error('Error handling routing: ', error);
 	}
@@ -198,33 +238,50 @@ async function currentJS() {
 		case '/':
 			unloadEvents('./welcome.js');
 			break;
+
 		case '/game':
 			break;
+
 		case '/profile':
 			break;
-			case '/chat':
-				break;
-				case '/history':
-					break;
+		
+		case '/chat':
+			break;
+	
+		case '/history':
+			break;
+	
 		case '/about':
 			break;
-			case '/settings':
-				break;
+
+		case '/settings':
+			break;
+
 		case '/friends':
 			if (user.authenticated)
 			unloadEvents('./friend_request.js');
-		break;
+			break;
+
 		case '/register':
 			unloadEvents('./register.js');
 			break;
-			case '/login':
-				if (!user.authenticated)
-				unloadEvents('./login.js');
+
+		case '/login':
+			if (!user.authenticated)
+			unloadEvents('./login.js');
 			break;
-			default:
-				break;
-			}
-		}
+
+		case '/password_reset':
+			unloadEvents('./forgot_password.js');
+			break;
+
+		case '/password_reset_confirm':
+			unloadEvents('./reset_password.js');
+			break;
+		default:
+			break;
+	}
+}
 		
 		
 		async function showPage(path) {
@@ -258,6 +315,22 @@ async function currentJS() {
 		}
 
 	});
+  
+// RESET
+async function getUidb_token(){
+	try{
+		let response = await fetch('/get_reset_data')
+		data = await response.json();
+			if (data.hasOwnProperty('uidb64') && data.hasOwnProperty('token')){
+				return data;
+			}
+			else
+				return null;
+		} catch(error){
+		console.error("Error with the authentication token: ", error);
+		return null
+	}
+}
 
 
 //        | |         | |  
@@ -1120,6 +1193,7 @@ function tournamentMatch(){
 	gameSocket.onerror = function(error) {
 		console.log(`Error: ${error.message}`);
 	};
+
 }
 
 // ██████  ███████ ███    ███  ██████  ████████ ███████     ███    ███  █████  ████████  ██████ ██   ██ 
@@ -1168,3 +1242,4 @@ async function join_lobby(requestType){
 		console.log(event)
 	}
 }
+
