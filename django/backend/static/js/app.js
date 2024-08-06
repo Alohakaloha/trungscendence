@@ -86,7 +86,7 @@ async function handleRouting() {
 		const user = await fetchUserData();
 		
 		if (user.authenticated){
-			document.getElementById('user_profile_picture').src = user.profile_picture;
+			document.getElementById('profile_picture').src = user.profile_picture;
 			if (chatSocket){
 			}else{
 				chatSocket = new WebSocket('wss://' + window.location.host + '/ws/chatting/');
@@ -116,10 +116,11 @@ async function handleRouting() {
 		}
 		else {
 			switch (page) {
-				case '/':
-					jsFile = './welcome.js';
-					showPage("main/welcome.html");
-			  case '/chat':
+			case '/':
+				jsFile = './welcome.js';
+				showPage("main.html");
+				break;
+			case '/chat':
 				  showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 				break;
 
@@ -140,6 +141,7 @@ async function handleRouting() {
 				}else{
 					changeURL('/game', 'Game Page', {main : true});
 					break;
+				}
 				case '/chat':
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
@@ -1242,4 +1244,3 @@ async function join_lobby(requestType){
 		console.log(event)
 	}
 }
-
