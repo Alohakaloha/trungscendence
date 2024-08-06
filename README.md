@@ -96,3 +96,26 @@ computer, accessing the same website and playing the same Pong game.
 >◦ The user should be able to invite other users to play a Pong game through the chat interface.\
 >◦ The tournament system should be able to warn users expected for the next game.\
 >◦ The user should be able to access other players profiles through the chat interface.
+
+## ELK
+
+### Inspiration sourses
+
+https://www.youtube.com/watch?v=jXU_1GADENQ
+
+https://github.com/ayounes9/elk-on-docker
+
+### Problems with Docker Memory resourses
+
+https://github.com/laradock/laradock/issues/1699#issuecomment-404738158
+
+Run `sudo sysctl -w vm.max_map_count=262144` in the terminal, not in the docker
+
+## Change Redis port mapping school PC since 6379 is in use
+  redis:
+    image: "redis:latest"
+    container_name: "redis"
+    ports:
+      - "6501:6379"
+    networks:
+      - t_network

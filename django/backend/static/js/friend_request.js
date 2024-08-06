@@ -110,19 +110,19 @@ export function unload(){
 
 function handleSubmit(event, button){
 	event.preventDefault();
-	var form = event.target.closest('form');
-	var formData = new FormData(form);
+	let form = event.target.closest('form');
+	let formData = new FormData(form);
 
-	var user_id = button.getAttribute('data-user-id');
+	let user_id = button.getAttribute('data-user-id');
 	formData.append('user_id', user_id);
 
-	var jsonObject = {};
+	let jsonObject = {};
 	formData.forEach(function(value,key){
 		jsonObject[key] = value;
 	})
 
 
-	var fetchOptions = {
+	let fetchOptions = {
 		method: 'POST',
 		headers: {
 			'Accept': 'application/json',
@@ -183,7 +183,7 @@ function handleSubmit(event, button){
 	}
 };
 
-async function fetchUserData(user_id){
+export async function fetchUserDataById(user_id){
 	try {
 		const response = await fetch(`/profile/${user_id}`);
 		const responseData = await response.json();
@@ -197,9 +197,9 @@ async function fetchUserData(user_id){
 	}
 }
 
-function friend_details(data){
+export function friend_details(data){
 	div = document.createElement('div');
-	console.log("im here");
+	console.log('friend_details function called');
 	let stats = data.stats;
 	let games_history = stats.games_history;
 	div.innerHTML = `

@@ -53,12 +53,19 @@ class tournamentHandler():
 			self.player_status = "idle"
 			self.th_status = "idle"
 
+	def saveMatch(self, match):
+		self.remaining.remove(self.nextUp[0])
+		self.remaining.remove(self.nextUp[1])
+		self.nextStage.append(match["winner"])
+
 	def nextMatch(self):
 		if self.th_status == "idle":
 			if len(self.remaining) == 1:
 				self.th_status = "finished"
 				self.winner = self.remaining[0]
-			self.nextUp = random.sample(self.players, 2)
+				return
+			if self.stage == 0:
+				self.nextUp = random.sample(self.remaining, 2)
 		return self.nextUp
 
 	def luckyWinner(self):
