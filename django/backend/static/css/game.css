@@ -14,6 +14,11 @@
 	width: 20vw;
 }
 
+#lobby-wrapper{
+	width: 100%;
+	display: flex;
+}
+
 #game_over{
 	background-color: black;
 	color: white;

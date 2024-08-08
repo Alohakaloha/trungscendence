@@ -141,17 +141,15 @@ async function handleRouting() {
 
 			case '/game':
 				// jsFile = './game/tmpGame.js';
-				if (gameSocket)
-					gameSocket.close();
 				if (lobbySocket)
-					changeURL('/game/localTournament', 'Tournament Page', {main : true});
+					lobbySocket.send(JSON.stringify({"type":"url"}))
 				else
 					showPage(`game/setupGameMode.html`);
 				break;
 
 			case '/game/localTournament':
 				if(lobbySocket){
-					showPage(`/game/localTournament.html`);
+					lobbySocket.send(JSON.stringify({"type":"check"}))
 					break;
 				}else{
 					changeURL('/game', 'Game Page', {main : true});
@@ -161,10 +159,17 @@ async function handleRouting() {
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
 				case '/pong':
-					// jsFile = './game/pong.js';
-					showPage(`game/pong.html`);
+					if(gameSocket)
+						showPage(`game/pong.html`);
+					else
+						changeURL('/game', 'Game Page', {main : true});
 					break;
-
+				case '/match':
+					if(lobbySocket)
+						lobbySocket.send(JSON.stringify({"type":"check", "request": "url"}))
+					else
+						changeURL('/game', 'Game Page', {main : true});
+					break;
 				case '/profile':
 					if(user.authenticated)
 						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
@@ -1494,17 +1499,19 @@ function bind_local_Tournament(localSettings){
  lobbySocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
 
  lobbySocket.onopen = function(){
-	console.log(localSettings);
+	showPage('/game/localTournament.html');
 	lobbySocket.send(JSON.stringify(localSettings));
  }
 
  lobbySocket.onmessage = function(event){
-	 let data = JSON.parse(event.data);
-	 if(data.type === 'rules'){
+	let data = JSON.parse(event.data);
+	if(data.type === 'rules'){
 		 tournamentRules = data;
-	 }
-	 if ('status' in data)
+	}
+	if ('status' in data)
 		updateTournament(data);
+	else if('url' in data)
+		showPage(data["url"]);
  }
 
  lobbySocket.onclose = function(event){
@@ -1534,12 +1541,12 @@ function updateTournament(data){
 		let ids = document.getElementById('r' + (i + 1));
 		ids.innerHTML = remaining[i];
 	}
-	console.log(data)
 	document.getElementById('nextFirst').innerHTML = data['nextUp'][0];
 	document.getElementById('nextSecond').innerHTML = data['nextUp'][1];
 }
 
 function localTournament(){
+	console.log("local tournament entered");
 	document.getElementById('stage').style.display = 'block';
 	document.getElementById('th-begin').style.display = 'none';
 	document.getElementById('th-cancel').style.display = 'none';
@@ -1634,9 +1641,10 @@ function tournamentMatch(){
 			backBtn.style.display = 'block';
 			gameSocket.close();
 			sounds = false;
-			if (lobbySocket === WebSocket.OPEN)
-				console.log(data);
+			if (lobbySocket.readyState === WebSocket.OPEN){
+				console.log("results");
 				lobbySocket.send(JSON.stringify(data));
+			}
 			return;
 		}
 		if ("sounds" in data)
@@ -1649,7 +1657,6 @@ function tournamentMatch(){
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
 		tournamentRules = {};
-		console.log("game ended");
 	}
 
 	gameSocket.onerror = function(error) {
@@ -1678,8 +1685,6 @@ async function join_lobby(requestType){
 			console.log("lobbyID empty. return")
 			return;
 		}
-		console.log(lobbyID.length)
-		console.log(lobbyID)
 	}
 	else if(requestType === "invite"){
 
@@ -1691,8 +1696,9 @@ async function join_lobby(requestType){
 
 	lobbySocket.onopen = async function(){
 		try {
+			changeURL("/match")
 			lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username, "lobby" : lobbyID}));
-		} catch (error) {
+		}catch (error) {
 			console.error(error);
 		}
 	}
@@ -1701,6 +1707,9 @@ async function join_lobby(requestType){
 	}
 
 	lobbySocket.onmessage = function(event){
-		console.log(event)
+		const data = JSON.parse(event.data);
+		console.log("here")
+		if('url' in data)
+			showPage(data["url"]);
 	}
 }

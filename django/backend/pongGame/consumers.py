@@ -182,7 +182,6 @@ class localTournament(AsyncWebsocketConsumer):
 			await self.send(json.dumps(self.tournament.currentRules()))
 		elif data["type"] == "status":
 			if self.tournament.th_status == "finished":
-				logprint("winner found")
 				await self.send(json.dumps(self.tournament.tournamentResults()))
 				await self.disconnect()
 				return
@@ -192,7 +191,12 @@ class localTournament(AsyncWebsocketConsumer):
 			self.tournament.saveMatch(data)
 			self.tournament.setReady()
 			self.tournament.nextMatch()
-			await self.send(json.dumps(self.tournament.currentRules()))
+			if self.tournament.th_status == "finished":
+				await self.send(self.tournament.tournamentResults())
+			else:
+				await self.send(json.dumps(self.tournament.currentRules()))
+		elif data["type"] == 'url':
+			await self.send(json.dumps({"url": "/game/localTournament.html"}))
 
 
 
@@ -334,25 +338,30 @@ class remote_match(AsyncWebsocketConsumer):
 				if active_rooms.get(lobby_id) is None:
 					active_rooms[lobby_id] = []
 					active_rooms[lobby_id].append(self.scope["user"].user_id)
-					user_mapping[self.scope["user"].user_id].append({"lobby":lobby_id})
+					user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
 					logprint(active_rooms[lobby_id])
 					await self.send(json.dumps({"type": "lobby","message":"created", "lobby_id" : lobby_id, "players": active_rooms[lobby_id]}))
 			elif data["request"] == "join":
 				lobby_id = str(data["lobby"])
 				if lobby_id is None:
 					logprint("Room does not exist")
-					self.disconnect()
+					self.disconnect(close_code=1000)
 					return
 				self.players.append(str(self.scope["user"].user_id))
-				if (active_rooms[lobby_id] is True):
+				if (lobby_id in active_rooms and len(active_rooms[lobby_id]) < 2):
 					active_rooms[lobby_id].append(self.scope["user"].user_id)
-					user_mapping[self.scope["user"].user_id].append({"lobby":lobby_id})
+					user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
 					logprint(active_rooms[lobby_id])
-					await self.send(json.dumps({"type": "info","message": "joined the lobby"}))
+					await self.send(json.dumps({"type": "info","lobby_id":lobby_id,"message": "joined the lobby"}))
 				else:
-					logprint("Room does not exist")
-					await self.send(json.dumps({"type": "info","message": "invalid lobby id"}))
-					self.disconnect()
+					if (len(active_rooms[lobby_id]) > 1):
+						await self.send(json.dumps({"type": "info","message": "Lobby is full"}))
+					else:
+						await self.send(json.dumps({"type": "info","message": "Can not join this lobby"}))
+					self.disconnect(close_code=1000)
+			elif data["request"] == "url":
+				logprint("lobby requested")
+				await self.send(json.dumps({"url": "/match/lobby"}))
 				# user_mapping.print_multimap()
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data} 3")
