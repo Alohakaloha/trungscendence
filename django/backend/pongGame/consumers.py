@@ -63,6 +63,21 @@ user_mapping = multimap()
 active_rooms = dict()
 
 
+def find_channel(lobby_id):
+	user_channels = {}
+	if lobby_id in active_rooms:
+		users_in_lobby = active_rooms[lobby_id][0]  # Get the list of user IDs in the lobby
+
+		for user_id in users_in_lobby:
+			user_details = user_mapping.get(user_id)
+			if user_details:
+				for detail in user_details:
+					if 'channel' in detail:
+						user_channels[user_id] = detail['channel']
+						break  # Assuming each user has only one channel
+	return user_channels
+
+
 class localPongGameConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
 
@@ -298,10 +313,7 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 
 
 class remote_match(AsyncWebsocketConsumer):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.players = []
-		self.connections = 0
+
 
 	async def connect(self):
 		from auth_app.models import AppUser as App
@@ -320,15 +332,15 @@ class remote_match(AsyncWebsocketConsumer):
 			self.room_group_name,
 			self.channel_name
 		)
-
-		user_lobbies = user_mapping.get(self.scope["user"].user_id, [])
+		user_id = self.scope["user"].user_id
+		user_lobbies = user_mapping.get(user_id, [])
 		for entry in user_lobbies:
 			if 'lobby' in entry:
 				lobby_id = entry['lobby']
 				logprint(f"Found lobby: {lobby_id}")
 		logprint("disconnect in remote")
+		active_rooms[lobby_id].remove(user_id)
 		user_mapping.remove(self.scope["user"].user_id)
-		#todo remove the user in the active room
 
 	async def receive(self, text_data):
 		try:
@@ -336,22 +348,27 @@ class remote_match(AsyncWebsocketConsumer):
 			if data["request"] == "created":
 				lobby_id = str(data["lobby"])
 				if active_rooms.get(lobby_id) is None:
-					active_rooms[lobby_id] = []
-					active_rooms[lobby_id].append(self.scope["user"].user_id)
-					user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
+					active_rooms[lobby_id] = [[self.scope["user"].user_id], 0] 
 					logprint(active_rooms[lobby_id])
-					await self.send(json.dumps({"type": "lobby","message":"created", "lobby_id" : lobby_id, "players": active_rooms[lobby_id]}))
+					user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
+					user_mapping.add(self.scope["user"].user_id, {"status": "idle"})
+					await self.send(json.dumps({"type": "lobby","message":"created", "lobby_id" : lobby_id, "players": active_rooms[lobby_id][0]}))
+				else:
+					logprint("lobby already exists")
+					self.disconnect(close_code=1000)
 			elif data["request"] == "join":
 				lobby_id = str(data["lobby"])
 				if lobby_id is None:
 					logprint("Room does not exist")
 					self.disconnect(close_code=1000)
 					return
-				self.players.append(str(self.scope["user"].user_id))
-				if (lobby_id in active_rooms and len(active_rooms[lobby_id]) < 2):
-					active_rooms[lobby_id].append(self.scope["user"].user_id)
+				if (lobby_id in active_rooms and len(active_rooms[lobby_id][0]) < 2):
+					active_rooms[lobby_id][0].append(self.scope["user"].user_id)
+					if isinstance(active_rooms[lobby_id][1], int):
+						active_rooms[lobby_id][1] += 1
 					user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
-					logprint(active_rooms[lobby_id])
+					user_mapping.add(self.scope["user"].user_id, {"status": "idle"})
+					logprint(user_mapping.get_all())
 					await self.send(json.dumps({"type": "info","lobby_id":lobby_id,"message": "joined the lobby"}))
 				else:
 					if (len(active_rooms[lobby_id]) > 1):
@@ -360,8 +377,35 @@ class remote_match(AsyncWebsocketConsumer):
 						await self.send(json.dumps({"type": "info","message": "Can not join this lobby"}))
 					self.disconnect(close_code=1000)
 			elif data["request"] == "url":
-				logprint("lobby requested")
+				logprint("url requested")
 				await self.send(json.dumps({"url": "/match/lobby"}))
+			elif data["request"] == "status":
+				if data["status"] == "ready":
+					user_details = user_mapping.get(self.scope["user"].user_id)
+					if user_details:
+						for detail in user_details:
+							if 'status' in detail:
+								detail['status'] = 'ready'
+							if 'lobby' in detail:
+								receiver = find_channel(detail["lobby"])
+								logprint(receiver)
+								for player, channel_name in receiver.items():
+									await self.channel_layer.send(channel_name, {
+									"type": "chat.message",
+									"request" : "announcement",
+									"message": str(self.scope["user"].username + " is ready")
+								})
+					logprint(active_rooms)
+					await self.send(json.dumps({"status": "ready"}))
+			elif data["request"] == "announcement":
+				await self.send(json.dumps({"type":"info", "message": "a player is ready" }))
 				# user_mapping.print_multimap()
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data} 3")
+
+	async def chat_message(self, event):
+		message = event["message"]
+		await self.send(text_data=json.dumps({
+		"type": "info",
+		"message": message
+		}))

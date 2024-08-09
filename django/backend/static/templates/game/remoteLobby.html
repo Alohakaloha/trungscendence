@@ -1,0 +1,54 @@
+<div id="lobby-wrapper">
+	<h2 style="text-align: center;">Match lobby</h2>
+
+	<div>
+		<h5>Player color</h5>
+		<div id="inline-options">
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="player1Color" id="playerColor0" value="white"checked>
+				<label class="form-check-label" for="player1Color" style="color: aliceblue;">default</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="player1Color" id="playerColor1" value="rgb(84, 10, 10)">
+				<label class="form-check-label" for="player1Color" style="color:rgb(84, 10, 10);">Red</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="player1Color" id="playerColor2" value="rgb(10, 42, 84)" >
+				<label class="form-check-label" for="player1Color" style="color:rgb(10, 42, 84);">Blue</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<input class="form-check-input" type="radio" name="player1Color" id="playerColor3" value="teal">
+				<label class="form-check-label" for="player1Color" style="color:teal">Teal</label>
+			</div>
+		</div>
+	</div>
+	<div style="display:flex;justify-content: center;">
+		<div class="col-4">
+			<h5>Sound<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-volume-down" viewBox="0 0 16 16">
+				<path d="M9 4a.5.5 0 0 0-.812-.39L5.825 5.5H3.5A.5.5 0 0 0 3 6v4a.5.5 0 0 0 .5.5h2.325l2.363 1.89A.5.5 0 0 0 9 12zM6.312 6.39 8 5.04v5.92L6.312 9.61A.5.5 0 0 0 6 9.5H4v-3h2a.5.5 0 0 0 .312-.11M12.025 8a4.5 4.5 0 0 1-1.318 3.182L10 10.475A3.5 3.5 0 0 0 11.025 8 3.5 3.5 0 0 0 10 5.525l.707-.707A4.5 4.5 0 0 1 12.025 8"/>
+			</svg></h5>
+			<div class="d-flex justify-content-center align-items-center">
+				<div class="form-check form-switch">
+					<input class="form-check-input" type="checkbox" role="switch" id="localSound">
+					<label class="form-check-label" for="localSound"></label>
+				</div>
+			</div>
+		</div>
+	  </div>
+
+	  <div>
+		<div class="card text-center">
+			<div class="card-header">
+			Players
+			</div>
+			<div class="card-body" id="player-list">
+			</div>
+			<div class="card-footer text-muted">
+				Match starts when everyone is ready
+			</div>
+		  </div>
+		<!-- todo match notification -->
+		<button class="btn btn-dark" onclick="matchReady()">Ready</button>
+
+	</div>
+</div>

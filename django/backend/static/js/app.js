@@ -1677,7 +1677,10 @@ async function join_lobby(requestType){
 	const user = await fetchUserData();
 	let lobbyID;
 	if (!user.authenticated)
+	{
+		//TODO toast for not being logged in
 		return;
+	}	
 	if(requestType === "join" || requestType === "created"){
 		lobbyID = document.getElementById('lobbyID').value.trim();
 		if(lobbyID === ""){
@@ -1708,8 +1711,38 @@ async function join_lobby(requestType){
 
 	lobbySocket.onmessage = function(event){
 		const data = JSON.parse(event.data);
-		console.log("here")
 		if('url' in data)
 			showPage(data["url"]);
+		else if ('status' in data){
+			if (data["status"] === "ready"){
+				fetchUserData().then(user => {
+					let player_list = document.getElementById("player-list");
+					let player_ready = document.createElement("div");
+					player_ready.id = String(user.username);
+					player_ready.textContent = String(user.username);
+					player_list.appendChild(player_ready);})
+				}
+			else if (data["status"] === "unready")
+			{
+					fetchUserData().then(user => {
+					let player_list = document.getElementById("player-list");
+					let player_ready = document.getElementById(String(user.username));
+					player_list.removeChild(player_ready);
+					;})
+			}
+		
+		}
+		else if('info' in data)
+			console.log(data);
+	}
+}
+
+async function matchReady(){
+	if(lobbySocket){
+		lobbySocket.send(JSON.stringify({"request":"status", "status":"ready"}))
+		console.log("request status change")
+	}
+	else{
+		changeURL("/game");
 	}
 }

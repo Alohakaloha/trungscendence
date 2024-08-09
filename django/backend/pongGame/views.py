@@ -40,4 +40,4 @@ def match(request):
 	return render(request,'game/match.html')
 
 def lobby(request):
-	return render(request, 'game/lobby.html')
+	return render(request, 'game/remoteLobby.html')
