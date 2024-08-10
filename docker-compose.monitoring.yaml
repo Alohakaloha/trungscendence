@@ -68,7 +68,7 @@ services:
       - '--path.rootfs=/host'
     # network_mode: host # default port 9100
     ports:
-      - '9100:9100'
+      - '9123:9100'
     pid: host
     restart: unless-stopped
     volumes:
@@ -177,11 +177,11 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
-    mem_limit: ${ES_MEM_LIMIT}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+    # mem_limit: ${ES_MEM_LIMIT}
+    # ulimits:
+    #   memlock:
+    #     soft: -1
+    #     hard: -1
     healthcheck:
       test:
         [
@@ -216,7 +216,7 @@ services:
       - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-    mem_limit: ${KB_MEM_LIMIT}
+    # mem_limit: ${KB_MEM_LIMIT}
     healthcheck:
       test:
         [
@@ -255,6 +255,6 @@ services:
     command: logstash -f /usr/share/logstash/pipeline/logstash.conf
     ports:
       - "5044:5044/udp"
-    mem_limit: ${LS_MEM_LIMIT}
+    # mem_limit: ${LS_MEM_LIMIT}
     networks:
       - t_network
