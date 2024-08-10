@@ -1,15 +1,10 @@
 apiVersion: 1
 policies:
     - orgId: 1
-      receiver: grafana-default-email
+      receiver: discord
       group_by:
         - grafana_folder
         - alertname
-      routes:
-        - receiver: discord
-          object_matchers:
-            - - grafana_folder
-              - =
-              - Trungscendence
-          group_wait: 1s
-          group_interval: 1s
+      group_wait: 1s
+      group_interval: 1s
+      repeat_interval: 30s
