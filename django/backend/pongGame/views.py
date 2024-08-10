@@ -1,17 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from .models import RemoteMatch
-from . import pong
-import sys
-
-from tabulate import tabulate
-
-def output_table(queryset, limit=50):
-    headers = [x.name for x in queryset.model._meta.fields]
-    rows = queryset.values_list(*headers)
-    if limit is not None:
-        rows = rows[:limit]
-    print(tabulate(rows, headers), sys.stderr)
 
 def header_view(request):
 	return render(request,'header.html')
@@ -54,5 +43,4 @@ def history(request):
 		# matches = RemoteMatch.object.all()
 		# print(f'{request.user}', file=sys.stderr)
 		matches = RemoteMatch.objects.filter(player_1=request.user.user_id) | RemoteMatch.objects.filter(player_2=request.user.user_id)
-		output_table(matches)
 		return render (request, 'history.html', {'matches': matches})
