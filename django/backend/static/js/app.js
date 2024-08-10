@@ -90,7 +90,7 @@ async function handleRouting() {
 	if(page.startsWith("/details/")){
 		const parts = page.split("/");
 		unique_id = parts[2]; // Extract the unique ID from the URL
-		page = "/details";
+		page = '/details';
 	}
 	try{
 		const user = await fetchUserData();
@@ -163,7 +163,6 @@ async function handleRouting() {
 					changeURL('/login', 'Login Page', {main : true});
 					break;
 				}
-
 				break;
 			case '/friends':
 				if (user.authenticated){
@@ -178,7 +177,7 @@ async function handleRouting() {
 			case '/details':
 				if (unique_id){
 					const div = friend_details(await fetchUserDataById(unique_id));
-					await showPage(unique_id);
+					await showPage(`user/${unique_id}`);
 					document.getElementById('friend_details').appendChild(div);
 				}
 				break;
@@ -244,13 +243,17 @@ async function currentJS() {
 		
 		
 		async function showPage(path) {
-		return await fetch(path)
-		.then(response => response.text())
-		.then(data => {
-			document.getElementById('content').innerHTML = data;
-		})
-		.catch(error => console.log(error));
-	}
+			if (path.startsWith('/details/')){
+				let parts = path.split('/');
+				path = '/user/' + parts[2];
+			};
+			return await fetch(path)
+			.then(response => response.text())
+			.then(data => {
+				document.getElementById('content').innerHTML = data;
+			})
+			.catch(error => console.log(error));
+		}
 	
 	// part for background change in settings
 	let background = ["none", "/staticstuff/images/background.jpg", "/staticstuff/images/black.jpg" ];
