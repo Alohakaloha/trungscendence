@@ -110,3 +110,12 @@ https://github.com/ayounes9/elk-on-docker
 https://github.com/laradock/laradock/issues/1699#issuecomment-404738158
 
 Run `sudo sysctl -w vm.max_map_count=262144` in the terminal, not in the docker
+
+## Change Redis port mapping school PC since 6379 is in use
+  redis:
+    image: "redis:latest"
+    container_name: "redis"
+    ports:
+      - "6501:6379"
+    networks:
+      - t_network

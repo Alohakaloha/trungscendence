@@ -7,3 +7,4 @@ django/backend/media
 */migrations
 *.log
 *.dump
+log/

@@ -158,6 +158,13 @@ def friends_view(request):
 		users = AppUser.objects.exclude(user_id__in=exclude_users)
 		return render (request, 'friends.html', {'users': users, 'friend_requests' : friend_requests})
 
+def unique_friend_view(request, user_id):
+	try:
+		user = AppUser.objects.get(user_id=user_id)
+	except AppUser.DoesNotExist:
+		return render (request, "404.html")
+	return render (request, "friend_detail.html")
+
 def send_friend_request_view(request, user_id):
 	if request.method == 'POST':
 		from_user = request.user
@@ -235,6 +242,13 @@ def friends_list_view(request):
 		return JsonResponse({'friends': friends_list})
 	else:
 		return JsonResponse({'status': 'error', 'message':'You must be logged in to view this page.'})
+
+def all_user(request):
+	if request.user.is_authenticated:
+		users = AppUser.objects.exclude(user_id=request.user.user_id)
+		users = users.exclude(user_id__in=request.user.friends.values_list('user_id', flat=True))
+		serialized_users = list(users.values('user_id', 'username', 'profile_picture'))
+		return JsonResponse({'users': serialized_users})
 
 class CustomPasswordResetView(auth_views.PasswordResetView):
 	template_name = 'password_reset_form.html'
