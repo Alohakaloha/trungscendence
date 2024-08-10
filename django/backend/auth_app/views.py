@@ -67,7 +67,9 @@ def profile(request, **kwargs):
 
 
 def history(request):
-	return render(request, 'history.html')
+	if request.method == 'GET':
+		users = AppUser.objects.all()
+		return render (request, 'history.html', {'users': users})
 
 
 def main(request):

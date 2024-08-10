@@ -17,12 +17,14 @@ class multimap:
 			self.map[key] = []
 		self.map[key].append(value)
 
-	def remove(self, key, value):
+	def remove(self, key, value=None):
 		if key in self.map:
-			if value in self._map[key]:
-				self.map[key].remove(value)
-				if not self.map[key]:
-					del self.map[key]
+			if value is None:
+				del self.map[key]
+		elif value in self.map[key]:
+			self.map[key].remove(value)
+			if not self.map[key]:
+				del self.map[key]
 
 	def lobby_exist(self, id):
 		for item in self.map.values():
@@ -192,26 +194,29 @@ class localTournament(AsyncWebsocketConsumer):
 
 	async def receive(self, text_data):
 		data = json.loads(text_data)
-		if data["type"] == "settings":
-			self.tournament.setRules(data)
-			await self.send(json.dumps(self.tournament.currentRules()))
-		elif data["type"] == "status":
-			if self.tournament.th_status == "finished":
-				await self.send(json.dumps(self.tournament.tournamentResults()))
-				await self.disconnect()
-				return
-			await self.send(json.dumps(self.tournament.tournamentStatus()))
-
-		elif data["type"] == 'match_result':
-			self.tournament.saveMatch(data)
-			self.tournament.setReady()
-			self.tournament.nextMatch()
-			if self.tournament.th_status == "finished":
-				await self.send(self.tournament.tournamentResults())
-			else:
+		logprint(data)
+		if "type" in data:
+			if data["type"] == "settings":
+				self.tournament.setRules(data)
 				await self.send(json.dumps(self.tournament.currentRules()))
-		elif data["type"] == 'url':
-			await self.send(json.dumps({"url": "/game/localTournament.html"}))
+			elif data["type"] == "status":
+				if self.tournament.th_status == "finished":
+					await self.send(json.dumps(self.tournament.tournamentResults()))
+					await self.disconnect()
+					return
+				await self.send(json.dumps(self.tournament.tournamentStatus()))
+
+			elif data["type"] == 'match_result':
+				self.tournament.saveMatch(data)
+				self.tournament.setReady()
+				self.tournament.nextMatch()
+				if self.tournament.th_status == "finished":
+					await self.send(self.tournament.tournamentResults())
+				else:
+					await self.send(json.dumps(self.tournament.currentRules()))
+		if "request" in data:
+			if data["request"] == "url":
+				await self.send(json.dumps({"url": "/game/localTournament.html"}))
 
 
 
@@ -335,7 +340,11 @@ class remote_match(AsyncWebsocketConsumer):
 				lobby_id = entry['lobby']
 				logprint(f"Found lobby: {lobby_id}")
 		logprint("disconnect in remote")
-		active_rooms[lobby_id].remove(user_id)
+		if lobby_id in active_rooms:
+			if user_id in active_rooms[lobby_id][0]:
+				active_rooms[lobby_id][0].remove(user_id)
+			else:
+				logprint(f"User {user_id} not in active_rooms[{lobby_id}][0]")
 		if len(active_rooms[lobby_id][0]) == 0:
 			active_rooms.pop(lobby_id)
 			logprint("Lobby removed")
@@ -351,7 +360,7 @@ class remote_match(AsyncWebsocketConsumer):
 			if data["request"] == "created":
 				lobby_id = str(data["lobby"])
 				if active_rooms.get(lobby_id) is None:
-					active_rooms[lobby_id] = [[self.scope["user"].user_id], 0] 
+					active_rooms[lobby_id] = [[self.scope["user"].user_id], 0,0] 
 					logprint(active_rooms[lobby_id])
 					user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
 					user_mapping.add(self.scope["user"].user_id, {"status": "idle"})
@@ -368,20 +377,18 @@ class remote_match(AsyncWebsocketConsumer):
 					user_mapping.remove(self.scope["user"].user_id)
 					await self.disconnect(close_code=1000)
 					return
-				if (lobby_id in active_rooms and len(active_rooms[lobby_id][0]) < 2):
-					active_rooms[lobby_id][0].append(self.scope["user"].user_id)
-					if isinstance(active_rooms[lobby_id][1], int):
-						active_rooms[lobby_id][1] += 1
-					user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
-					user_mapping.add(self.scope["user"].user_id, {"status": "idle"})
-					logprint(user_mapping.get_all())
-					await self.send(json.dumps({"type": "info","lobby_id":lobby_id,"message": "joined the lobby"}))
+				if (lobby_id in active_rooms):
+					if len(active_rooms[lobby_id][0]) < 2:
+						active_rooms[lobby_id][0].append(self.scope["user"].user_id)
+						if isinstance(active_rooms[lobby_id][1], int):
+							active_rooms[lobby_id][1] += 1
+						user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
+						user_mapping.add(self.scope["user"].user_id, {"status": "idle"})
+						logprint(user_mapping.get_all())
+						await self.send(json.dumps({"type": "info","lobby_id":lobby_id,"message": "joined the lobby"}))
 				else:
-					if (len(active_rooms[lobby_id]) > 1):
-						await self.send(json.dumps({"type": "info","message": "Lobby is full"}))
-					else:
-						await self.send(json.dumps({"type": "info","message": "Can not join this lobby"}))
-						await self.disconnect(close_code=1000)
+					await self.send(json.dumps({"type": "info","message": "Can not join this lobby"}))
+					await self.disconnect(close_code=1000)
 			elif data["request"] == "url":
 				logprint("url requested")
 				await self.send(json.dumps({"url": "/match/lobby"}))
@@ -390,18 +397,17 @@ class remote_match(AsyncWebsocketConsumer):
 					user_details = user_mapping.get(self.scope["user"].user_id)
 					if user_details:
 						for detail in user_details:
+							logprint(detail)
 							if 'status' in detail:
 								logprint(user_details)
-								user_mapping.add(self.scope["user"].user_id, {"status": "ready"})
+								detail["status"] = "ready"
+								logprint(user_mapping.get(self.scope["user"].user_id))
 							if 'lobby' in detail:
 								receiver = find_channel(detail["lobby"])
-								
-								logprint(receiver)
-								for player, channel_name in receiver.items():
+								for _, channel_name in receiver.items():
+									logprint(channel_name)
 									await self.channel_layer.send(channel_name, {
 									"type": "chat.message",
-									"user" : str(self.scope["user"].username),
-									"message": str(self.scope["user"].username + " is ready")
 								})
 					await self.send(json.dumps({"status": "ready"}))
 			elif data["request"] == "announcement":

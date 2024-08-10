@@ -79,7 +79,7 @@ class tournamentHandler():
 				self.nextUp = random.sample(self.remaining, 2)
 			return
 
-	def tournamentResults(self, winner):
+	def tournamentResults(self):
 		winner = {
 			"status": self.th_status,
 			"winner": self.winner,

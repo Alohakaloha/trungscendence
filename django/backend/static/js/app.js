@@ -142,7 +142,9 @@ async function handleRouting() {
 			case '/game':
 				// jsFile = './game/tmpGame.js';
 				if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN)
+				{
 					lobbySocket.send(JSON.stringify({"request":"url"}))
+				}
 				else
 					showPage(`game/setupGameMode.html`);
 				break;
@@ -1508,14 +1510,18 @@ function bind_local_Tournament(localSettings){
  }
 
  lobbySocket.onmessage = function(event){
-	let data = JSON.parse(event.data);
+	 let data = JSON.parse(event.data);
+	 console.log("tournament lobby")
+	 console.log(data);
 	if(data.type === 'rules'){
 		 tournamentRules = data;
 	}
 	if ('status' in data)
 		updateTournament(data);
-	else if('url' in data)
+	else if('url' in data){
 		showPage(data["url"]);
+	}
+
  }
 
  lobbySocket.onclose = function(event){
@@ -1646,7 +1652,7 @@ function tournamentMatch(){
 			gameSocket.close();
 			sounds = false;
 			if (lobbySocket.readyState === WebSocket.OPEN){
-				console.log("results");
+				console.log(data);
 				lobbySocket.send(JSON.stringify(data));
 			}
 			return;
