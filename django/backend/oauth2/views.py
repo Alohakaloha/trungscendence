@@ -34,10 +34,10 @@ def oauth_redirect(request):
         'Content-Type': 'application/json'
     }
     try:
-		conn = http.client.HTTPSConnection('api.intra.42.fr')
-		conn.request('POST', '/oauth/token', data, headers)
-		response_raw = conn.getresponse()
-		      
+        conn = http.client.HTTPSConnection('api.intra.42.fr')
+        conn.request('POST', '/oauth/token', data, headers)
+        response_raw = conn.getresponse()
+
         if response_raw.status == 200:
             response = json.loads(response_raw.read().decode('utf-8'))  
             access_token = response.get("access_token")
