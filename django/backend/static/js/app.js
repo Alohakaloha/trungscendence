@@ -186,11 +186,12 @@ async function handleRouting() {
 					break;
 
 			case '/settings':
-				if (user.authenticated){
+				if (user.authenticated && !lobbySocket){
 					jsFile='./settings.js';
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 				} 
 				else{
+					displayToastMessage("Tournament in progress, settings disabled", "warning");
 					changeURL('/login', 'Login Page', {main : true});
 					break;
 				}

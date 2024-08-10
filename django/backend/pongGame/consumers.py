@@ -392,6 +392,7 @@ class remote_match(AsyncWebsocketConsumer):
 						for detail in user_details:
 							if 'status' in detail:
 								logprint(user_details)
+								user_mapping.add(self.scope["user"].user_id, {"status": "ready"})
 							if 'lobby' in detail:
 								receiver = find_channel(detail["lobby"])
 								
