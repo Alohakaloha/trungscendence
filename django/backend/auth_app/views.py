@@ -55,13 +55,6 @@ def profile(request, **args):
 	else:
 		return render(request, 'profile.html')
 
-
-def history(request):
-	if request.method == 'GET':
-		users = AppUser.objects.all()
-		return render (request, 'history.html', {'users': users})
-
-
 def main(request):
 	return render(request, 'welcome.html')
 

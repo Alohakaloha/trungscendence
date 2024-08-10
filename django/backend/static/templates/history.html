@@ -4,18 +4,24 @@
 	<div class="scoreboard">
 		<table id="scoreboard-table" style="border: 1px solid black; border-collapse: collapse">
 			<tr>
-				<th id="user-header">Username</th>
-				<th id="wins-header">Wins</th>
-				<th>Losses</th>
+				<th>Match ID</th>
+				<th>Date</th>
+				<th>Player 1</th>
+				<th>Player 2</th>
+				<th>Score P1</th>
+				<th>Score P2</th>
+				<th>Winner</th>
 			</tr>
-			{% for user in users %}
-				{% if not user.is_staff %}
+			{% for match in matches %}
 				<tr>
-					<td>{{ user.username }}</td>
-					<td>{{ user.wins }}</td>
-					<td>{{ user.losses }}</td>
+					<td>{{ match.match_id }}</td>
+					<td>{{ match.date }}</td>
+					<td>{{ match.player_1 }}</td>
+					<td>{{ match.player_2 }}</td>
+					<td>{{ match.score_1 }}</td>
+					<td>{{ match.score_2 }}</td>
+					<td>{{ match.winner }}</td>
 				</tr>
-				{% endif %}
 			{% endfor %}
 		</table>
 	</div>
