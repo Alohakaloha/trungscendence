@@ -53,7 +53,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message_content = chat_json.get('message')
             receiver_username = chat_json.get('receiver')
 
-            logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
+           # logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
 
             if action_type == 'message':
                 await self.handle_message(sender_username, receiver_username, message_content)
@@ -65,8 +65,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.handle_chatroom(sender_username, receiver_username)
             elif action_type == 'invitation':
                 await self.game_invite(sender_username, receiver_username)
-            else:
-                logprint(f"Unknown action type received: {action_type}")
+           # else:
+            #    logprint(f"Unknown action type received: {action_type}")
 
         except (KeyError, json.JSONDecodeError) as e:
             logprint(f"Invalid JSON: {text_data}, Error: {e}")

@@ -1718,17 +1718,18 @@ async function join_lobby(requestType){
 				fetchUserData().then(user => {
 					let player_list = document.getElementById("player-list");
 					let player_ready = document.createElement("div");
-					player_ready.id = String(user.username);
-					player_ready.textContent = String(user.username);
+					player_ready.id = data["user"];
+					player_ready.textContent = data["user"];
 					player_list.appendChild(player_ready);})
 				}
 			else if (data["status"] === "unready")
 			{
-					fetchUserData().then(user => {
-					let player_list = document.getElementById("player-list");
-					let player_ready = document.getElementById(String(user.username));
-					player_list.removeChild(player_ready);
-					;})
+			
+				fetchUserData().then(user => {
+				let player_list = document.getElementById("player-list");
+				let player_ready = document.getElementById(String(user.username));
+				player_list.removeChild(player_ready);
+				;})
 			}
 		
 		}

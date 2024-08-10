@@ -388,10 +388,12 @@ class remote_match(AsyncWebsocketConsumer):
 								detail['status'] = 'ready'
 							if 'lobby' in detail:
 								receiver = find_channel(detail["lobby"])
+								
 								logprint(receiver)
 								for player, channel_name in receiver.items():
 									await self.channel_layer.send(channel_name, {
 									"type": "chat.message",
+									"user" : str(self.scope["user"].username),
 									"message": str(self.scope["user"].username + " is ready")
 								})
 					logprint(active_rooms)
@@ -404,7 +406,10 @@ class remote_match(AsyncWebsocketConsumer):
 
 	async def chat_message(self, event):
 		message = event["message"]
+		user = event["user"]
 		await self.send(text_data=json.dumps({
 		"info": "toast",
-		"message": message
+		"status" : "ready",
+		"message": message,
+		"user" :  user
 		}))
