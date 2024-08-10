@@ -1,1 +1,22 @@
-<h1>Game History</h1>
+<div class="history">
+	{% load static %}
+	<h1>Game History</h1>
+	<div class="scoreboard">
+		<table id="scoreboard-table" style="border: 1px solid black; border-collapse: collapse">
+			<tr>
+				<th id="user-header">Username</th>
+				<th id="wins-header">Wins</th>
+				<th>Losses</th>
+			</tr>
+			{% for user in users %}
+				{% if not user.is_staff %}
+				<tr>
+					<td>{{ user.username }}</td>
+					<td>{{ user.wins }}</td>
+					<td>{{ user.losses }}</td>
+				</tr>
+				{% endif %}
+			{% endfor %}
+		</table>
+	</div>
+</div>
