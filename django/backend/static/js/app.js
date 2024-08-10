@@ -2,7 +2,8 @@
 	// on refresh handle the routing
 const content = document.getElementById('content');
 const chat = document.getElementById('chat');
-
+let uidb64;
+let token;
 let jsFile;
 
 window.onpopstate = function(event) {
@@ -83,6 +84,10 @@ function loadModule(str) {
 	});
 }
 
+function resetPwd(){
+	 changeURL(`/password_reset_confirm`, 'Reset password', {main:true});
+}
+
 // changing the path and content
 async function handleRouting() {
 	let page = window.location.pathname;
@@ -111,48 +116,74 @@ async function handleRouting() {
 				chatSocket = null;
 			}
 		}
-		switch (page) {
+
+		if (page.startsWith('/reset/')){
+			if (user.authenticated){
+				changeURL('/', 'Home', {main : true});
+				return;
+			}
+			let reset_data = await getUidb_token();
+			if (reset_data){
+				uidb64 = reset_data['uidb64'];
+				token = reset_data['token'];
+				resetPwd()
+			}
+		}
+		else {
+			switch (page) {
 			case '/':
 				jsFile = './welcome.js';
-				showPage("main/welcome.html");
+				showPage("main.html");
 				break;
+			case '/chat':
+				  showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+				break;
+
 			case '/game':
 				// jsFile = './game/tmpGame.js';
-				if (gameSocket)
-					gameSocket.close();
-				if (tournamentSocket)
-					changeURL('/game/localTournament', 'Tournament Page', {main : true});
+				if (lobbySocket)
+					lobbySocket.send(JSON.stringify({"type":"url"}))
 				else
 					showPage(`game/setupGameMode.html`);
 				break;
 
 			case '/game/localTournament':
-				if(tournamentSocket){
-					showPage(`/game/localTournament.html`);
+				if(lobbySocket){
+					lobbySocket.send(JSON.stringify({"type":"check"}))
 					break;
 				}else{
 					changeURL('/game', 'Game Page', {main : true});
 					break;
-					}
-			case '/pong':
-				// jsFile = './game/pong.js';
-				showPage(`game/pong.html`);
-				break;
-
-			case '/profile':
-				if(user.authenticated)
+				}
+				case '/chat':
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				else
-					changeURL('/login', 'Login Page', {main : true});
-				break;
+					break;
+				case '/pong':
+					if(gameSocket)
+						showPage(`game/pong.html`);
+					else
+						changeURL('/game', 'Game Page', {main : true});
+					break;
+				case '/match':
+					if(lobbySocket)
+						lobbySocket.send(JSON.stringify({"type":"check", "request": "url"}))
+					else
+						changeURL('/game', 'Game Page', {main : true});
+					break;
+				case '/profile':
+					if(user.authenticated)
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					else
+						changeURL('/login', 'Login Page', {main : true});
+					break;
 
-			case '/history':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
+				case '/history':
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
 
-			case '/about':
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
+				case '/about':
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
 
 			case '/settings':
 				if (user.authenticated){
@@ -187,23 +218,42 @@ async function handleRouting() {
 				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 				break;
 
-			case '/login':
-				if (user.authenticated){
-					changeURL('/', 'Main Page', {main : true});
+				case '/login':
+					if (user.authenticated){
+						changeURL('/', 'Main Page', {main : true});
+						break;
+					}
+
+					jsFile = './login.js';
+					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					break;
+
+				case '/password_reset':
+					jsFile = './forgot_password.js'
+					await showPage('password_reset');
+					break;
+
+				case '/password_reset_done':
+					await showPage(`password_reset_done`);;
+					break;
+				
+				case '/password_reset_confirm':
+					jsFile = './reset_password.js';
+					await showPage(`${page.slice(1)}/${page.slice(1)}.html/${uidb64}/${token}`);
+					uidb64 = null;
+					token =	null;
+					break;
+				
+				case '/password_reset_complete':
+					await showPage(`password_reset_complete`);
+					break;
+
+				default:
+					console.log('Page not found');
+					console.log(window.location.pathname);
 					break;
 				}
-
-				jsFile = './login.js';
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/password_reset':
-				showPage('password_reset')
-			default:
-				console.log('Page not found');
-				console.log(window.location.pathname);
-				break;
-			}
+		}
 	} catch (error) {
 		console.error('Error handling routing: ', error);
 	}
@@ -216,31 +266,50 @@ async function currentJS() {
 		case '/':
 			unloadEvents('./welcome.js');
 			break;
+
 		case '/game':
 			break;
+
 		case '/profile':
 			break;
+		
+		case '/chat':
+			break;
+	
 		case '/history':
-				break;
+			break;
+	
 		case '/about':
 			break;
-			case '/settings':
-				break;
+
+		case '/settings':
+			break;
+
 		case '/friends':
 			if (user.authenticated)
 			unloadEvents('./friend_request.js');
-		break;
+			break;
+
 		case '/register':
 			unloadEvents('./register.js');
 			break;
-			case '/login':
-				if (!user.authenticated)
-				unloadEvents('./login.js');
+
+		case '/login':
+			if (!user.authenticated)
+			unloadEvents('./login.js');
 			break;
-			default:
-				break;
-			}
-		}
+
+		case '/password_reset':
+			unloadEvents('./forgot_password.js');
+			break;
+
+		case '/password_reset_confirm':
+			unloadEvents('./reset_password.js');
+			break;
+		default:
+			break;
+	}
+}
 		
 		
 		async function showPage(path) {
@@ -274,6 +343,22 @@ async function currentJS() {
 		}
 
 	});
+  
+// RESET
+async function getUidb_token(){
+	try{
+		let response = await fetch('/get_reset_data')
+		data = await response.json();
+			if (data.hasOwnProperty('uidb64') && data.hasOwnProperty('token')){
+				return data;
+			}
+			else
+				return null;
+		} catch(error){
+		console.error("Error with the authentication token: ", error);
+		return null
+	}
+}
 
 
 //        | |         | |  
@@ -1161,8 +1246,8 @@ async function startLocalTournament(){
 
 
 function cancelTH(){
-	if(tournamentSocket)
-		tournamentSocket.close();
+	if(lobbySocket)
+		lobbySocket.close();
 	changeURL('/game', 'Game Page', {main : true});
 }
 
@@ -1216,16 +1301,18 @@ function playSound(sound){
 
 function connectGame(settings, colors){
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/local/'); //wss only
+	let frame;
+
 	gameSocket.onopen = function(){
+		
 		gameSocket.send(JSON.stringify(settings));
+		frame = setInterval(()=> {})
 		requestUpdate = setInterval(() => {
-			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
-			p1Color = document.getElementById("player1");
-			p2Color = document.getElementById("player2");
+			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 20);
+			let p1Color = document.getElementById("player1");
+			let p2Color = document.getElementById("player2");
 			p1Color.style.boxShadow = "-5px 0px 3px "+ colors.p1Color;
 			p2Color.style.boxShadow ="5px 0px 3px " + colors.p2Color;
-
-
 	}
 
 
@@ -1269,7 +1356,7 @@ function connectGame(settings, colors){
 
 	gameSocket.onmessage = function(event){
 		let data = JSON.parse(event.data);
-		if ('game_over' in data){
+		if (data.type === "match_result"){
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
 			winner.style.display = 'block';
@@ -1289,7 +1376,7 @@ function connectGame(settings, colors){
 			playSound(data.sounds);
 		}
 		else{
-			displayPong(data);
+			displayPong(data)
 		}
 	}
 
@@ -1350,24 +1437,26 @@ function playerRounds(p1, p2){
 }
 
 
+
+
 function displayPong(data)
 {
 
 	let ball = document.getElementById('ball');
 	let game = document.getElementById('pongGame');
 	let headerbar = document.getElementById('header-bar');
-	let name1 = document.getElementById('player1-name');
-	let name2 = document.getElementById('player2-name');
-	let p1score = document.getElementById('player1-score');
-	let p2score = document.getElementById('player2-score');
 	let player1 = document.getElementById('player1');
 	let player2 = document.getElementById('player2');
 	
 	if('player_1_name' in data){
+		let name1 = document.getElementById('player1-name');
+		let name2 = document.getElementById('player2-name');
 		name1.innerHTML = data.player_1_name;
 		name2.innerHTML = data.player_2_name;
 	}
 	if ('score1' in data){
+		let p1score = document.getElementById('player1-score');
+		let p2score = document.getElementById('player2-score');
 		p1score.innerHTML = data.score1;
 		p2score.innerHTML = data.score2;
 	}
@@ -1403,39 +1492,41 @@ function displayPong(data)
 |_|\___/ \___\__,_|_|  \__\___/ \__,_|_|  |_| |_|\__,_|_| |_| |_|\___|_| |_|\__|
 */
 
-let tournamentSocket;
+let lobbySocket;
 let tournamentRules;
 
 function bind_local_Tournament(localSettings){
- tournamentSocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
+ lobbySocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
 
- tournamentSocket.onopen = function(){
-	console.log(localSettings);
-	tournamentSocket.send(JSON.stringify(localSettings));
+ lobbySocket.onopen = function(){
+	showPage('/game/localTournament.html');
+	lobbySocket.send(JSON.stringify(localSettings));
  }
 
- tournamentSocket.onmessage = function(event){
-	 let data = JSON.parse(event.data);
-	 if(data.type === 'rules'){
+ lobbySocket.onmessage = function(event){
+	let data = JSON.parse(event.data);
+	if(data.type === 'rules'){
 		 tournamentRules = data;
-	 }
-	 if ('status' in data)
+	}
+	if ('status' in data)
 		updateTournament(data);
+	else if('url' in data)
+		showPage(data["url"]);
  }
 
- tournamentSocket.onclose = function(event){
+ lobbySocket.onclose = function(event){
 	 if (event.code === 1000) {
 		 console.log(`Connection of LocalTournament closed cleanly, code=${event.code} reason=${event.reason}`);
 	 } else {
 		 console.log('tournament closed ', event);
 	 }
-	tournamentSocket = null;
+	lobbySocket = null;
  }
 
 }
 
 function tournamentStatus(){
-	tournamentSocket.send(JSON.stringify({"type": "status"}));
+	lobbySocket.send(JSON.stringify({"type": "status"}));
 }
 
 
@@ -1455,6 +1546,7 @@ function updateTournament(data){
 }
 
 function localTournament(){
+	console.log("local tournament entered");
 	document.getElementById('stage').style.display = 'block';
 	document.getElementById('th-begin').style.display = 'none';
 	document.getElementById('th-cancel').style.display = 'none';
@@ -1476,9 +1568,10 @@ function tournamentMatch(){
 		.catch(error => console.log(error));
 
 
-	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/'); //wss only
+	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/');
+
 	gameSocket.onopen = function(){
-		if(tournamentSocket){
+		if(lobbySocket){
 			gameSocket.send(JSON.stringify(tournamentRules))
 			p1Color = document.getElementById("player1");
 			p2Color = document.getElementById("player2");
@@ -1536,11 +1629,10 @@ function tournamentMatch(){
 		if(data.type === 'rules'){
 			gameSocket.send(JSON.stringify({ "update": "update"}));
 			requestUpdate = setInterval(() => {
-			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 10);
+			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 30);
 			}
 
 		if (data.type === "match_result"){
-			console.log("result =", data)
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
 			winner.style.display = 'block';
@@ -1549,25 +1641,109 @@ function tournamentMatch(){
 			backBtn.style.display = 'block';
 			gameSocket.close();
 			sounds = false;
-			if (tournamentSocket === WebSocket.OPEN)
-				console.log(data);
-				tournamentSocket.send(JSON.stringify(data));
+			if (lobbySocket.readyState === WebSocket.OPEN){
+				console.log("results");
+				lobbySocket.send(JSON.stringify(data));
+			}
 			return;
 		}
 		if ("sounds" in data)
 			playSound(data.sounds);
 		else
-			displayPong(data);
+			displayPong(data)
 	}
 
 	gameSocket.onclose = function(event){
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
 		tournamentRules = {};
-		console.log("game ended");
 	}
 
 	gameSocket.onerror = function(error) {
 		console.log(`Error: ${error.message}`);
 	};
+
+}
+
+// ██████  ███████ ███    ███  ██████  ████████ ███████     ███    ███  █████  ████████  ██████ ██   ██ 
+// ██   ██ ██      ████  ████ ██    ██    ██    ██          ████  ████ ██   ██    ██    ██      ██   ██ 
+// ██████  █████   ██ ████ ██ ██    ██    ██    █████       ██ ████ ██ ███████    ██    ██      ███████ 
+// ██   ██ ██      ██  ██  ██ ██    ██    ██    ██          ██  ██  ██ ██   ██    ██    ██      ██   ██ 
+// ██   ██ ███████ ██      ██  ██████     ██    ███████     ██      ██ ██   ██    ██     ██████ ██   ██
+
+
+
+async function join_lobby(requestType){
+	const user = await fetchUserData();
+	let lobbyID;
+	if (!user.authenticated)
+	{
+		//TODO toast for not being logged in
+		return;
+	}	
+	if(requestType === "join" || requestType === "created"){
+		lobbyID = document.getElementById('lobbyID').value.trim();
+		if(lobbyID === ""){
+			//todo change notification in toast not a valid lobby
+			console.log("lobbyID empty. return")
+			return;
+		}
+	}
+	else if(requestType === "invite"){
+
+	}
+
+	if(!lobbySocket)
+		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_match/' + user.username );
+
+
+	lobbySocket.onopen = async function(){
+		try {
+			changeURL("/match")
+			lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username, "lobby" : lobbyID}));
+		}catch (error) {
+			console.error(error);
+		}
+	}
+	lobbySocket.onclose = function(){
+		console.log("remote closed")
+	}
+
+	lobbySocket.onmessage = function(event){
+		const data = JSON.parse(event.data);
+		if('url' in data)
+			showPage(data["url"]);
+		else if ('status' in data){
+			if (data["status"] === "ready"){
+				fetchUserData().then(user => {
+					let player_list = document.getElementById("player-list");
+					let player_ready = document.createElement("div");
+					player_ready.id = data["user"];
+					player_ready.textContent = data["user"];
+					player_list.appendChild(player_ready);})
+				}
+			else if (data["status"] === "unready")
+			{
+			
+				fetchUserData().then(user => {
+				let player_list = document.getElementById("player-list");
+				let player_ready = document.getElementById(String(user.username));
+				player_list.removeChild(player_ready);
+				;})
+			}
+		
+		}
+		else if('info' in data)
+			console.log(data);
+	}
+}
+
+async function matchReady(){
+	if(lobbySocket){
+		lobbySocket.send(JSON.stringify({"request":"status", "status":"ready"}))
+		console.log("request status change")
+	}
+	else{
+		changeURL("/game");
+	}
 }

@@ -76,6 +76,8 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+    def get_user_from_id(self, id):
+        return AppUser.objects.get(user_id=id)
 
 class History(models.Model):
     game_id = models.AutoField(primary_key=True)

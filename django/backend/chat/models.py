@@ -36,10 +36,8 @@ class Chat(models.Model):
                 Q(participant1=receiver, participant2=sender)
             ).first()
             if chat is None:
-                logprint("Creating a new chat")
                 chat = Chat.objects.create(participant1=sender, participant2=receiver)
             else:
-                logprint("Chat found")
                 return chat
 
         except Exception as e:
@@ -64,7 +62,6 @@ class Chat(models.Model):
             if chat is None:
                 logprint("Creating a new chat")
                 chat = Chat.objects.create(participant1=sender, participant2=receiver)
-            logprint("Chat found")
             # Fetch the newest 5 messages by ordering them in descending order of timestamp
             newest_messages = Message.objects.filter(chat=chat).order_by('-timestamp')[:5]
             # Reverse the order of messages for correct display
