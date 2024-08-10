@@ -21,7 +21,7 @@
 }
 
 #player-list{
-	display: flex;
+	display: block;
 	align-items: center;
 	justify-content: center;
 	text-align: center;

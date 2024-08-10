@@ -129,7 +129,7 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 				self.game_active = False
 				self.gaming.cancel()
 				await self.send(json.dumps(self.player.score.final_score()))
-				self.disconnect()
+				await self.disconnect()
 			await asyncio.sleep(self.fps)
 
 
@@ -328,19 +328,22 @@ class remote_match(AsyncWebsocketConsumer):
 		user_mapping.add(self.scope["user"].user_id, {"channel":self.channel_name})
 
 	async def disconnect(self, close_code):
-		await self.channel_layer.group_discard(
-			self.room_group_name,
-			self.channel_name
-		)
 		user_id = self.scope["user"].user_id
-		user_lobbies = user_mapping.get(user_id, [])
+		user_lobbies = user_mapping.get(user_id)
 		for entry in user_lobbies:
 			if 'lobby' in entry:
 				lobby_id = entry['lobby']
 				logprint(f"Found lobby: {lobby_id}")
 		logprint("disconnect in remote")
 		active_rooms[lobby_id].remove(user_id)
+		if len(active_rooms[lobby_id][0]) == 0:
+			active_rooms.pop(lobby_id)
+			logprint("Lobby removed")
 		user_mapping.remove(self.scope["user"].user_id)
+		await self.channel_layer.group_discard(
+			self.room_group_name,
+			self.channel_name
+		)
 
 	async def receive(self, text_data):
 		try:
@@ -352,15 +355,18 @@ class remote_match(AsyncWebsocketConsumer):
 					logprint(active_rooms[lobby_id])
 					user_mapping.add(self.scope["user"].user_id, {"lobby": lobby_id})
 					user_mapping.add(self.scope["user"].user_id, {"status": "idle"})
+					logprint(user_mapping.get(self.scope["user"].user_id))
 					await self.send(json.dumps({"type": "lobby","message":"created", "lobby_id" : lobby_id, "players": active_rooms[lobby_id][0]}))
 				else:
 					logprint("lobby already exists")
-					self.disconnect(close_code=1000)
+					await self.disconnect(close_code=1000)
+					return
 			elif data["request"] == "join":
 				lobby_id = str(data["lobby"])
 				if lobby_id is None:
 					logprint("Room does not exist")
-					self.disconnect(close_code=1000)
+					user_mapping.remove(self.scope["user"].user_id)
+					await self.disconnect(close_code=1000)
 					return
 				if (lobby_id in active_rooms and len(active_rooms[lobby_id][0]) < 2):
 					active_rooms[lobby_id][0].append(self.scope["user"].user_id)
@@ -375,7 +381,7 @@ class remote_match(AsyncWebsocketConsumer):
 						await self.send(json.dumps({"type": "info","message": "Lobby is full"}))
 					else:
 						await self.send(json.dumps({"type": "info","message": "Can not join this lobby"}))
-					self.disconnect(close_code=1000)
+						await self.disconnect(close_code=1000)
 			elif data["request"] == "url":
 				logprint("url requested")
 				await self.send(json.dumps({"url": "/match/lobby"}))
@@ -385,7 +391,7 @@ class remote_match(AsyncWebsocketConsumer):
 					if user_details:
 						for detail in user_details:
 							if 'status' in detail:
-								detail['status'] = 'ready'
+								logprint(user_details)
 							if 'lobby' in detail:
 								receiver = find_channel(detail["lobby"])
 								
@@ -396,7 +402,6 @@ class remote_match(AsyncWebsocketConsumer):
 									"user" : str(self.scope["user"].username),
 									"message": str(self.scope["user"].username + " is ready")
 								})
-					logprint(active_rooms)
 					await self.send(json.dumps({"status": "ready"}))
 			elif data["request"] == "announcement":
 				await self.send(json.dumps({"type":"info", "message": "a player is ready" }))

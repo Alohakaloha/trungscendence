@@ -141,8 +141,8 @@ async function handleRouting() {
 
 			case '/game':
 				// jsFile = './game/tmpGame.js';
-				if (lobbySocket)
-					lobbySocket.send(JSON.stringify({"type":"url"}))
+				if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN)
+					lobbySocket.send(JSON.stringify({"request":"url"}))
 				else
 					showPage(`game/setupGameMode.html`);
 				break;
@@ -366,6 +366,7 @@ async function getUidb_token(){
 //    / __| '_ \ / _` | __|
 //   | (__| | | | (_| | |_ 
 //    \___|_| |_|\__,_|\__|
+// chat
 
 let debugMode = true; // Set to false to disable debug logs
 let openWindow = false;
@@ -1265,6 +1266,7 @@ observer.observe(content, {childList: true});
 //  ██''''██'██'''██'██''██''██'██'██''██'█'█'██''''██'''''''''███'█'''''██'''''''''██''''██'██''''████''██'██'
 //  '██████''██'''██'██''''''██'██'██'''███'█''██████'''''████████'█████'███████''''██''''██''██████'██'''████'
 //  ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+// gaming section
 
 let gameSocket;
 let sounds = false;
@@ -1491,6 +1493,7 @@ function displayPong(data)
 | | (_) | (_| (_| | | | || (_) | |_| | |  | | | | (_| | | | | | |  __/ | | | |_ 
 |_|\___/ \___\__,_|_|  \__\___/ \__,_|_|  |_| |_|\__,_|_| |_| |_|\___|_| |_|\__|
 */
+// local tournament
 
 let lobbySocket;
 let tournamentRules;
@@ -1670,8 +1673,7 @@ function tournamentMatch(){
 // ██████  █████   ██ ████ ██ ██    ██    ██    █████       ██ ████ ██ ███████    ██    ██      ███████ 
 // ██   ██ ██      ██  ██  ██ ██    ██    ██    ██          ██  ██  ██ ██   ██    ██    ██      ██   ██ 
 // ██   ██ ███████ ██      ██  ██████     ██    ███████     ██      ██ ██   ██    ██     ██████ ██   ██
-
-
+// remote match
 
 async function join_lobby(requestType){
 	const user = await fetchUserData();
@@ -1705,8 +1707,8 @@ async function join_lobby(requestType){
 			console.error(error);
 		}
 	}
-	lobbySocket.onclose = function(){
-		console.log("remote closed")
+	lobbySocket.onclose = function(event){
+		console.log("remote closed ", event);
 	}
 
 	lobbySocket.onmessage = function(event){
@@ -1720,7 +1722,11 @@ async function join_lobby(requestType){
 					let player_ready = document.createElement("div");
 					player_ready.id = data["user"];
 					player_ready.textContent = data["user"];
-					player_list.appendChild(player_ready);})
+					player_list.appendChild(player_ready);});
+					let readyBtn = document.getElementById('vs_ready');
+					readyBtn.style.display = "none";
+					let unready = document.getElementById('vs_unready');
+					unready.style.display = "block";
 				}
 			else if (data["status"] === "unready")
 			{
@@ -1730,6 +1736,10 @@ async function join_lobby(requestType){
 				let player_ready = document.getElementById(String(user.username));
 				player_list.removeChild(player_ready);
 				;})
+				let readyBtn = document.getElementById('vs_ready');
+				readyBtn.style.display = "block";
+				let unready = document.getElementById('vs_unready');
+				unready.style.display = "none";
 			}
 		
 		}
@@ -1741,6 +1751,16 @@ async function join_lobby(requestType){
 async function matchReady(){
 	if(lobbySocket){
 		lobbySocket.send(JSON.stringify({"request":"status", "status":"ready"}))
+		console.log("request status change")
+	}
+	else{
+		changeURL("/game");
+	}
+}
+
+async function matchUnready(){
+	if(lobbySocket){
+		lobbySocket.send(JSON.stringify({"request":"status", "status":"unready"}))
 		console.log("request status change")
 	}
 	else{
