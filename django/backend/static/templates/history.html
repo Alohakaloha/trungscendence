@@ -4,23 +4,23 @@
 	<div class="scoreboard">
 		<table id="scoreboard-table" style="border: 1px solid black; border-collapse: collapse">
 			<tr>
-				<th>Match ID</th>
-				<th>Date</th>
-				<th>Player 1</th>
-				<th>Player 2</th>
-				<th>Score P1</th>
-				<th>Score P2</th>
-				<th>Winner</th>
+				<th style="padding-left: 5px; padding-right: 5px;">Match ID</th>
+				<th style="padding-left: 5px; padding-right: 5px;">Date</th>
+				<th style="padding-left: 5px; padding-right: 5px;">Player 1</th>
+				<th style="padding-left: 5px; padding-right: 5px;">Player 2</th>
+				<th style="padding-left: 5px; padding-right: 5px;">Score P1</th>
+				<th style="padding-left: 5px; padding-right: 5px;">Score P2</th>
+				<th style="padding-left: 5px; padding-right: 5px;">Winner</th>
 			</tr>
 			{% for match in matches %}
 				<tr>
-					<td>{{ match.match_id }}</td>
-					<td>{{ match.date }}</td>
-					<td>{{ match.player_1 }}</td>
-					<td>{{ match.player_2 }}</td>
-					<td>{{ match.score_1 }}</td>
-					<td>{{ match.score_2 }}</td>
-					<td>{{ match.winner }}</td>
+					<td style="padding-left: 5px; padding-right: 5px;">{{ match.match_id }}</td>
+					<td style="padding-left: 5px; padding-right: 5px;">{{ match.date }}</td>
+					<td style="padding-left: 5px; padding-right: 5px;">{{ match.player_1 }}</td>
+					<td style="padding-left: 5px; padding-right: 5px;">{{ match.player_2 }}</td>
+					<td style="text-align: center; padding-left: 5px; padding-right: 5px;">{{ match.score_1 }}</td>
+					<td style="text-align: center; padding-left: 5px; padding-right: 5px;">{{ match.score_2 }}</td>
+					<td style="padding-left: 5px; padding-right: 5px;">{{ match.winner }}</td>
 				</tr>
 			{% endfor %}
 		</table>
