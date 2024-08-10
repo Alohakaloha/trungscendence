@@ -1730,10 +1730,12 @@ async function join_lobby(requestType){
 					player_ready.id = data["user"];
 					player_ready.textContent = data["user"];
 					player_list.appendChild(player_ready);});
-					let readyBtn = document.getElementById('vs_ready');
-					readyBtn.style.display = "none";
-					let unready = document.getElementById('vs_unready');
-					unready.style.display = "block";
+					if (user.username === data["user"]){
+						let readyBtn = document.getElementById('vs_ready');
+						readyBtn.style.display = "none";
+						let unready = document.getElementById('vs_unready');
+						unready.style.display = "block";
+					}
 				}
 			else if (data["status"] === "unready")
 			{
@@ -1750,7 +1752,7 @@ async function join_lobby(requestType){
 			}
 		
 		}
-		else if('info' in data)
+		else
 			console.log(data);
 	}
 }

@@ -347,7 +347,6 @@ class remote_match(AsyncWebsocketConsumer):
 				logprint(f"User {user_id} not in active_rooms[{lobby_id}][0]")
 		if len(active_rooms[lobby_id][0]) == 0:
 			active_rooms.pop(lobby_id)
-			logprint("Lobby removed")
 		user_mapping.remove(self.scope["user"].user_id)
 		await self.channel_layer.group_discard(
 			self.room_group_name,
@@ -397,19 +396,35 @@ class remote_match(AsyncWebsocketConsumer):
 					user_details = user_mapping.get(self.scope["user"].user_id)
 					if user_details:
 						for detail in user_details:
-							logprint(detail)
 							if 'status' in detail:
-								logprint(user_details)
 								detail["status"] = "ready"
-								logprint(user_mapping.get(self.scope["user"].user_id))
+								lobby_id = user_mapping.find_lobby(self.scope["user"].user_id)
+								active_rooms[lobby_id][2] += 1
 							if 'lobby' in detail:
 								receiver = find_channel(detail["lobby"])
 								for _, channel_name in receiver.items():
-									logprint(channel_name)
 									await self.channel_layer.send(channel_name, {
+									"user": self.scope["user"].username,
 									"type": "chat.message",
 								})
-					await self.send(json.dumps({"status": "ready"}))
+						if(active_rooms[lobby_id][2] == 2):
+							#await self.send(json.dumps({"type":"info", "message": "players are ready"}))
+							for user in active_rooms[lobby_id][0]:
+								details = user_mapping.get(user)
+								if details:  # Check if details is not None
+									[detail.update({'status': 'playing'}) for detail in details]
+									for detail in details:
+										if 'channel' in detail:
+											group_name = f"{detail['channel']}"
+											group_name = group_name.replace('.', '').replace('!', '')
+											self.channel_layer.group_add(group_name, self.channel_name)
+											# Need to add players to group
+											logprint(f"Sending to {group_name}")
+											logprint(f"Sending to {self.channel_name}")
+											await self.channel_layer.group_send(group_name, {
+												"type": "chat_match",
+											})	
+					#await self.send(json.dumps({"status": "ready", "user": self.scope["user"].username}))
 			elif data["request"] == "announcement":
 				await self.send(json.dumps({"type":"info", "message": "a player is ready" }))
 				# user_mapping.print_multimap()
@@ -417,11 +432,15 @@ class remote_match(AsyncWebsocketConsumer):
 			logprint(f"Invalid JSON: {text_data} 3")
 
 	async def chat_message(self, event):
-		message = event["message"]
 		user = event["user"]
 		await self.send(text_data=json.dumps({
-		"info": "toast",
+		"type": "toast",
 		"status" : "ready",
-		"message": message,
 		"user" :  user
+		}))
+
+	async def chat_match(self, event):
+		await self.send(text_data=json.dumps({
+		"type": "toast",
+		"status" : "playing",
 		}))
