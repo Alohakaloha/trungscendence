@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login as auth_login, views as auth_views
 import urllib.parse, json, os
+import http.client
 from auth_app.views import register_view
 
 import http.client as http_client
@@ -29,21 +30,20 @@ def oauth_redirect(request):
         "redirect_uri": REDIRECT_URI,
         "code": code
     }
-    databytes = json.dumps(data).encode('utf-8')
-    # return HttpResponse(str(databytes))
+    headers = {
+        'Content-Type': 'application/json'
+    }
     try:
-        req = urllib.request.Request("https://api.intra.42.fr/oauth/token", method="POST")
-        # access_token = r.json()["access_token"]
-        req.add_header('Content-Type', 'application/json')
-        with urllib.request.urlopen(req, databytes) as response:
-            response_data = response.read()
-            response_code = response.getcode()
-        
-        if response_code == 200:
-            response_dict = json.loads(response_data)
-            access_token = response_dict["access_token"]
-            headers = {"Authorization": f"Bearer {access_token}"}
-            user_data_req = urllib.request.Request(USERDATA_ENDPOINT, headers=headers)
+		conn = http.client.HTTPSConnection('api.intra.42.fr')
+		conn.request('POST', '/oauth/token', data, headers)
+		response_raw = conn.getresponse()
+		      
+        if response_raw.status == 200:
+            response = json.loads(response_raw.read().decode('utf-8'))  
+            access_token = response.get("access_token")
+
+            token_headers = {"Authorization": f"Bearer {access_token}"}
+            user_data_req = urllib.request.Request(USERDATA_ENDPOINT, headers=token_headers)
             with urllib.request.urlopen(user_data_req) as response:
                 user_json = response.read()
             user_data = json.loads(user_json)
