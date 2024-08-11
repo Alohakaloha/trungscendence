@@ -1,7 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from auth_app import urls
 
 urlpatterns = [
 	path('game', views.header_view, name='game'),
@@ -16,4 +15,6 @@ urlpatterns = [
 	path('game/versusSetup.html', views.versusSetup, name='versusSetup'),
 	path('pong', views.header_view, name='online'),
 	path('game/pong.html', views.pong_view , name='pongGame'),
+	path('match', views.header_view, name="match"),
+	path('match/lobby', views.lobby, name="lobby"),
 ]

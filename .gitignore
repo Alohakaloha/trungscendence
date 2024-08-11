@@ -5,4 +5,6 @@ postgresql/data
 *.pyc
 django/backend/media
 */migrations
+*.log
+*.dump
 log/

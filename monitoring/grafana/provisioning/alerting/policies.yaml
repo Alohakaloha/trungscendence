@@ -1,0 +1,10 @@
+apiVersion: 1
+policies:
+    - orgId: 1
+      receiver: discord
+      group_by:
+        - grafana_folder
+        - alertname
+      group_wait: 1s
+      group_interval: 1s
+      repeat_interval: 30s
