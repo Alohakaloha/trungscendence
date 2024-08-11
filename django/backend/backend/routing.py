@@ -11,5 +11,6 @@ websocket_urlpatterns = [
 	re_path(r'ws/local/$', game.localPongGameConsumer.as_asgi()),
 	re_path(r'ws/localTournament/$', game.localTournament.as_asgi()),
 	re_path(r'ws/tournament_match/$', game.localTournamentMatch.as_asgi()),
+	re_path(r'ws/remote_lobby/(?P<room_name>\w+)$', game.remote_lobby.as_asgi()),
+	re_path(r'ws/remote_match/(?P<room_name>\w+)$', game.remote_match.as_asgi()),
 ]
-

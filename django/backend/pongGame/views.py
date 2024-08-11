@@ -44,3 +44,6 @@ def history(request):
 		# print(f'{request.user}', file=sys.stderr)
 		matches = RemoteMatch.objects.filter(player_1=request.user.user_id) | RemoteMatch.objects.filter(player_2=request.user.user_id)
 		return render (request, 'history.html', {'matches': matches})
+
+def lobby(request):
+	return render(request, 'game/remoteLobby.html')

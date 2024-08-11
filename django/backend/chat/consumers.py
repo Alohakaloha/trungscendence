@@ -1,8 +1,9 @@
 import sys
 import json
+from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from django.utils import timezone
-from channels.generic.websocket import AsyncWebsocketConsumer
+
 
 DEFAULT_ROOM_NAME = 'chatting'
 user_channel_mapping = {}
@@ -53,7 +54,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message_content = chat_json.get('message')
             receiver_username = chat_json.get('receiver')
 
-            logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
+           # logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
 
             if action_type == 'message':
                 await self.handle_message(sender_username, receiver_username, message_content)
@@ -65,8 +66,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.handle_chatroom(sender_username, receiver_username)
             elif action_type == 'invitation':
                 await self.game_invite(sender_username, receiver_username)
-            else:
-                logprint(f"Unknown action type received: {action_type}")
+           # else:
+            #    logprint(f"Unknown action type received: {action_type}")
 
         except (KeyError, json.JSONDecodeError) as e:
             logprint(f"Invalid JSON: {text_data}, Error: {e}")
@@ -104,7 +105,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         blocked = await sync_to_async(Block.objects.filter(blocker=receiver, blocked=sender).exists)()
 
         if blocked:
-            logprint(f"Message from {sender.username} to {receiver.username} is blocked and will not be delivered.")
+            #logprint(f"Message from {sender.username} to {receiver.username} is blocked and will not be delivered.")
             sender_channel = user_channel_mapping.get(sender.username)
             if sender_channel:
                 await self.channel_layer.send(sender_channel, {
@@ -142,7 +143,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Notify the sender that the message has been sent and whether the receiver is online
         sender_channel = user_channel_mapping.get(sender.username)
         if sender_channel:
-            await self.channel_layer.send(sender_channel, message_event)  # The written message
+            await self.channel_layer.send(sender_channel, message_event)
 
             if not receiver_channel:
                 await self.channel_layer.send(sender_channel, {
@@ -174,7 +175,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'timestamp': self.get_current_timestamp(),
             }))
         else:
-            logprint(f"{sender.username} had already blocked {receiver.username}")
+            #logprint(f"{sender.username} had already blocked {receiver.username}")
 
             await self.send(text_data=json.dumps({
                 'type': 'message',
@@ -192,7 +193,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         blocked = await sync_to_async(Block.objects.filter(blocker=receiver, blocked=sender).exists)()
 
         if blocked:
-            logprint(f"Invite from {sender.username} to {receiver.username} is blocked and will not be received.")
+            #logprint(f"Invite from {sender.username} to {receiver.username} is blocked and will not be received.")
             sender_channel = user_channel_mapping.get(sender.username)
             if sender_channel:
                 await self.channel_layer.send(sender_channel, {
@@ -204,7 +205,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
         receiver_channel = user_channel_mapping.get(receiver_username)
-        logprint(receiver_channel)
         if receiver_channel:
             message_event = {
                 'type': 'invitation',
@@ -226,7 +226,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
                 await self.channel_layer.send(sender_channel, invite_event)
         else:
-            logprint(f"Receiver '{receiver_username}' is not connected")
+            #logprint(f"Receiver '{receiver_username}' is not connected")
             sender_channel = user_channel_mapping.get(sender.username)
             if sender_channel:
                 await self.channel_layer.send(sender_channel, {
@@ -236,7 +236,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'timestamp': self.get_current_timestamp(),
                 })
 
-        logprint(f"{sender_username} has invited {receiver_username}")
+        #logprint(f"{sender_username} has invited {receiver_username}")
 
 
     async def invitation(self, event):
@@ -269,7 +269,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if block_exists:
             block = await sync_to_async(Block.objects.get)(blocker=sender, blocked=receiver)
             await sync_to_async(block.delete)()
-            logprint(f"{sender.username} has unblocked {receiver.username}")
+            #logprint(f"{sender.username} has unblocked {receiver.username}")
 
             await self.send(text_data=json.dumps({
                 'type': 'message',
@@ -278,7 +278,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'timestamp': self.get_current_timestamp(),
             }))
         else:
-            logprint(f"{sender.username} has not blocked {receiver.username}")
+            #logprint(f"{sender.username} has not blocked {receiver.username}")
 
             await self.send(text_data=json.dumps({
                 'type': 'message',
