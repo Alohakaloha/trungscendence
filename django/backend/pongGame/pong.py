@@ -242,6 +242,8 @@ class Rules:
 	def final_score(self):
 		game_result = {
 			'type' : 'match_result',
+			'player_1_name' : self.player_1_name,
+			'player_2_name' : self.player_2_name,
 			'player1_rounds' : self.player_1_rounds,
 			'player2_rounds' : self.player_2_rounds,
 			'winner' : self.winner,

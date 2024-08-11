@@ -46,10 +46,10 @@ STATICFILES_DIRS = [
 
 INSTALLED_APPS = [
     'daphne',
-    'auth_app',
     'pongGame',
     'chat',
     'oauth2',
+    'auth_app',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

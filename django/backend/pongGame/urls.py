@@ -1,7 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from auth_app import urls
 
 urlpatterns = [
 	path('game', views.header_view, name='game'),

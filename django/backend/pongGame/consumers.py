@@ -1,11 +1,31 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .localTournament import tournamentHandler as tH
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 from . import pong
 import json
 import asyncio
 import sys
 
+def registerScore(data):
+	from .models import LocalMatch
+
+	table = {
+		'type' : data.get('type'),
+		'player_1' : data.get('player_1_name'),
+		'player_2' : data.get('player_2_name'),
+		'rounds_player_1' : data.get('player1_rounds'),
+		'rounds_player_2' : data.get('player2_rounds'),
+		'winner' : data.get('winner'),
+	}
+
+
+	try:
+		local_match = LocalMatch.objects.create(**table)
+		return local_match
+	except Exception as e:
+		logprint(e)
+		raise e
 
 #map users to the lobby 
 class multimap:
@@ -129,8 +149,10 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 				await self.send(json.dumps(self.player.status()))
 			if self.player.score.game_end():
 				self.game_active = False
+				final_score_data = self.player.score.final_score()
+				await self.send(json.dumps(final_score_data))
+				await sync_to_async(registerScore)(final_score_data)
 				self.gaming.cancel()
-				await self.send(json.dumps(self.player.score.final_score()))
 				await self.disconnect()
 			await asyncio.sleep(self.fps)
 
@@ -144,7 +166,6 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 			self.room_group_name,
 			self.channel_name
 		)
-
 
 	async def receive(self, text_data):
 		try:

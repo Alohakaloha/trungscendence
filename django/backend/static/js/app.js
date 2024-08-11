@@ -1182,6 +1182,10 @@ async function startLocal() {
 			"score": document.querySelector('input[name="score"]:checked').value,
 			"mirror": document.getElementById('mirror').checked,
 		};
+		if (localSettings.player1.length > 14 || localSettings.player2.length > 14) {
+			displayToastMessage("Player names too long", "warning");
+			return;
+		}
 		sounds = document.getElementById('localSound').checked;
 		localColors = {
 			"p1Color": document.querySelector('input[name="player1Color"]:checked').value,
