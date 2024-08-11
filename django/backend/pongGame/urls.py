@@ -19,3 +19,4 @@ urlpatterns = [
 	path('history/history.html', views.history),
 	path('match', views.header_view, name="match"),
 	path('match/lobby', views.lobby, name="lobby"),
+]
