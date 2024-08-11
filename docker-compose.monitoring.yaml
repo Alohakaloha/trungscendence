@@ -14,7 +14,7 @@ volumes:
 
 services:
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.45.6
     container_name: prometheus
     restart: unless-stopped
     volumes:
@@ -22,17 +22,22 @@ services:
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
+      # Data retention and storage strategies
+      # https://prometheus.io/docs/prometheus/latest/storage/
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=2d' 
+      - '--storage.tsdb.retention.size=80MB'
+      # Archiving: https://github.com/prometheus-operator/kube-prometheus/issues/1435#issuecomment-943272922
     ports:
       - "9090:9090"
     networks:
       - t_network
 
   grafana:
-    image: grafana/grafana-enterprise
+    image: grafana/grafana-oss:11.1.0-ubuntu
     container_name: grafana
     restart: unless-stopped
     environment:
@@ -44,7 +49,8 @@ services:
       - '3000:3000'
     volumes:
       # - ./monitoring/grafana/custom.ini:/etc/grafana/custom.ini
-      # - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+      - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/
       - 'grafana_storage:/var/lib/grafana'
     networks:
       - t_network
@@ -53,8 +59,8 @@ services:
     container_name: blackbox
     image: prom/blackbox-exporter:latest
     # privileged: true
-    # volumes:
-    #   - ./monitoring/blackbox/config.yml:/etc/blackbox_exporter/config.yml
+    volumes:
+      - ./monitoring/blackbox/config.yml:/etc/blackbox_exporter/config.yml
     ports:
       - '9115:9115'
     networks:
@@ -67,7 +73,7 @@ services:
       - '--path.rootfs=/host'
     # network_mode: host # default port 9100
     ports:
-      - '9100:9100'
+      - '9123:9100'
     pid: host
     restart: unless-stopped
     volumes:
@@ -175,11 +181,12 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
-    mem_limit: ${ES_MEM_LIMIT}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    # mem_limit: ${ES_MEM_LIMIT}
+    # ulimits:
+    #   memlock:
+    #     soft: -1
+    #     hard: -1
     healthcheck:
       test:
         [
@@ -214,7 +221,7 @@ services:
       - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${ENCRYPTION_KEY}
       - XPACK_REPORTING_ENCRYPTIONKEY=${ENCRYPTION_KEY}
-    mem_limit: ${KB_MEM_LIMIT}
+    # mem_limit: ${KB_MEM_LIMIT}
     healthcheck:
       test:
         [
@@ -241,7 +248,7 @@ services:
     volumes:
       - logstashdata01:/usr/share/logstash/data
       - certs:/usr/share/logstash/certs
-      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
       - "./log/nginx:/nginx_logs"
       - "./log/django:/django_logs"
     environment:
@@ -253,6 +260,6 @@ services:
     command: logstash -f /usr/share/logstash/pipeline/logstash.conf
     ports:
       - "5044:5044/udp"
-    mem_limit: ${LS_MEM_LIMIT}
+    # mem_limit: ${LS_MEM_LIMIT}
     networks:
       - t_network
