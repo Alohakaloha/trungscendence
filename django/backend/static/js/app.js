@@ -107,7 +107,7 @@ async function handleRouting() {
 				chatSocket = new WebSocket('wss://' + window.location.host + '/ws/chatting/');
 			}	
 			chatSocket.onopen = function(){
-				console.log("Socket is open");
+				logMessage('info', "Socket is open");
 			}
 		}
 		else{
@@ -374,7 +374,7 @@ async function getUidb_token(){
 //    \___|_| |_|\__,_|\__|
 // chat
 
-let debugMode = true; // Set to false to disable debug logs
+let debugMode = false; // Set to false to disable debug logs
 let openWindow = false;
 
 	function logMessage(type, message) {
@@ -693,9 +693,8 @@ async function showSideChat() {
         renderAllChat();
         renderNotifications();
         renderFriendList(user, list);
-		console.log(list);
-		console.log("____________________");
-		console.log(allUsers);
+		// console.log(list);
+		// console.log(allUsers);
 
 		renderAllUsersList(user, allUsers);
 
@@ -784,7 +783,6 @@ function renderFriendList(user, list) {
         friendContent.appendChild(friendName);
 
         friendContent.onclick = function(event) {
-            // Check if the click was inside the clickable-area
             if (friendContent.contains(event.target)) {
                 chatObject(user.username, friend.username);
                 displaySystemMessage(`Conversation with "${friend.username}"`);
@@ -858,8 +856,8 @@ function renderDropdownMenu(friendDiv, username, friendUsername) {
     menu.style.borderRadius = '50%';
     menu.className = 'btn btn-dark dropdown-toggle';
     menu.setAttribute('type', 'button');
-    menu.setAttribute('id', 'dropdownMenuButton' + friendUsername); // Ensure unique ID for each friend
-    menu.setAttribute('data-bs-toggle', 'dropdown'); // Note the 'bs' for Bootstrap 5
+    menu.setAttribute('id', 'dropdownMenuButton' + friendUsername);
+    menu.setAttribute('data-bs-toggle', 'dropdown');
     menu.setAttribute('aria-expanded', 'false');
 
     // Create the dropdown menu
@@ -890,7 +888,6 @@ function renderDropdownMenu(friendDiv, username, friendUsername) {
     dropdownMenu.appendChild(blockItem);
     dropdownMenu.appendChild(unblockItem);
 
-    // Append the menu and dropdownMenu to friendDiv
     friendDiv.appendChild(menu);
     friendDiv.appendChild(dropdownMenu);
 }
@@ -1127,8 +1124,6 @@ function createDropdownItem(text, onClickHandler) {
 			displaySystemMessage("WebSocket not open. Cannot send message.");
 			return;
 		}
-	
-		// Clear chat message input after sending
 		chatMessage.value = "";
 	}
 
