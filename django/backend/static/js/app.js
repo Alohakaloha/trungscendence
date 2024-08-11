@@ -1699,8 +1699,11 @@ async function join_lobby(requestType){
 
 	}
 
-	if(!lobbySocket)
+	if(!lobbySocket || lobbySocket.readyState === WebSocket.CLOSED)
+	{
+		console.log("no lobby socket");
 		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_lobby/' + lobbyID);
+	}	
 
 	let settings = null;
 
