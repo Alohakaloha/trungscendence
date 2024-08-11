@@ -1182,6 +1182,10 @@ async function startLocal() {
 			"score": document.querySelector('input[name="score"]:checked').value,
 			"mirror": document.getElementById('mirror').checked,
 		};
+		if (localSettings.player1.length > 14 || localSettings.player2.length > 14) {
+			displayToastMessage("Player names too long", "warning");
+			return;
+		}
 		sounds = document.getElementById('localSound').checked;
 		localColors = {
 			"p1Color": document.querySelector('input[name="player1Color"]:checked').value,
@@ -1245,6 +1249,7 @@ async function startLocalTournament(){
 		"players": players,
 	}
 	bind_local_Tournament(localSettings);
+	displayToastMessage("Tournament created", "success");
 	changeURL('/game/localTournament', 'Tournament Page', {main : true});
 }
 
@@ -1551,8 +1556,10 @@ function updateTournament(data){
 		let ids = document.getElementById('r' + (i + 1));
 		ids.innerHTML = remaining[i];
 	}
+	displayToastMessage(`Next match: ${data['nextUp'][0]} VS ${data['nextUp'][1]}`);
 	document.getElementById('nextFirst').innerHTML = data['nextUp'][0];
 	document.getElementById('nextSecond').innerHTML = data['nextUp'][1];
+
 }
 
 function localTournament(){
