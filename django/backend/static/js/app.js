@@ -1249,6 +1249,7 @@ async function startLocalTournament(){
 		"players": players,
 	}
 	bind_local_Tournament(localSettings);
+	displayToastMessage("Tournament created", "success");
 	changeURL('/game/localTournament', 'Tournament Page', {main : true});
 }
 
@@ -1555,8 +1556,10 @@ function updateTournament(data){
 		let ids = document.getElementById('r' + (i + 1));
 		ids.innerHTML = remaining[i];
 	}
+	displayToastMessage(`Next match: ${data['nextUp'][0]} VS ${data['nextUp'][1]}`);
 	document.getElementById('nextFirst').innerHTML = data['nextUp'][0];
 	document.getElementById('nextSecond').innerHTML = data['nextUp'][1];
+
 }
 
 function localTournament(){
