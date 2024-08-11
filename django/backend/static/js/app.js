@@ -1074,13 +1074,14 @@ function createDropdownItem(text, onClickHandler) {
 			let user = await fetchUserData();
 	
 			// Check if the message is for the current user
-			if (messageData.receiver === user.username) {
-				console.log(`Invitation for ${user.username} from ${messageData.sender}`);
-				if (messageData.type === "invitation") {
+			if (messageData.type === "invitation") {
+				logMessage('info', `Invitation for ${user.username} from ${messageData.sender}`);
+				if (messageData.receiver === user.username) {
 					displayToastMessage(`Game invite from ${messageData.sender}`, "info");
 				}
-			} else {
-				console.log(`Invitation from ${messageData.sender} is not for ${user.username}`);
+				else {
+					logMessage('info', `Invitation from ${messageData.sender} is not for ${user.username}`);
+				}
 			}
 		} catch (error) {
 			console.error('Error in inviteToast:', error);
