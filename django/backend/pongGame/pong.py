@@ -20,12 +20,9 @@ class Player:
 		self.y2 = 45
 		self.width2 = 2
 		self.height2 = 17
-
 #ball
 		self.ball = Ball()
-
 		self.score = Rules()
-
 
 	def status(self):
 		status_data = {
@@ -35,7 +32,6 @@ class Player:
 			"p2Rounds" : self.score.player_2_rounds,
 		}
 		return status_data
-
 
 	def gamePos(self):
 		game_data = {
@@ -248,6 +244,6 @@ class Rules:
 		}
 		return game_result
 
-def randomCode():
-	return ''.join(random.choice(string.ascii_letters) for _ in range(4))
+def randomCode(num = 5):
+	return ''.join(random.choice(string.ascii_letters) for _ in range(num))
 
