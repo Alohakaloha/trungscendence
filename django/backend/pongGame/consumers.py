@@ -474,12 +474,16 @@ class remote_lobby(AsyncWebsocketConsumer):
 			elif data["request"] == "created":
 				active_rooms[self.lobby].append(data['settings'])
 				logprint(active_rooms[self.lobby])
+			
+			elif data["request"] == "invite":
+				await self.send(json.dumps({self.lobby}))
 			if self.lobby in active_rooms:	
 				if active_rooms[self.lobby][1] == 2:
 					# Start the game (sending message)
 					await self.channel_layer.group_send(self.room_group_name, {
 						"type": "chat_match",
 					})
+			
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data} 3")
 
