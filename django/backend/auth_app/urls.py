@@ -36,8 +36,6 @@ urlpatterns = [
 	path('profile', views.header_view),
 	path('profile/profile.html', views.profile),
 	path("profile/<int:user_id>", views.profile, name="getFriendStats_view"),
-	path('history', views.header_view),
-	path('history/history.html', views.history),
 	path('settings', views.header_view,),
 	path('settings/settings.html', views.settings_view),
 	path('about', views.header_view),

@@ -15,6 +15,8 @@ urlpatterns = [
 	path('game/versusSetup.html', views.versusSetup, name='versusSetup'),
 	path('pong', views.header_view, name='online'),
 	path('game/pong.html', views.pong_view , name='pongGame'),
+	path('history', views.header_view),
+	path('history/history.html', views.history),
 	path('match', views.header_view, name="match"),
 	path('match/lobby', views.lobby, name="lobby"),
 ]

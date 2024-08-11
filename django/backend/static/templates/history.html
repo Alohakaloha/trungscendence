@@ -2,20 +2,26 @@
 	{% load static %}
 	<h1>Game History</h1>
 	<div class="scoreboard">
-		<table id="scoreboard-table" style="border: 1px solid black; border-collapse: collapse">
+		<table id="scoreboard-table" style="border: 1px solid white; border-collapse: collapse">
 			<tr>
-				<th id="user-header">Username</th>
-				<th id="wins-header">Wins</th>
-				<th>Losses</th>
+				<th class="history_table_header">Match ID</th>
+				<th class="history_table_header">Date</th>
+				<th class="history_table_header">Player 1</th>
+				<th class="history_table_header">Player 2</th>
+				<th class="history_table_header">Score P1</th>
+				<th class="history_table_header">Score P2</th>
+				<th class="history_table_header">Winner</th>
 			</tr>
-			{% for user in users %}
-				{% if not user.is_staff %}
+			{% for match in matches %}
 				<tr>
-					<td>{{ user.username }}</td>
-					<td>{{ user.wins }}</td>
-					<td>{{ user.losses }}</td>
+					<td class="history_table_data">{{ match.match_id }}</td>
+					<td class="history_table_data">{{ match.match_date }}</td>
+					<td class="history_table_data">{{ match.player_1.username }}</td>
+					<td class="history_table_data">{{ match.player_2.username }}</td>
+					<td class="history_table_data-center">{{ match.score_1 }}</td>
+					<td class="history_table_data-center">{{ match.score_2 }}</td>
+					<td class="history_table_data">{{ match.winner.username }}</td>
 				</tr>
-				{% endif %}
 			{% endfor %}
 		</table>
 	</div>

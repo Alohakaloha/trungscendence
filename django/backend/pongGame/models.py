@@ -16,6 +16,7 @@ class Tournaments(models.Model):
 
 class RemoteMatch(models.Model):
 	match_id = models.AutoField(primary_key=True)
+	match_date = models.DateTimeField(auto_now_add=True)
 	player_1 = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name='player_1')
 	player_2 = models.ForeignKey(AppUser, on_delete=models.CASCADE, related_name='player_2')
 	score_1 = models.IntegerField(default=0)
