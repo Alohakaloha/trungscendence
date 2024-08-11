@@ -543,7 +543,9 @@ if (toastTrigger) {
 		div = document.createElement('div');
 		let stats = data.stats;
 		let games_history = stats.games_history;
+		console.log(data);
 		div.innerHTML = `
+			<h1> ${stats.username}</h1>
 			<img src="${stats.profile_picture}" class="rounded-circle" width="100" height="100">
 			<ul>
 				<li> games played: ${stats.games_played}</li>

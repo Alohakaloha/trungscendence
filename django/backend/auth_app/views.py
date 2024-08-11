@@ -21,9 +21,11 @@ def eprint(*args, **kwargs):
 def header_view(request, **kwargs):
 	context = {}
 	if(kwargs):
-		global uidb, tokn
-		uidb = kwargs['uidb64']
-		tokn = kwargs['token']
+		if 'uidb64' in kwargs and 'token' in kwargs:
+			global uidb, tokn
+			print(kwargs, file=sys.stderr)
+			uidb = kwargs['uidb64']
+			tokn = kwargs['token']
 	return render(request,'header.html')
 	
 def game(request):
@@ -51,6 +53,7 @@ def profile(request, **kwargs):
 						'tie': tie
 					})
 				friendUserStats = {
+					'username': friendUser.username,
 					'profile_picture': friendUser.profile_picture.url,
 					'games_played': friendUser.games,
 					'wins': friendUser.wins,
