@@ -55,9 +55,14 @@ def oauth_redirect(request):
                 auth_login(request, user, backend='oauth2.auth_backend.PasswordlessAuthBackend')
                 return redirect("/profile")
             else:
+                if AppUser.objects.get(username=user_data["login"]) is not None:
+                    username = user_data["login"] + secrets.token_urlsafe(2)
+                else:
+                    username = user_data["login"]
+                print(f'{username=}')
                 user = AppUser.objects.create_user(
                     email=user_data["email"],
-                    username = user_data["login"],
+                    username = username,
                     password=secrets.token_urlsafe(OAUTH_PASSWORD_LENGTH),
                     oauth=True,
                     pic_url=user_data['image']['versions']['small']
