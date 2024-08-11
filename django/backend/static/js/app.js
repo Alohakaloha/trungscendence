@@ -1408,8 +1408,6 @@ function connectGame(settings, colors){
 	};
 }
 
-
-
 function player1up() {
 	gameSocket.send(JSON.stringify({ "movement": "up", "player": "player1" }));
 }
@@ -1425,7 +1423,6 @@ function player2up() {
 function player2down() {
 	gameSocket.send(JSON.stringify({ "movement": "down", "player": "player2" }));
 }
-
 
 function playerRounds(p1, p2){
 	let p1rounds = document.getElementById('player1-rounds');
@@ -1605,16 +1602,16 @@ function tournamentMatch(){
 
 	let checkInput = setInterval(() => {
 		if (keysPressed['w']) {
-			player1up();
+			this.player1up();
 		}
 		if (keysPressed['s']) {
-			player1down();
+			this.player1down();
 		}
 		if (keysPressed['ArrowUp']) {
-			player2up();
+			this.player2up();
 		}
 		if (keysPressed['ArrowDown']) {
-			player2down();
+			this.player2down();
 		}
 		if(keysPressed['p']){
 			gameSocket.send(JSON.stringify({"pause": true}));
@@ -1711,13 +1708,21 @@ async function join_lobby(requestType){
 	}
 
 	if(!lobbySocket)
-		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_match/' + user.username );
+		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_lobby/' + lobbyID);
 
+	let settings = null;
+
+	if (requestType === "created"){
+		settings = {
+			"rounds": document.querySelector('input[name="roundsToWin"]:checked').value,
+			"score": document.querySelector('input[name="score"]:checked').value,
+		}
+	}
 
 	lobbySocket.onopen = async function(){
 		try {
-			changeURL("/match")
-			lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username, "lobby" : lobbyID}));
+			lobbySocket.send(JSON.stringify({ "request": requestType, "user": user.username, "lobby" : lobbyID, "settings": settings}));
+			//changeURL("/match")
 		}catch (error) {
 			console.error(error);
 		}
@@ -1728,6 +1733,7 @@ async function join_lobby(requestType){
 
 	lobbySocket.onmessage = function(event){
 		const data = JSON.parse(event.data);
+		console.log(data);
 		if('url' in data)
 			showPage(data["url"]);
 		else if ('status' in data){
@@ -1758,10 +1764,17 @@ async function join_lobby(requestType){
 				let unready = document.getElementById('vs_unready');
 				unready.style.display = "none";
 			}
-		
 		}
-		else
-			console.log(data);
+		if ('type' in data){
+			if (data['type'] === 'toast'){
+				//TODO display toast message
+				console.log('wanna toast');
+				if (data['status'] === 'playing'){
+					// start remote match
+					startRemote(lobbyID);
+				}
+			}
+		}
 	}
 }
 
@@ -1783,4 +1796,67 @@ async function matchUnready(){
 	else{
 		changeURL("/game");
 	}
+}
+
+function usermatchup() {
+	gameSocket.send(JSON.stringify({ "movement": "up" }));
+}
+
+function usermatchdown() {
+	gameSocket.send(JSON.stringify({ "movement": "down" }));
+}
+
+async function startRemote(lobby_id){
+	// Customisations
+	sounds = document.getElementById('localSound').checked;
+	let p1Color = document.querySelector('input[name="player1Color"]:checked').value;
+
+	fetch('/game/pong.html')
+		.then(response => response.text())
+		.then(data => {
+			document.getElementById('content').innerHTML = data;
+			
+		})
+		.catch(error => console.log(error));
+	console.log('vars: ' + sounds + ', ' + p1Color);
+	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/remote_match/' + lobby_id);
+
+	gameSocket.onopen = function(){
+		
+	}
+
+	gameSocket.onmessage = function(event){
+	
+	}
+
+	gameSocket.onclose = function(){
+		
+	}
+
+	gameSocket.onerror = function(error) {
+		console.log(`Error: ${error.message}`);
+	};
+
+	let checkInput = setInterval(() => {
+		if (keysPressed['w']) {
+			usermatchup();
+		}
+		if (keysPressed['s']) {
+			usermatchdown();
+		}
+		if(keysPressed['p']){
+			gameSocket.send(JSON.stringify({"pause": true}));
+			let pause = document.getElementById('pause-screen');
+			pause.innerHTML = 'Game Paused';
+			pause.style.display = 'block';
+			
+		}
+		if(keysPressed['k']){
+			let pause = document.getElementById('pause-screen');
+			pause.innerHTML = '';
+			pause.style.display = 'none';
+			gameSocket.send(JSON.stringify({"resume": true}));
+		}
+	}, 30);
+
 }
