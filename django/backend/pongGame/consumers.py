@@ -304,7 +304,6 @@ class localTournament(AsyncWebsocketConsumer):
 
 	async def receive(self, text_data):
 		data = json.loads(text_data)
-		logprint(data)
 		if "type" in data:
 			if data["type"] == "settings":
 				self.tournament.setRules(data)
@@ -501,7 +500,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 				logprint(active_rooms[self.lobby])
 			
 			elif data["request"] == "invite":
-				await self.send(json.dumps({self.lobby}))
+				await self.send(json.dumps({"lobby_id":self.lobby}))
 			if self.lobby in active_rooms:	
 				if active_rooms[self.lobby][1] == 2:
 					# Start the game (sending message)

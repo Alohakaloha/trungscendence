@@ -54,6 +54,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message_content = chat_json.get('message')
             receiver_username = chat_json.get('receiver')
 
+
+
            # logprint(f"Received {action_type} from sender {sender_username}: {message_content}")
 
             if action_type == 'message':
@@ -65,7 +67,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif action_type == 'chatroom':
                 await self.handle_chatroom(sender_username, receiver_username)
             elif action_type == 'invitation':
-                await self.game_invite(sender_username, receiver_username)
+                lobbyID = chat_json.get('lobbyID')
+                await self.game_invite(sender_username, receiver_username, lobbyID)
            # else:
             #    logprint(f"Unknown action type received: {action_type}")
 
@@ -184,7 +187,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'timestamp': self.get_current_timestamp(),
             }))
 
-    async def game_invite(self, sender_username, receiver_username):
+    async def game_invite(self, sender_username, receiver_username, lobbyID):
         from .models import Block
         from auth_app.models import AppUser
 
@@ -192,7 +195,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         receiver = await sync_to_async(AppUser.objects.get)(username=receiver_username)
         blocked = await sync_to_async(Block.objects.filter(blocker=receiver, blocked=sender).exists)()
 
-        if blocked:
+        if blocked: 
             #logprint(f"Invite from {sender.username} to {receiver.username} is blocked and will not be received.")
             sender_channel = user_channel_mapping.get(sender.username)
             if sender_channel:
@@ -203,14 +206,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'timestamp': self.get_current_timestamp(),
                 })
             return
-
+        logprint(f"Invite with lobbyID {lobbyID}")
         receiver_channel = user_channel_mapping.get(receiver_username)
         if receiver_channel:
             message_event = {
                 'type': 'invitation',
-                'message': "You have been invited to a game",
+                'message': "You have been invited to a game ",
                 'sender': sender_username,
                 'receiver': receiver_username,
+                'lobbyID': lobbyID,
                 'timestamp': self.get_current_timestamp(),
             }
 
@@ -252,6 +256,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'sender': sender,
             'receiver': receiver,
             'timestamp': timestamp,
+            'lobbyID': event.get('lobbyID'),
         }))
 
 
