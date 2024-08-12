@@ -4,6 +4,7 @@ Django==4.2.7
 Pillow==10.1.0
 psycopg==3.1.13
 psycopg-binary==3.1.13
+psycopg[c]
 sqlparse==0.4.4
 typing_extensions==4.8.0
 channels==4.0.0

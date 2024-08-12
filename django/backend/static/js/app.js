@@ -1063,8 +1063,6 @@ function createDropdownItem(text, onClickHandler) {
 					const lobby = document.getElementById('lobbyID');
 					lobby.value = id;
 				}
-				// let lobbyid = lobbySocket.send("lobby_id");
-				// console.log(lobbyid);
 			}
 			// Append the message container to the chat text area
 			chatTextArea.appendChild(messageContainer);
