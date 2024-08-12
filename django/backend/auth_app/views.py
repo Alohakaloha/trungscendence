@@ -131,6 +131,10 @@ def settings_view(request):
 		try:
 			if 'email' in data:
 				new_email = data['email']
+
+				if not validateEmail(new_email):
+					return JsonResponse({'status':'error', 'message':'Invalid email format'})
+				
 				user.email = new_email
 				user.save()
 		except:
@@ -139,6 +143,10 @@ def settings_view(request):
 		try:
 			if 'username' in data:
 				new_username = data['username']
+				
+				if not validateUsername(new_username):
+					return JsonResponse({'status': 'error', 'message': 'Username not valid'}) 
+
 				user.username = new_username
 				user.save()
 		except:
@@ -154,6 +162,9 @@ def settings_view(request):
 
 		if 'password' in data:
 			new_password = data['password']
+			
+			if not validate_password(new_password):
+				return JsonResponse({'status': 'success', 'message': 'Invalid password.'})
 			user.set_password(new_password)
 			user.save()
 
