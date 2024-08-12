@@ -234,7 +234,6 @@ async function handleRouting() {
 					}
 					else{
 						displayToastMessage("Please login first", "info");
-						changeURL('/login', 'Login Page', {main : true});
 					}
 					break;
 				case '/details':
