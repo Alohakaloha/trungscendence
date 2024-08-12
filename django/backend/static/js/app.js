@@ -132,45 +132,59 @@ async function handleRouting() {
 		}
 		else {
 			switch (page) {
-			case '/':
-				jsFile = './welcome.js';
-				showPage("main.html");
-				if (user.authenticated){
-					openingChat();
-				}
-				break;
-			case '/chat':
-				  showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/game':
-				// jsFile = './game/tmpGame.js';
-				if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN)
-				{
-					lobbySocket.send(JSON.stringify({"request":"url"}))
-				}
-				else
-					showPage(`game/setupGameMode.html`);
-				break;
-
-			case '/game/localTournament':
-				if(lobbySocket){
-					lobbySocket.send(JSON.stringify({"type":"check"}))
+				case '/':
+					jsFile = './welcome.js';
+					showPage("main.html");
+					if (user.authenticated){
+						openingChat();
+					}
 					break;
-				}else{
-					changeURL('/game', 'Game Page', {main : true});
-					break;
-				}
 				case '/chat':
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
+
+				case '/game':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						changeURL('/', 'Home', {main : true});
+						break;
+					}
+					if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN)
+					{
+						lobbySocket.send(JSON.stringify({"request":"url"}))
+					}
+					else
+						showPage(`game/setupGameMode.html`);
+					break;
+					
+				case '/game/localTournament':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						break;
+					}
+					
+					if(lobbySocket){
+						lobbySocket.send(JSON.stringify({"type":"check"}))
+						break;
+					}else{
+						changeURL('/game', 'Game Page', {main : true});
+						break;
+					}
 				case '/pong':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						break;
+					}
 					if(gameSocket)
 						showPage(`game/pong.html`);
 					else
 						changeURL('/game', 'Game Page', {main : true});
 					break;
 				case '/match':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						break;
+					}
 					if(lobbySocket)
 						lobbySocket.send(JSON.stringify({"type":"check", "request": "url"}))
 					else
@@ -186,45 +200,59 @@ async function handleRouting() {
 					break;
 
 				case '/history':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						break;
+					}
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
 
 				case '/about':
+
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
 
-			case '/settings':
-				if (user.authenticated && !lobbySocket){
-					jsFile='./settings.js';
+				case '/settings':
+					if (user.authenticated && !lobbySocket){
+						jsFile='./settings.js';
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					} 
+					else if(user.authenticated && lobbySocket){
+						displayToastMessage("Game running, cannot change settings", "info");
+						changeURL('/game', 'Game Page', {main : true});
+					}
+					else{
+						displayToastMessage("Please login first", "info");
+						changeURL('/login', 'Login Page', {main : true});
+						break;
+					}
+					break;
+				case '/friends':
+					if (user.authenticated){
+						jsFile='./friend_request.js';
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					}
+					else{
+						displayToastMessage("Please login first", "info");
+						changeURL('/login', 'Login Page', {main : true});
+					}
+					break;
+				case '/details':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						changeURL('/login', 'Login Page', {main : true});
+						break;
+					}
+					if (unique_id){
+						const div = friend_details(await fetchUserDataById(unique_id));
+						await showPage(`user/${unique_id}`);
+						document.getElementById('friend_details').appendChild(div);
+					}
+					break;
+				case '/register':
+					jsFile = './register.js';
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				} 
-				else{
-					displayToastMessage("Tournament in progress, settings disabled", "warning");
-					changeURL('/login', 'Login Page', {main : true});
 					break;
-				}
-				break;
-			case '/friends':
-				if (user.authenticated){
-					jsFile='./friend_request.js';
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-					break;
-				}
-				else{
-					changeURL('/login', 'Login Page', {main : true});
-					break;
-				}
-			case '/details':
-				if (unique_id){
-					const div = friend_details(await fetchUserDataById(unique_id));
-					await showPage(`user/${unique_id}`);
-					document.getElementById('friend_details').appendChild(div);
-				}
-				break;
-			case '/register':
-				jsFile = './register.js';
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
 
 				case '/login':
 					if (user.authenticated){
@@ -260,7 +288,7 @@ async function handleRouting() {
 					console.log('Page not found');
 					console.log(window.location.pathname);
 					break;
-				}
+			}
 		}
 	} catch (error) {
 		console.error('Error handling routing: ', error);
