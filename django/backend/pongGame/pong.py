@@ -24,6 +24,7 @@ class Player:
 		self.ball = Ball()
 		self.score = Rules()
 
+
 	def status(self):
 		status_data = {
 			"score1": self.score.player_1_score,
@@ -61,6 +62,22 @@ class Player:
 				if self.y2 < 82:
 					self.y2 = self.y2 + 2
 
+	def remote_move(self, data):
+		if data['movement'] == 'up':
+			if data['player'] == self.score.player_1_name:
+				if self.y1 > 2:
+					self.y1 = self.y1 - 2
+			elif data['player'] == self.score.player_2_name:
+				if self.y2 > 2:
+					self.y2 = self.y2 - 2
+		elif data['movement'] == 'down':
+			if data['player'] == self.score.player_1_name:
+				if self.y1 < 82:
+					self.y1 = self.y1 + 2
+			elif data['player'] == self.score.player_2_name:
+				if self.y2 < 82:
+					self.y2 = self.y2 + 2
+
 	def Wall_Sound(self):
 		game_sound = {
 			'sounds': 'wall',
@@ -85,8 +102,8 @@ class Ball:
 		self.x = 50
 		self.y = 50
 		self.radius = 1.5
-		# change back to 0.4 
-		self.speed = 2
+		# change back to 0.4
+		self.speed = 0.4
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
 
@@ -147,7 +164,7 @@ class Ball:
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
 		# change back to 0.4 
-		self.speed = 2
+		self.speed = 0.4
 	
 
 class Rules:
@@ -165,6 +182,7 @@ class Rules:
 		self.player_2_score = 0
 		self.winner = None
 		self.mirror = False
+		self.set = False
 
 	def scoring(self, gamePos):
 		if gamePos['ballx'] < 1.5:
@@ -195,10 +213,11 @@ class Rules:
 		self.score_to_win = int(self.score_to_win)
 		
 		if self.player_1_rounds == self.rounds_to_win:
+			logprint("Player 1 wins")
 			self.winner = self.player_1_name
 			return True
 		elif self.player_2_rounds == self.rounds_to_win:
-
+			logprint("Player 2 wins")
 			self.winner = self.player_2_name
 			return True
 		return False
@@ -206,6 +225,7 @@ class Rules:
 
 #updating settings
 	def settings(self, data):
+		logprint("setting settings")
 		self.score_to_win = int(data['score'])
 		self.rounds_to_win =int (data['rounds'])
 		if "mirror" in data:
@@ -216,7 +236,14 @@ class Rules:
 		else:
 			self.player_1_name = data['player1']
 			self.player_2_name = data['player2']
+		self.rules = True
+		
 
+	def print_settings(self):
+		logprint("Score to win: ", self.score_to_win)
+		logprint("Rounds to win: ", self.rounds_to_win)
+		logprint("Player 1: ", self.player_1_name)
+		logprint("Player 2: ", self.player_2_name)
 
 
 
@@ -243,6 +270,7 @@ class Rules:
 			'player1_rounds' : self.player_1_rounds,
 			'player2_rounds' : self.player_2_rounds,
 			'winner' : self.winner,
+			"request": "save",
 		}
 		return game_result
 

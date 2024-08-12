@@ -6,6 +6,8 @@ from . import pong
 import json
 import asyncio
 import sys
+from channels.layers import get_channel_layer
+import copy
 
 def registerScore(data):
 	from .models import LocalMatch
@@ -26,7 +28,6 @@ def registerScore(data):
 	except Exception as e:
 		logprint(e)
 		raise e
-
 
 #map users to the lobby 
 # class multimap:
@@ -202,92 +203,6 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data}")
 
-class remote_match(AsyncWebsocketConsumer):
-	async def connect(self):
-		# player_class
-		self.player = pong.Player()
-		self.lobby = self.scope['url_route']['kwargs']['room_name']
-
-		await self.channel_layer.group_add(
-			self.lobby,
-			self.channel_name
-		)
-
-		# game settings
-		self.fps = 1/60
-		self.game_active = True
-		self.next_round = False
-		asyncio.sleep(1)
-		self.gaming = asyncio.create_task(self.game_loop())
-
-	async def game_loop(self):
-		while self.game_active:
-			if active_rooms[self.lobby][1] != 2:
-				# Close the game
-				# Determine winner
-				# If scores equal, disconnecter loses
-				pass
-			if self.player.ball.collision(self.player):
-				if self.player.ball.speed < 1.2:
-					# change back to 0.03 after testing
-					self.player.ball.speed += 1
-				self.player.ball.direction_x = -self.player.ball.direction_x
-				await self.send(json.dumps(self.player.Player_Sound()))
-			if self.player.ball.wall_collision():
-				await self.send(json.dumps(self.player.Wall_Sound()))
-			if not self.player.ball.boundaries():
-				self.player.score.scoring(self.player.gamePos())
-				self.player.score.next_round()
-				self.player.ball.reset_ball()
-				await self.send(json.dumps(self.player.status()))
-			if self.player.score.game_end():
-				self.game_active = False
-				self.gaming.cancel()
-				await self.send(json.dumps(self.player.score.final_score()))
-				await self.disconnect()
-			await asyncio.sleep(self.fps)
-
-	async def disconnect(self, close_code):
-		self.game_active = False
-		self.gaming.cancel()
-
-		active_rooms[self.lobby][1] -= 1
-
-		await self.channel_layer.group_discard(
-			self.lobby,
-			self.channel_name
-		)
-
-	async def receive(self, text_data):
-		try:
-			commands = json.loads(text_data)
-			if not isinstance(commands, list):
-				commands = [commands]
-			for action in commands:
-				if not isinstance(action, dict):
-					# Convert action to a dictionary if it's not already
-					action = json.loads(action)  
-				if "pause" in action:
-					self.game_active = False
-					self.gaming.cancel()
-					return
-				elif "resume" in action:
-					if not self.game_active:
-						self.game_active = True
-						self.gaming = asyncio.create_task(self.game_loop())
-				elif "settings" in action:
-					self.player.score.settings(action)
-					await self.send(json.dumps(self.player.score.current_rules()))
-				elif "movement" in action:
-					self.player.move(action)
-					await self.send(json.dumps(self.player.gamePos()))
-				elif "update" in action:
-					await self.send(json.dumps(self.player.gamePos()))
-				elif "status" in action:
-					await self.send(json.dumps(self.player.score.current_rules()))
-		except json.JSONDecodeError:
-			logprint(f"Invalid JSON: {text_data}")
-
 class localTournament(AsyncWebsocketConsumer):
 	async def connect(self):
 		self.room_name =  pong.randomCode()
@@ -371,7 +286,7 @@ class localTournamentMatch(AsyncWebsocketConsumer):
 			if self.player.ball.collision(self.player):
 				if self.player.ball.speed < 1.2:
 					# change back to 0.03 after testing
-					self.player.ball.speed += 1
+					self.player.ball.speed += 0.03
 				self.player.ball.direction_x = -self.player.ball.direction_x
 				await self.send(json.dumps(self.player.Player_Sound()))
 			if self.player.ball.wall_collision():
@@ -437,6 +352,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 			self.channel_name
 		)
 
+
 	async def disconnect(self, close_code):
 		await self.channel_layer.group_discard(
 			self.room_group_name,
@@ -444,8 +360,9 @@ class remote_lobby(AsyncWebsocketConsumer):
 		)
 
 		if self.lobby in active_rooms:
-			active_rooms[self.lobby][0].remove(self.scope["user"].username)
-			if len(active_rooms[self.lobby][0]) == 0:
+			if self.scope["user"].username in active_rooms[self.lobby]['users']:
+				active_rooms[self.lobby]['users'].remove(self.scope["user"].username)
+			if len(active_rooms[self.lobby]['users']) == 0:
 				del active_rooms[self.lobby]
 		await self.close(close_code)
 
@@ -454,7 +371,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 			data = json.loads(text_data)
 			if data["request"] == "created":
 				if self.lobby not in active_rooms:
-					active_rooms[self.lobby] = [[data["user"]], 0]
+					active_rooms[self.lobby] = {'users': [data["user"]], 'num_active': 0}
 					await self.send(json.dumps({"url": "/match/lobby"}))
 				else:
 					await self.send(json.dumps({"type": "toast", "message": "Room already exists"}))
@@ -465,9 +382,8 @@ class remote_lobby(AsyncWebsocketConsumer):
 					await self.disconnect(close_code=1000)
 			if data["request"] == "join":
 				if self.lobby in active_rooms:
-					logprint(active_rooms[self.lobby][0])
-					if len(active_rooms[self.lobby][0]) < 2:
-						active_rooms[self.lobby][0].append(data["user"])
+					if len(active_rooms[self.lobby]['users']) < 2:
+						active_rooms[self.lobby]['users'].append(data["user"])
 						await self.send(json.dumps({"url": "/match/lobby"}))
 						await self.channel_layer.group_send(self.room_group_name, {
 							"type": "chat_message",
@@ -497,19 +413,31 @@ class remote_lobby(AsyncWebsocketConsumer):
 						"user": self.scope["user"].username,
 						"message": f"{self.scope['user'].username} is ready"
 					})
-					active_rooms[self.lobby][1] += 1
+					active_rooms[self.lobby]['num_active'] += 1
 					#await self.send(json.dumps({"status": "ready", "user": self.scope["user"].username}))
 			elif data["request"] == "created":
-				active_rooms[self.lobby].append(data['settings'])
-				logprint(active_rooms[self.lobby])
+				active_rooms[self.lobby]['rules'] = data['settings']
 			
 			elif data["request"] == "invite":
-				await self.send(json.dumps({"lobby_id":self.lobby}))
+				await self.send(json.dumps({self.lobby}))
+
+			elif data["request"] == "save":
+				#todo save game here
+				logprint("Game saved")		
+				if self.lobby in active_rooms:
+					if self.scope["user"].username in active_rooms[self.lobby]['users']:
+						active_rooms[self.lobby]['users'].remove(self.scope["user"].username)
+						logprint(active_rooms[self.lobby])
+					if len(active_rooms[self.lobby]['users']) == 0:
+						del active_rooms[self.lobby]
+					await self.disconnect(close_code=1000)
+
 			if self.lobby in active_rooms:	
-				if active_rooms[self.lobby][1] == 2:
+				if active_rooms[self.lobby]['num_active'] == 2:
 					# Start the game (sending message)
-					await self.channel_layer.group_send(self.room_group_name, {
-						"type": "chat_match",
+					channel_layer = get_channel_layer()
+					await channel_layer.group_send(self.room_group_name, {
+						"type": "chat.match",
 					})
 			
 		except json.JSONDecodeError:
@@ -531,3 +459,169 @@ class remote_lobby(AsyncWebsocketConsumer):
 		"status" : "playing",
 		"message" : "FIGHT!!!",
 		}))
+
+	async def match_start(self, event):
+		pass
+
+	async def game_xy(self, event):
+		pass
+
+	async def end_game(self, event):
+		pass
+
+
+
+class remote_match(AsyncWebsocketConsumer):
+	async def connect(self):
+		# player_class
+		logprint("connected")
+		self.lobby = self.scope['url_route']['kwargs']['room_name']
+		self.room_group_name = self.lobby
+
+		await self.channel_layer.group_add(
+			self.room_group_name,
+			self.channel_name
+		)
+
+		self.fps = 0.02
+		await self.accept()
+
+		# TODO: figure out dictionary key for rounds and score
+		data = {
+		"player1": active_rooms[self.lobby]['users'][0],
+		"player2": active_rooms[self.lobby]['users'][1],
+		"rounds": active_rooms[self.lobby]['rules']['rounds'],
+		"score": active_rooms[self.lobby]['rules']['score'],
+		}
+
+		if 'game' not in active_rooms[self.lobby]:
+			active_rooms[self.lobby]['game'] = pong.Player()
+
+			if active_rooms[self.lobby]['game'].score.set == False:
+				active_rooms[self.lobby]['game'].score.settings(data)
+
+		# 	if len(active_rooms[self.lobby]['users']) < 2:
+		# 		self.game_resource[self.lobby].append(int(1))
+		# else:
+		# 	if len(active_rooms[self.lobby]['users']) < 2:
+		# 		self.game_resource[self.lobby].append(int(1))
+		# 		self.game_resource[self.lobby][1] += 1
+		# 	else:
+		# 		self.game_resource[self.lobby][1] += 1
+
+		if active_rooms[self.lobby]['num_active'] == 2:
+			active_rooms[self.lobby]['loop'] = asyncio.create_task(self.game_loop())
+			active_rooms[self.lobby]['ongoing'] = True
+
+	# 0 - 'game'
+	# 1 - 'num_active'
+	# 2 - 'loop'
+	# 3 - 'ongoing'
+	# 4 - 'users'
+	# 5 - 'rules'
+
+	async def game_loop(self):
+		while active_rooms[self.lobby]['ongoing']:
+			if active_rooms[self.lobby]['num_active'] != 2:
+				# TODO: quit game
+				pass
+			if active_rooms[self.lobby]['game'].ball.collision(active_rooms[self.lobby]['game']):
+				if active_rooms[self.lobby]['game'].ball.speed < 1.2:
+					# change back to 0.03 after testing
+					active_rooms[self.lobby]['game'].ball.speed += 0.03
+				active_rooms[self.lobby]['game'].ball.direction_x = -active_rooms[self.lobby]['game'].ball.direction_x
+				await self.send(json.dumps(active_rooms[self.lobby]['game'].Player_Sound()))
+			if active_rooms[self.lobby]['game'].ball.wall_collision():
+				await self.send(json.dumps(active_rooms[self.lobby]['game'].Wall_Sound()))
+			if not active_rooms[self.lobby]['game'].ball.boundaries():
+				active_rooms[self.lobby]['game'].score.scoring(active_rooms[self.lobby]['game'].gamePos())
+				active_rooms[self.lobby]['game'].score.next_round()
+				active_rooms[self.lobby]['game'].ball.reset_ball()
+				await self.send(json.dumps(active_rooms[self.lobby]['game'].status()))
+			if active_rooms[self.lobby]['game'].score.game_end():
+				game_task = active_rooms[self.lobby]['game']
+				logprint("game_end")
+				active_rooms[self.lobby]['ongoing'] = False
+				channel_layer = get_channel_layer()
+				await channel_layer.group_send(self.room_group_name,{
+						"type": "end.game",
+						"request": "end",
+						"score": active_rooms[self.lobby]['game'].score.final_score(),
+					})
+				return
+			await asyncio.sleep(self.fps)
+
+	async def disconnect(self, close_code):
+		if self.lobby in active_rooms:
+			active_rooms[self.lobby]['num_active'] -= 1
+			if active_rooms[self.lobby]['num_active'] == 0:
+				del active_rooms[self.lobby]
+
+		await self.channel_layer.group_discard(
+			self.lobby,
+			self.channel_name
+		)
+
+	async def receive(self, text_data):
+		try:
+			action = json.loads(text_data) 
+
+			if "settings" in action:
+				active_rooms[self.lobby]['game'].score.settings(action)
+				await self.send(json.dumps(active_rooms[self.lobby]['game'].score.current_rules()))
+			elif "movement" in action:
+				active_rooms[self.lobby]['game'].remote_move(action)
+				await self.send(json.dumps(active_rooms[self.lobby]['game'].gamePos()))
+			elif "update" in action:
+				channel_layer = get_channel_layer()
+				if self.lobby in active_rooms:
+					await channel_layer.group_send(self.room_group_name,{
+							"type": "game.xy",
+							"request": "update",
+							"score": active_rooms[self.lobby]['game'].gamePos(),
+						})
+
+			elif "status" in action:
+				await self.send(json.dumps(active_rooms[self.lobby]['game'].score.current_rules()))
+			elif "type" in action:
+				if action["type"] == "start":
+					channel_layer = get_channel_layer()
+					await channel_layer.group_send(self.room_group_name, {
+						"type": "match.start",
+						"message": "Match is starting",
+						"request": "start"
+					})
+			return
+
+
+		except json.JSONDecodeError:
+			logprint(f"Invalid JSON: {text_data}")
+
+	async def match_start(self, event):
+		logprint("inside match_start")
+		logprint(f'{event}')
+		message = event["message"]
+		request = event["request"]
+
+		await self.send(json.dumps({
+		"type": "start",
+		"request": request,
+		"message": message
+		}))
+		logprint("sent message ---------------")
+
+	async def game_xy(self, event):
+		await self.send(json.dumps({
+		"type": "coordinates",
+		"coordinates": event['score']
+		}))
+
+	async def end_game(self, event):
+		await self.send(json.dumps({
+		"type": "end",
+		"request": "end",
+		"score": event["score"]
+		}))
+
+	async def chat_match(self, event):
+		pass
