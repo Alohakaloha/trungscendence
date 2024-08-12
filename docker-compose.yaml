@@ -10,6 +10,7 @@ services:
       POSTGRES_PORT : ${DB_PORT}
     volumes:
      - ./postgresql/data:/var/lib/postgresql/data
+     - ./postgresql/backups:/var/lib/postgresql/backups
     networks:
       - t_network
     env_file:
@@ -25,12 +26,12 @@ services:
     restart: on-failure
 
   django:
-    container_name: django_web
+    container_name: django
     build:
       context: ./django
       dockerfile: Dockerfile
     ports:
-      - "7000:7000"
+      - "7000:8000"
     networks:
       - t_network
     command:

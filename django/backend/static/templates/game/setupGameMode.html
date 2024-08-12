@@ -7,8 +7,6 @@
 				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1" onclick="removeOptions()"></button>
 				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2" onclick="removeOptions()"></button>
 				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3" onclick="removeOptions()"></button>
-				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="3" aria-label="Slide 4" onclick="removeOptions()"></button>
-				<button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="4" aria-label="Slide 5" onclick="removeOptions()"></button>
 			</div>
 			<div class="carousel-inner">
 				<div class="carousel-item active">
@@ -28,14 +26,6 @@
 					</button>
 				</div>
 				<div class="carousel-item">
-					<button class="btn btn-dark" onclick="callSettings('rTournamentSetup')">
-						<img src="{% static 'images/pong2b.jpeg' %}"class="d-block w-100" alt="Remote Tournament Image">
-						<h4 id="game-mode">
-							REMOTE TOURNAMENT MODE
-						</h4>
-					</button>
-				</div>
-				<div class="carousel-item">
 					<button class="btn btn-dark" onclick="callSettings('versusSetup')">
 						
 						<img src="{% static 'images/pong3.jpeg' %}" class="d-block w-100" alt="Versus Mode Image">
@@ -44,16 +34,8 @@
 						</h4>
 					</button>
 				</div>
-				<div class="carousel-item">
-					<button class="btn btn-dark">
-						
-						<img src="{% static 'images/pong4.jpeg' %}" class="d-block w-100" alt="Spectator Mode Image">
-						<h4 id="game-mode">
-							SPECTATOR MODE
-						</h4>
-					</div>
-				</div>
-			</button>
+				
+			</div>
 		</div>
 		<button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev" onclick="removeOptions()" data-bs-interval="false">
 			<span class="carousel-control-prev-icon" aria-hidden="true"></span>

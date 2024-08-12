@@ -304,3 +304,25 @@ input[type="email"]{
 	position: relative;
 	left: 40%;
 }
+
+.history_table_header{
+	border: 1px solid white;
+	border-collapse: collapse;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.history_table_data{
+	border: 1px solid white;
+	border-collapse: collapse;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.history_table_data-center{
+	border: 1px solid white;
+	border-collapse: collapse;
+	padding-left: 8px;
+	padding-right: 8px;
+	text-align: center;
+}

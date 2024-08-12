@@ -4,6 +4,7 @@ const content = document.getElementById('content');
 const chat = document.getElementById('chat');
 let uidb64;
 let token;
+let inviteID = null;
 let jsFile;
 
 window.onpopstate = function(event) {
@@ -95,7 +96,7 @@ async function handleRouting() {
 	if(page.startsWith("/details/")){
 		const parts = page.split("/");
 		unique_id = parts[2]; // Extract the unique ID from the URL
-		page = "/details";
+		page = '/details';
 	}
 	try{
 		const user = await fetchUserData();
@@ -107,7 +108,7 @@ async function handleRouting() {
 				chatSocket = new WebSocket('wss://' + window.location.host + '/ws/chatting/');
 			}	
 			chatSocket.onopen = function(){
-				console.log("Socket is open");
+				logMessage('info', "Socket is open");
 			}
 		}
 		else{
@@ -131,95 +132,126 @@ async function handleRouting() {
 		}
 		else {
 			switch (page) {
-			case '/':
-				jsFile = './welcome.js';
-				showPage("main.html");
-				break;
-			case '/chat':
-				  showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
-
-			case '/game':
-				// jsFile = './game/tmpGame.js';
-				if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN)
-				{
-					lobbySocket.send(JSON.stringify({"request":"url"}))
-				}
-				else
-					showPage(`game/setupGameMode.html`);
-				break;
-
-			case '/game/localTournament':
-				if(lobbySocket){
-					lobbySocket.send(JSON.stringify({"type":"check"}))
+				case '/':
+					jsFile = './welcome.js';
+					showPage("main.html");
+					if (user.authenticated){
+						openingChat();
+					}
 					break;
-				}else{
-					changeURL('/game', 'Game Page', {main : true});
-					break;
-				}
 				case '/chat':
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
+
+				case '/game':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						changeURL('/', 'Home', {main : true});
+						break;
+					}
+					if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN)
+					{
+						lobbySocket.send(JSON.stringify({"request":"url"}))
+					}
+					else
+						showPage(`game/setupGameMode.html`);
+					break;
+					
+				case '/game/localTournament':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						break;
+					}
+					
+					if(lobbySocket){
+						lobbySocket.send(JSON.stringify({"type":"check"}))
+						break;
+					}else{
+						changeURL('/game', 'Game Page', {main : true});
+						break;
+					}
 				case '/pong':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						break;
+					}
 					if(gameSocket)
 						showPage(`game/pong.html`);
 					else
 						changeURL('/game', 'Game Page', {main : true});
 					break;
 				case '/match':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						break;
+					}
 					if(lobbySocket)
 						lobbySocket.send(JSON.stringify({"type":"check", "request": "url"}))
 					else
 						changeURL('/game', 'Game Page', {main : true});
 					break;
 				case '/profile':
-					if(user.authenticated)
+					if(user.authenticated){
 						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+						openingChat();
+					}
 					else
 						changeURL('/login', 'Login Page', {main : true});
 					break;
 
 				case '/history':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						break;
+					}
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
 
 				case '/about':
+
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					break;
 
-			case '/settings':
-				if (user.authenticated && !lobbySocket){
-					jsFile='./settings.js';
+				case '/settings':
+					if (user.authenticated && !lobbySocket){
+						jsFile='./settings.js';
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					} 
+					else if(user.authenticated && lobbySocket){
+						displayToastMessage("Game running, cannot change settings", "info");
+						changeURL('/game', 'Game Page', {main : true});
+					}
+					else{
+						displayToastMessage("Please login first", "info");
+						changeURL('/login', 'Login Page', {main : true});
+						break;
+					}
+					break;
+				case '/friends':
+					if (user.authenticated){
+						jsFile='./friend_request.js';
+						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+					}
+					else{
+						displayToastMessage("Please login first", "info");
+					}
+					break;
+				case '/details':
+					if (!user.authenticated){
+						displayToastMessage("Please login first", "info");
+						changeURL('/login', 'Login Page', {main : true});
+						break;
+					}
+					if (unique_id){
+						const div = friend_details(await fetchUserDataById(unique_id));
+						await showPage(`user/${unique_id}`);
+						document.getElementById('friend_details').appendChild(div);
+					}
+					break;
+				case '/register':
+					jsFile = './register.js';
 					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				} 
-				else{
-					displayToastMessage("Tournament in progress, settings disabled", "warning");
-					changeURL('/login', 'Login Page', {main : true});
 					break;
-				}
-
-				break;
-			case '/friends':
-				if (user.authenticated){
-					jsFile='./friend_request.js';
-					showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-					break;
-				}
-				else{
-					changeURL('/login', 'Login Page', {main : true});
-					break;
-				}
-			case '/details':
-				if (unique_id){
-					const div = friend_details(await fetchUserDataById(unique_id));
-					await showPage(unique_id);
-					document.getElementById('friend_details').appendChild(div);
-				}
-				break;
-			case '/register':
-				jsFile = './register.js';
-				showPage(`${page.slice(1)}/${page.slice(1)}.html`);
-				break;
 
 				case '/login':
 					if (user.authenticated){
@@ -255,7 +287,7 @@ async function handleRouting() {
 					console.log('Page not found');
 					console.log(window.location.pathname);
 					break;
-				}
+			}
 		}
 	} catch (error) {
 		console.error('Error handling routing: ', error);
@@ -316,13 +348,17 @@ async function currentJS() {
 		
 		
 		async function showPage(path) {
-		return await fetch(path)
-		.then(response => response.text())
-		.then(data => {
-			document.getElementById('content').innerHTML = data;
-		})
-		.catch(error => console.log(error));
-	}
+			if (path.startsWith('/details/')){
+				let parts = path.split('/');
+				path = '/user/' + parts[2];
+			};
+			return await fetch(path)
+			.then(response => response.text())
+			.then(data => {
+				document.getElementById('content').innerHTML = data;
+			})
+			.catch(error => console.log(error));
+		}
 	
 	// part for background change in settings
 	let background = ["none", "/staticstuff/images/background.jpg", "/staticstuff/images/black.jpg" ];
@@ -539,7 +575,9 @@ if (toastTrigger) {
 		div = document.createElement('div');
 		let stats = data.stats;
 		let games_history = stats.games_history;
+		console.log(data);
 		div.innerHTML = `
+			<h1> ${stats.username}</h1>
 			<img src="${stats.profile_picture}" class="rounded-circle" width="100" height="100">
 			<ul>
 				<li> games played: ${stats.games_played}</li>
@@ -576,16 +614,25 @@ if (toastTrigger) {
 		}
 	}
 
-	function gameInvite(user, receiver) {
+async	function gameInvite(user, receiver) {
 		logMessage('info', `${receiver} got invited by ${user} to a game`);
 
-		let invite = {
-			"type": "invitation",
-			"sender": user,
-			"receiver": receiver,
-		};
-
+		
 		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+			if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN){
+				await lobbySocket.send(JSON.stringify({"request":"invite"}));
+			}
+			if (inviteID === null){
+				displaySystemMessage("Create a game lobby before sending an invite");
+				return
+			}
+				const invite = {
+					"type": "invitation",
+					"sender": user,
+					"receiver": receiver,
+					"lobbyID": inviteID,
+				};
+				// inviteID = null;
 			logMessage('info', "Sending game invite:");
 			logMessage('info', JSON.stringify(invite));
 			chatSocket.send(JSON.stringify(invite));
@@ -689,9 +736,8 @@ async function showSideChat() {
         renderAllChat();
         renderNotifications();
         renderFriendList(user, list);
-		console.log(list);
-		console.log("____________________");
-		console.log(allUsers);
+		// console.log(list);
+		// console.log(allUsers);
 
 		renderAllUsersList(user, allUsers);
 
@@ -763,6 +809,7 @@ function renderFriendList(user, list) {
     }
 
     for (let friend of list.friends) {
+		console.log(friend)
         let friendDiv = document.createElement('div');
         friendDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
@@ -780,7 +827,6 @@ function renderFriendList(user, list) {
         friendContent.appendChild(friendName);
 
         friendContent.onclick = function(event) {
-            // Check if the click was inside the clickable-area
             if (friendContent.contains(event.target)) {
                 chatObject(user.username, friend.username);
                 displaySystemMessage(`Conversation with "${friend.username}"`);
@@ -818,6 +864,7 @@ function renderAllUsersList(user, allUsers) {
     }
 
     for (let otherUser of allUsers.users) {
+		console.log(otherUser)
         let userDiv = document.createElement('div');
         userDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
@@ -854,8 +901,8 @@ function renderDropdownMenu(friendDiv, username, friendUsername) {
     menu.style.borderRadius = '50%';
     menu.className = 'btn btn-dark dropdown-toggle';
     menu.setAttribute('type', 'button');
-    menu.setAttribute('id', 'dropdownMenuButton' + friendUsername); // Ensure unique ID for each friend
-    menu.setAttribute('data-bs-toggle', 'dropdown'); // Note the 'bs' for Bootstrap 5
+    menu.setAttribute('id', 'dropdownMenuButton' + friendUsername);
+    menu.setAttribute('data-bs-toggle', 'dropdown');
     menu.setAttribute('aria-expanded', 'false');
 
     // Create the dropdown menu
@@ -886,7 +933,6 @@ function renderDropdownMenu(friendDiv, username, friendUsername) {
     dropdownMenu.appendChild(blockItem);
     dropdownMenu.appendChild(unblockItem);
 
-    // Append the menu and dropdownMenu to friendDiv
     friendDiv.appendChild(menu);
     friendDiv.appendChild(dropdownMenu);
 }
@@ -971,6 +1017,30 @@ function createDropdownItem(text, onClickHandler) {
 	
 	chat.addEventListener('click', openingChat);	
 
+	async function navigateToCarouselItem(setting) {
+		var carousel = document.getElementById('carouselExampleIndicators');
+		if (!carousel) {
+			console.error('Carousel not found');
+		}
+		var carouselInstance = new bootstrap.Carousel(carousel);
+	
+		var index;
+		switch(setting) {
+			case 'local':
+				index = 0; 
+				break;
+			case 'lTournamentSetup':
+				index = 1; 
+				break;
+			case 'versusSetup':
+				index = 2; 
+				break;
+			default:
+				index = 0; 
+		}
+	
+		carouselInstance.to(index);
+	}
 
 	function receiveMessage(messageData) {
 		logMessage('info', 'Received message');
@@ -985,9 +1055,10 @@ function createDropdownItem(text, onClickHandler) {
 			let sender = messageData.sender;
 			let message = messageData.message;
 			let directMessage = messageData.direct_message || false;
-	
+			let id;
 			// Create a button for invitation messages
 			if (messageData["type"] === 'invitation') {
+				id = messageData.lobbyID;
 				messageContainer = document.createElement('button');
 				messageContainer.className = 'invitation-container';
 			} else {
@@ -1015,7 +1086,14 @@ function createDropdownItem(text, onClickHandler) {
 			// Append the timestamp and content to the container
 			messageContainer.appendChild(messageTimestamp);
 			messageContainer.appendChild(messageContent);
-	
+			if (messageData["type"] === 'invitation') {
+				messageContainer.onclick = async function() {
+					await showPage(`game/setupGameMode.html`);
+					await callSettings('versusSetup')
+					const lobby = document.getElementById('lobbyID');
+					lobby.value = id;
+				}
+			}
 			// Append the message container to the chat text area
 			chatTextArea.appendChild(messageContainer);
 	
@@ -1032,7 +1110,7 @@ function createDropdownItem(text, onClickHandler) {
 		chatSocket.onmessage = function (event) {
 			let messageData = JSON.parse(event.data);
 			logMessage('info', 'Message received:', messageData);
-	
+			
 			switch (messageData["type"]) {
 				case "history":
 					logMessage('info', 'Processing chat history');
@@ -1050,6 +1128,7 @@ function createDropdownItem(text, onClickHandler) {
 					break;
 				case "invitation":
 					logMessage('info', 'Processing invitation type');
+					console.log(messageData);
 					receiveMessage(messageData);
 					break;
 				default:
@@ -1073,13 +1152,14 @@ function createDropdownItem(text, onClickHandler) {
 			let user = await fetchUserData();
 	
 			// Check if the message is for the current user
-			if (messageData.receiver === user.username) {
-				console.log(`Invitation for ${user.username} from ${messageData.sender}`);
-				if (messageData.type === "invitation") {
-					displayToastMessage(`Game invite from ${messageData.sender}`, "info");
+			if (messageData.type === "invitation") {
+				logMessage('info', `Invitation for ${user.username} from ${messageData.sender}`);
+				if (messageData.receiver === user.username) {
+					displayToastMessage(`Game invite from ${messageData.sender} lobbyID: ${messageData.lobbyID}`, "info");
 				}
-			} else {
-				console.log(`Invitation from ${messageData.sender} is not for ${user.username}`);
+				else {
+					logMessage('info', `Invitation from ${messageData.sender} is not for ${user.username}`);
+				}
 			}
 		} catch (error) {
 			console.error('Error in inviteToast:', error);
@@ -1122,8 +1202,6 @@ function createDropdownItem(text, onClickHandler) {
 			displaySystemMessage("WebSocket not open. Cannot send message.");
 			return;
 		}
-	
-		// Clear chat message input after sending
 		chatMessage.value = "";
 	}
 
@@ -1160,11 +1238,14 @@ function createDropdownItem(text, onClickHandler) {
 	async function callSettings(path) {
 		return await fetch("game/"+path+".html")
 		.then(response => response.text())
-		.then(data => {
+		.then(async data => {
 			let contentElement = document.getElementById('game-options');
-			if (contentElement)
-			contentElement.innerHTML = data;
-	})
+			if (contentElement){
+				contentElement.innerHTML = data;
+			}
+			console.log(path);
+			await navigateToCarouselItem(path);
+	} )
 	.catch(error => console.log(error));
 }
 
@@ -1181,6 +1262,10 @@ async function startLocal() {
 			"score": document.querySelector('input[name="score"]:checked').value,
 			"mirror": document.getElementById('mirror').checked,
 		};
+		if (localSettings.player1.length > 14 || localSettings.player2.length > 14) {
+			displayToastMessage("Player names too long", "warning");
+			return;
+		}
 		sounds = document.getElementById('localSound').checked;
 		localColors = {
 			"p1Color": document.querySelector('input[name="player1Color"]:checked').value,
@@ -1244,6 +1329,7 @@ async function startLocalTournament(){
 		"players": players,
 	}
 	bind_local_Tournament(localSettings);
+	displayToastMessage("Tournament created", "success");
 	changeURL('/game/localTournament', 'Tournament Page', {main : true});
 }
 
@@ -1317,7 +1403,6 @@ function connectGame(settings, colors){
 			p1Color.style.boxShadow = "-5px 0px 3px "+ colors.p1Color;
 			p2Color.style.boxShadow ="5px 0px 3px " + colors.p2Color;
 	}
-
 
 	let checkInput = setInterval(() => {
 		if (keysPressed['w']) {
@@ -1498,7 +1583,6 @@ let tournamentRules;
 
 function bind_local_Tournament(localSettings){
  lobbySocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
-
  lobbySocket.onopen = function(){
 	showPage('/game/localTournament.html');
 	lobbySocket.send(JSON.stringify(localSettings));
@@ -1516,7 +1600,6 @@ function bind_local_Tournament(localSettings){
 	else if('url' in data){
 		showPage(data["url"]);
 	}
-
  }
 
  lobbySocket.onclose = function(event){
@@ -1546,8 +1629,10 @@ function updateTournament(data){
 		let ids = document.getElementById('r' + (i + 1));
 		ids.innerHTML = remaining[i];
 	}
+	displayToastMessage(`Next match: ${data['nextUp'][0]} VS ${data['nextUp'][1]}`);
 	document.getElementById('nextFirst').innerHTML = data['nextUp'][0];
 	document.getElementById('nextSecond').innerHTML = data['nextUp'][1];
+
 }
 
 function localTournament(){
@@ -1688,17 +1773,15 @@ async function join_lobby(requestType){
 	if(requestType === "join" || requestType === "created"){
 		lobbyID = document.getElementById('lobbyID').value.trim();
 		if(lobbyID === ""){
-			//todo change notification in toast not a valid lobby
-			console.log("lobbyID empty. return")
+			displayToastMessage("You need to enter a lobby name", "error");
 			return;
 		}
 	}
-
-
 	if(!lobbySocket || lobbySocket.readyState === WebSocket.CLOSED)
 	{
 		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_lobby/' + lobbyID);
-	}	
+		inviteID = lobbyID;
+	}
 
 	let settings = null;
 
@@ -1719,6 +1802,7 @@ async function join_lobby(requestType){
 	}
 	lobbySocket.onclose = function(event){
 		console.log("remote closed ", event);
+		inviteID = null;
 	}
 
 	lobbySocket.onmessage = function(event){
@@ -1743,7 +1827,6 @@ async function join_lobby(requestType){
 				}
 			else if (data["status"] === "unready")
 			{
-			
 				fetchUserData().then(user => {
 				let player_list = document.getElementById("player-list");
 				let player_ready = document.getElementById(String(user.username));
@@ -1757,15 +1840,24 @@ async function join_lobby(requestType){
 		}
 		if ('type' in data){
 			if (data['type'] === 'toast'){
-				//TODO display toast message
-				console.log('wanna toast');
-				if (data['status'] === 'playing'){
-					// start remote match
+				if (data['status'] === 'joined'){
+					displayToastMessage(data['message'], "success");
+				}
+				else if (data['status'] === 'playing'){
+					displayToastMessage(data['message'], "warning");
 					startRemote(lobbyID);
+				}
+				else{
+					displayToastMessage(data['message'], "error");
+				}
+			}
+			if (data['type'] === 'chat_message'){
+				if (data['status'] === 'ready'){
+					displayToastMessage(data['message'], "error");
 				}
 			}
 		}
-	}
+	}	
 }
 
 async function matchReady(){

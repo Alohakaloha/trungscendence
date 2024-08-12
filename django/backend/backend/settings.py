@@ -27,6 +27,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', '*']
 
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'nginx', 'django']
+
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -46,10 +48,10 @@ STATICFILES_DIRS = [
 
 INSTALLED_APPS = [
     'daphne',
-    'auth_app',
     'pongGame',
     'chat',
     'oauth2',
+    'auth_app',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -1,6 +1,7 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .localTournament import tournamentHandler as tH
 from asgiref.sync import sync_to_async
+from django.utils import timezone
 from . import pong
 import json
 import asyncio
@@ -8,6 +9,25 @@ import sys
 from channels.layers import get_channel_layer
 import copy
 
+def registerScore(data):
+	from .models import LocalMatch
+
+	table = {
+		'type' : data.get('type'),
+		'player_1' : data.get('player_1_name'),
+		'player_2' : data.get('player_2_name'),
+		'rounds_player_1' : data.get('player1_rounds'),
+		'rounds_player_2' : data.get('player2_rounds'),
+		'winner' : data.get('winner'),
+	}
+
+
+	try:
+		local_match = LocalMatch.objects.create(**table)
+		return local_match
+	except Exception as e:
+		logprint(e)
+		raise e
 
 #map users to the lobby 
 # class multimap:
@@ -135,8 +155,10 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 				await self.send(json.dumps(self.player.status()))
 			if self.player.score.game_end():
 				self.game_active = False
+				final_score_data = self.player.score.final_score()
+				await self.send(json.dumps(final_score_data))
+				await sync_to_async(registerScore)(final_score_data)
 				self.gaming.cancel()
-				await self.send(json.dumps(self.player.score.final_score()))
 				await self.disconnect()
 			await asyncio.sleep(self.fps)
 
@@ -150,7 +172,6 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 			self.room_group_name,
 			self.channel_name
 		)
-
 
 	async def receive(self, text_data):
 		try:
@@ -353,6 +374,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 					active_rooms[self.lobby] = {'users': [data["user"]], 'num_active': 0}
 					await self.send(json.dumps({"url": "/match/lobby"}))
 				else:
+					await self.send(json.dumps({"type": "toast", "message": "Room already exists"}))
 					await self.channel_layer.group_discard(
 						self.room_group_name,
 						self.channel_name
@@ -365,7 +387,8 @@ class remote_lobby(AsyncWebsocketConsumer):
 						await self.send(json.dumps({"url": "/match/lobby"}))
 						await self.channel_layer.group_send(self.room_group_name, {
 							"type": "chat_message",
-							"user": data["user"]
+							"user": data["user"],
+							"message": f"{data['user']} has joined"
 						})
 					else:
 						await self.send(json.dumps({"type": "toast", "message": "Cannot join room"}))
@@ -384,9 +407,11 @@ class remote_lobby(AsyncWebsocketConsumer):
 				await self.send(json.dumps({"url": "/match/lobby"}))
 			elif data["request"] == "status":
 				if data["status"] == "ready":
+					logprint(f"User {self.scope['user'].username} is ready")
 					await self.channel_layer.group_send(self.room_group_name, {
 						"type": "chat_message",
-						"user": self.scope["user"].username
+						"user": self.scope["user"].username,
+						"message": f"{self.scope['user'].username} is ready"
 					})
 					active_rooms[self.lobby]['num_active'] += 1
 					#await self.send(json.dumps({"status": "ready", "user": self.scope["user"].username}))
@@ -424,13 +449,15 @@ class remote_lobby(AsyncWebsocketConsumer):
 		await self.send(text_data=json.dumps({
 		"type": "toast",
 		"status" : "joined",
-		"user" :  user
+		"user" :  user,
+		"message" : event['message'],
 		}))
 
 	async def chat_match(self, event):
 		await self.send(text_data=json.dumps({
 		"type": "toast",
 		"status" : "playing",
+		"message" : "FIGHT!!!",
 		}))
 
 	async def match_start(self, event):

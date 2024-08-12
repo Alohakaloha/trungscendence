@@ -21,9 +21,11 @@ def eprint(*args, **kwargs):
 def header_view(request, **kwargs):
 	context = {}
 	if(kwargs):
-		global uidb, tokn
-		uidb = kwargs['uidb64']
-		tokn = kwargs['token']
+		if 'uidb64' in kwargs and 'token' in kwargs:
+			global uidb, tokn
+			print(kwargs, file=sys.stderr)
+			uidb = kwargs['uidb64']
+			tokn = kwargs['token']
 	return render(request,'header.html')
 	
 def game(request):
@@ -51,6 +53,7 @@ def profile(request, **kwargs):
 						'tie': tie
 					})
 				friendUserStats = {
+					'username': friendUser.username,
 					'profile_picture': friendUser.profile_picture.url,
 					'games_played': friendUser.games,
 					'wins': friendUser.wins,
@@ -64,13 +67,6 @@ def profile(request, **kwargs):
 		return JsonResponse({"status": "error", 'message':'You must be logged in to view this page.'})
 	else:
 		return render(request, 'profile.html')
-
-
-def history(request):
-	if request.method == 'GET':
-		users = AppUser.objects.all()
-		return render (request, 'history.html', {'users': users})
-
 
 def main(request):
 	return render(request, 'welcome.html')
@@ -135,6 +131,10 @@ def settings_view(request):
 		try:
 			if 'email' in data:
 				new_email = data['email']
+
+				if not validateEmail(new_email):
+					return JsonResponse({'status':'error', 'message':'Invalid email format'})
+				
 				user.email = new_email
 				user.save()
 		except:
@@ -143,6 +143,10 @@ def settings_view(request):
 		try:
 			if 'username' in data:
 				new_username = data['username']
+				
+				if not validateUsername(new_username):
+					return JsonResponse({'status': 'error', 'message': 'Username not valid'}) 
+
 				user.username = new_username
 				user.save()
 		except:
@@ -158,6 +162,9 @@ def settings_view(request):
 
 		if 'password' in data:
 			new_password = data['password']
+			
+			if not validate_password(new_password):
+				return JsonResponse({'status': 'success', 'message': 'Invalid password.'})
 			user.set_password(new_password)
 			user.save()
 
@@ -231,11 +238,14 @@ def unfriend_view(request, user_id):
 
 def getUserData_view(request):
 	if request.user.is_authenticated:
+		profilePic = request.user.profile_picture.url
+		if request.user.oauth_created:
+			profilePic=request.user.oauth_pic_url
 		user_data = {
 			'authenticated': True,
 			'email' : request.user.email,
 			'username' : request.user.username,
-			'profile_picture' : request.user.profile_picture.url,
+			'profile_picture' : profilePic,
 			'user_id' : request.user.user_id
 		}
 	else:
@@ -247,10 +257,14 @@ def friends_list_view(request):
 		friends = request.user.friends.all()
 		friends_list = []
 		for friend in friends:
+			print(f"friend: {friend} ", file=sys.stderr)
+			profilePic = friend.profile_picture.url
+			if friend.oauth_created:
+				profilePic = friend.oauth_pic_url
 			friends_list.append({
 				'user_id': friend.user_id,
 				'username': friend.username,
-				'profile_picture': friend.profile_picture.url
+				'profile_picture': profilePic
 			})
 		return JsonResponse({'friends': friends_list})
 	else:
@@ -260,8 +274,21 @@ def all_user(request):
 	if request.user.is_authenticated:
 		users = AppUser.objects.exclude(user_id=request.user.user_id)
 		users = users.exclude(user_id__in=request.user.friends.values_list('user_id', flat=True))
-		serialized_users = list(users.values('user_id', 'username', 'profile_picture'))
+		
+		serialized_users = []
+		for user in users:
+			profilePic = user.profile_picture.url
+			if user.oauth_created:
+				profilePic = user.oauth_pic_url
+			
+			serialized_users.append({
+				'user_id': user.user_id,
+				'username': user.username,
+				'profile_picture': profilePic
+			})
+		
 		return JsonResponse({'users': serialized_users})
+
 
 def resetPassword(request, uidb64, token):
 	if (request.method == 'GET'):

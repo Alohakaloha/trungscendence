@@ -13,9 +13,12 @@ export function getCookie(name){
 	return cookieValue;
 }
 
-export function validateEmail(email){
-	let regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}$/;
-	return regex.test(email);
+export function validateEmail(email) {
+	const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+	const maxLength = 25;
+	const minLength = 3;
+
+	return email.length >= minLength && email.length <= maxLength && emailRegex.test(email);
 }
 
 export function validatePassword(password){
@@ -23,9 +26,9 @@ export function validatePassword(password){
 	return regex.test(password);
 }
 
-export function validateUsername(username){
-	if(username.length < 3 || /\s/.test(username)){
-		return false;
-	}
-	return true
+export function validateUsername(username) {
+	const minLength = 3;
+	const maxLength = 25;
+
+	return username.length >= minLength && username.length <= maxLength && !/\s/.test(username);
 }

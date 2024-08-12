@@ -1,4 +1,4 @@
-import { getCookie, validateEmail, validatePassword } from "./utils.js";
+import { getCookie, validateEmail, validatePassword, validateUsername } from "./utils.js";
 
 let submitButton;
 
@@ -75,15 +75,20 @@ async function settings(email, username, profile_picture, password, confirm_pass
 	}
 	
 	if (username !== "") {
-	  if (username.length < 5) {
+	  if (username.length < 5 || username.length > 25) {
 		errorMsg.textContent = '';
-		errorMsg.textContent = 'Username must be at least 5 characters long.';
+		errorMsg.textContent = 'Username must be between 5 and 25 charachters long.';
 		return;
-	  } else {
+	  }
+	  if (!validateUsername(username)){
+		errorMsg.textContent = '';
+		errorMsg.textContent = 'Username must not contain spaces.';
+		return;
+	  }else {
 		data.username = username;
 	  }
 	}
-
+	
 	if (password !== "") {
 		if (!validatePassword(password)) {
 			errorMsg.textContent = 'Password must be 8 characters long and have at least 1 capital letter and 1 special character.';
