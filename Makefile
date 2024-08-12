@@ -14,3 +14,6 @@ rm-vol:
 	docker volume ls -q | xargs docker volume rm
 
 re: down rm-vol all
+
+provision-dataviews:
+	bash provision-dataviews.sh

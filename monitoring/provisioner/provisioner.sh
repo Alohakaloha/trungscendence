@@ -2,10 +2,10 @@
 
 BASICAUTH_BASE64=$(echo -n ${ELASTIC_USER}:${ELASTIC_PASSWORD} | base64 )
 
-curl -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
--X PUT "${ELASTICSEARCH_HOST}/_ilm/policy/trans_policy?pretty" \
+curl  --fail -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
 -H 'Content-Type: application/json' \
 -H "Authorization: Basic ${BASICAUTH_BASE64}" \
+-X PUT "${ELASTICSEARCH_HOST}/_ilm/policy/trans_policy?pretty" \
 -d'
 {
   "policy": {
@@ -26,12 +26,12 @@ curl -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
     }
   }
 }
-' -v
+' -v || exit 1
 
-curl -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
--X PUT "${ELASTICSEARCH_HOST}/_index_template/django_template?pretty" \
+curl  --fail -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
 -H 'Content-Type: application/json' \
 -H "Authorization: Basic ${BASICAUTH_BASE64}" \
+-X PUT "${ELASTICSEARCH_HOST}/_index_template/django_template?pretty" \
 -d'
 {
   "index_patterns": ["django-*"], 
@@ -44,12 +44,12 @@ curl -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
     }
   }
 }
-' -v
+' -v || exit 1
 
-curl -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
--X PUT "${ELASTICSEARCH_HOST}/_index_template/nginx_template?pretty" \
+curl  --fail -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
 -H 'Content-Type: application/json' \
 -H "Authorization: Basic ${BASICAUTH_BASE64}" \
+-X PUT "${ELASTICSEARCH_HOST}/_index_template/nginx_template?pretty" \
 -d'
 {
   "index_patterns": ["nginx-*"], 
@@ -62,4 +62,4 @@ curl -s --cacert /usr/share/elasticsearch/config/certs/ca/ca.crt \
     }
   }
 }
-' -v
+' -v || exit 1
