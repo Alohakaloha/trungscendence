@@ -13,6 +13,22 @@ volumes:
     driver: local
 
 services:
+  django:
+    container_name: django
+    depends_on:
+      es01:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:8000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 100
+      start_period: 60s
+
   prometheus:
     image: prom/prometheus:v2.45.6
     container_name: prometheus
@@ -39,6 +55,9 @@ services:
   grafana:
     image: grafana/grafana-oss:11.1.0-ubuntu
     container_name: grafana
+    depends_on:
+      django:
+        condition: service_healthy
     restart: unless-stopped
     environment:
       # increases the log level from info to debug
@@ -106,16 +125,20 @@ services:
     depends_on:
       es01:
         condition: service_healthy
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    build:
+      context: ./monitoring/provisioner
+      dockerfile: Dockerfile
     user: "0"
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
-      - ./monitoring/setup/provisioner.sh:/tmp/provisioner.sh
+      - ./monitoring/provisioner/provisioner.sh:/tmp/provisioner.sh
     environment:
-    - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-    - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-    command: >
-      bash /tmp/provisioner.sh
+      - ELASTIC_USER=${ELASTIC_USER}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST}
+    command:
+      - bash 
+      - /tmp/provisioner.sh
     networks:
       - t_network
 
@@ -182,7 +205,7 @@ services:
       - ${KIBANA_PORT}:5601
     environment:
       - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=https://es01:9200
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOST}
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
@@ -222,7 +245,7 @@ services:
     environment:
       - NODE_NAME="logstash"
       - xpack.monitoring.enabled=false
-      - ELASTIC_USER=elastic
+      - ELASTIC_USER=${ELASTIC_USER}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ELASTIC_HOSTS=https://es01:9200
     command: logstash -f /usr/share/logstash/pipeline/logstash.conf
@@ -231,3 +254,12 @@ services:
     # mem_limit: ${LS_MEM_LIMIT}
     networks:
       - t_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "(curl --silent --fail -s -XGET localhost:9600 | grep -q 'green') || exit 1 ",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120

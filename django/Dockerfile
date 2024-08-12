@@ -1,6 +1,6 @@
 # Use an official Python runtime as a parent image
 FROM python:3.10-alpine
-
+RUN apk add --update curl bash && rm -rf /var/cache/apk/*
 # Set the working directory in the container to /code
 COPY requirements.txt .
 
