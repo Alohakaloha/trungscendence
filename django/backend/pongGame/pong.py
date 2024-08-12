@@ -62,6 +62,22 @@ class Player:
 				if self.y2 < 82:
 					self.y2 = self.y2 + 2
 
+	def remote_move(self, data):
+		if data['movement'] == 'up':
+			if data['player'] == self.score.player_1_name:
+				if self.y1 > 2:
+					self.y1 = self.y1 - 2
+			elif data['player'] == self.score.player_2_name:
+				if self.y2 > 2:
+					self.y2 = self.y2 - 2
+		elif data['movement'] == 'down':
+			if data['player'] == self.score.player_1_name:
+				if self.y1 < 82:
+					self.y1 = self.y1 + 2
+			elif data['player'] == self.score.player_2_name:
+				if self.y2 < 82:
+					self.y2 = self.y2 + 2
+
 	def Wall_Sound(self):
 		game_sound = {
 			'sounds': 'wall',
@@ -86,8 +102,8 @@ class Ball:
 		self.x = 50
 		self.y = 50
 		self.radius = 1.5
-		# change back to 0.4 
-		self.speed = 2
+		# change back to 0.4
+		self.speed = 0.4
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
 
@@ -148,7 +164,7 @@ class Ball:
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
 		# change back to 0.4 
-		self.speed = 2
+		self.speed = 0.4
 	
 
 class Rules:

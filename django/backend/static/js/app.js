@@ -1825,24 +1825,30 @@ async function startRemote(lobby_id){
 	gameSocket.onopen = function(){
 		gameSocket.send(JSON.stringify({"type": "start"}));
 		checkInput = setInterval(() => {
-			console.log("check input");
+			// console.log("check input");
 			if (keysPressed['w'])
-				remoteUp(user.user_id);
+				remoteUp(user.username);
 			if (keysPressed['s'])
-				remoteDown(user.user_id);
+				remoteDown(user.username);
 			}, 30);
 	}
 
+	document.addEventListener("keydown", e => {
+		keysPressed[e.key] = true;
+	});
 
-
-
+	document.addEventListener("keyup", e => {
+		keysPressed[e.key] = false;
+	});
 
 	gameSocket.onmessage = function(event){
 		data = JSON.parse(event.data);
 		if (data["type"] === "start"){
 			gameSocket.send(JSON.stringify({"update": "update"}));
 			updater = setInterval(() => {
-			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 30);
+				if (gameSocket.readyState === WebSocket.OPEN) {
+					gameSocket.send(JSON.stringify({ "update": "update"}))
+				}}, 30);
 		}
 		else if (data["type"] === "coordinates"){
 			display_remote(data["coordinates"]);
@@ -1886,23 +1892,23 @@ async function startRemote(lobby_id){
 
 async function remoteUp(id){
 	console.log(id);
-	console.log("pressed");
+	console.log("pressed up");
+	gameSocket.send(JSON.stringify({"movement": "up", "player": id}));
 }
 
 async function remoteDown(id){
 	console.log(id)
-	console.log("pressed");
+	console.log("pressed down");
+	gameSocket.send(JSON.stringify({"movement": "down", "player": id}));
 }
 
 function display_remote(data)
 {
-
 	let ball = document.getElementById('ball');
 	let game = document.getElementById('pongGame');
 	let headerbar = document.getElementById('header-bar');
 	let player1 = document.getElementById('player1');
 	let player2 = document.getElementById('player2');
-	
 
 	if ('p1Rounds' in data){
 		playSound("ring");
