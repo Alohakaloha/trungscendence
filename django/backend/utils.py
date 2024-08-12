@@ -1,9 +1,12 @@
 import re
 
 def validateEmail(email):
-	regex = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}$'
-	if re.fullmatch(regex, email):
-		return True
+
+	email_regex = r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+	max_length = 49
+
+	if len(email) > 0 and len(email) <= max_length and not ' ' in email:
+		return bool(re.fullmatch(email_regex, email))
 	return False
 
 def validatePassword(password):
@@ -13,7 +16,5 @@ def validatePassword(password):
 	return False
 
 def validateUsername(username):
-	if len(username) < 3 or ' ' in username:
-		return False
-	return True
+	return len(username) >= 3 and len(username) <= 25 and ' ' not in username
 
