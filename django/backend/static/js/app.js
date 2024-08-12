@@ -4,7 +4,7 @@ const content = document.getElementById('content');
 const chat = document.getElementById('chat');
 let uidb64;
 let token;
-let inviteID;
+let inviteID = null;
 let jsFile;
 
 window.onpopstate = function(event) {
@@ -135,6 +135,9 @@ async function handleRouting() {
 			case '/':
 				jsFile = './welcome.js';
 				showPage("main.html");
+				if (user.authenticated){
+					openingChat();
+				}
 				break;
 			case '/chat':
 				  showPage(`${page.slice(1)}/${page.slice(1)}.html`);
@@ -591,7 +594,10 @@ async	function gameInvite(user, receiver) {
 			if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN){
 				await lobbySocket.send(JSON.stringify({"request":"invite"}));
 			}
-				console.log("inviteID: " + inviteID);
+			if (inviteID === null){
+				displaySystemMessage("Create a game lobby before sending an invite");
+				return
+			}
 				const invite = {
 					"type": "invitation",
 					"sender": user,
@@ -1125,7 +1131,7 @@ function createDropdownItem(text, onClickHandler) {
 			if (messageData.type === "invitation") {
 				logMessage('info', `Invitation for ${user.username} from ${messageData.sender}`);
 				if (messageData.receiver === user.username) {
-					displayToastMessage(`Game invite from ${messageData.sender}`, "info");
+					displayToastMessage(`Game invite from ${messageData.sender} lobbyID: ${messageData.lobbyID}`, "info");
 				}
 				else {
 					logMessage('info', `Invitation from ${messageData.sender} is not for ${user.username}`);
