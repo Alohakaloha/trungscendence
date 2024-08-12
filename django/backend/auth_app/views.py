@@ -227,11 +227,14 @@ def unfriend_view(request, user_id):
 
 def getUserData_view(request):
 	if request.user.is_authenticated:
+		profilePic = request.user.profile_picture.url
+		if request.user.oauth_created:
+			profilePic=request.user.oauth_pic_url
 		user_data = {
 			'authenticated': True,
 			'email' : request.user.email,
 			'username' : request.user.username,
-			'profile_picture' : request.user.profile_picture.url
+			'profile_picture' : profilePic
 		}
 	else:
 		user_data = {'authenticated': False}
@@ -242,10 +245,14 @@ def friends_list_view(request):
 		friends = request.user.friends.all()
 		friends_list = []
 		for friend in friends:
+			print(f"friend: {friend} ", file=sys.stderr)
+			profilePic = friend.profile_picture.url
+			if friend.oauth_created:
+				profilePic = friend.oauth_pic_url
 			friends_list.append({
 				'user_id': friend.user_id,
 				'username': friend.username,
-				'profile_picture': friend.profile_picture.url
+				'profile_picture': profilePic
 			})
 		return JsonResponse({'friends': friends_list})
 	else:
@@ -255,8 +262,21 @@ def all_user(request):
 	if request.user.is_authenticated:
 		users = AppUser.objects.exclude(user_id=request.user.user_id)
 		users = users.exclude(user_id__in=request.user.friends.values_list('user_id', flat=True))
-		serialized_users = list(users.values('user_id', 'username', 'profile_picture'))
+		
+		serialized_users = []
+		for user in users:
+			profilePic = user.profile_picture.url
+			if user.oauth_created:
+				profilePic = user.oauth_pic_url
+			
+			serialized_users.append({
+				'user_id': user.user_id,
+				'username': user.username,
+				'profile_picture': profilePic
+			})
+		
 		return JsonResponse({'users': serialized_users})
+
 
 def resetPassword(request, uidb64, token):
 	if (request.method == 'GET'):

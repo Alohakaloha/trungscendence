@@ -783,6 +783,7 @@ function renderFriendList(user, list) {
     }
 
     for (let friend of list.friends) {
+		console.log(friend)
         let friendDiv = document.createElement('div');
         friendDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
@@ -837,6 +838,7 @@ function renderAllUsersList(user, allUsers) {
     }
 
     for (let otherUser of allUsers.users) {
+		console.log(otherUser)
         let userDiv = document.createElement('div');
         userDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
