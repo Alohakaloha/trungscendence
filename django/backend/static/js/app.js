@@ -519,7 +519,6 @@ if (toastTrigger) {
 			console.error('Error fetching user data', error);
 			return null;
 		}
-		
 	}
 
 	async function fetchUserDataById(user_id){
@@ -1695,13 +1694,10 @@ async function join_lobby(requestType){
 			return;
 		}
 	}
-	else if(requestType === "invite"){
 
-	}
 
 	if(!lobbySocket || lobbySocket.readyState === WebSocket.CLOSED)
 	{
-		console.log("no lobby socket");
 		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_lobby/' + lobbyID);
 	}	
 
@@ -1804,24 +1800,38 @@ function usermatchdown() {
 async function startRemote(lobby_id){
 	// Customisations
 	sounds = document.getElementById('localSound').checked;
-	let p1Color = document.querySelector('input[name="player1Color"]:checked').value;
-
+	let color = document.querySelector('input[name="player1Color"]:checked').value;
+	let p1Color;
+	let p2Color;
 	fetch('/game/pong.html')
-		.then(response => response.text())
-		.then(data => {
-			document.getElementById('content').innerHTML = data;
-			
-		})
-		.catch(error => console.log(error));
-	console.log('vars: ' + sounds + ', ' + p1Color);
+	.then(response => response.text())
+	.then(data => {
+		document.getElementById('content').innerHTML = data;
+		const p1Color = document.getElementById("player1");
+        const p2Color = document.getElementById("player2");
+        
+        // Apply styles to the elements
+        const color = "#ff0000"; // Example color, replace with your variable
+        p1Color.style.boxShadow = "-5px 0px 3px " + color;
+        p2Color.style.boxShadow = "5px 0px 3px " + color;
+	})
+	.catch(error => console.log(error));
+
+
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/remote_match/' + lobby_id);
+	
 
 	gameSocket.onopen = function(){
 		
 	}
 
 	gameSocket.onmessage = function(event){
-	
+		data = JSON.parse(event.data);
+		console.log(data);
+		if (data["type"] === "start"){
+			console.log("game started");
+			gameSocket.send(JSON.stringify({"type": "start"}));
+		}
 	}
 
 	gameSocket.onclose = function(){

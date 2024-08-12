@@ -24,6 +24,7 @@ class Player:
 		self.ball = Ball()
 		self.score = Rules()
 
+
 	def status(self):
 		status_data = {
 			"score1": self.score.player_1_score,
@@ -165,6 +166,7 @@ class Rules:
 		self.player_2_score = 0
 		self.winner = None
 		self.mirror = False
+		self.set = False
 
 	def scoring(self, gamePos):
 		if gamePos['ballx'] < 1.5:
@@ -206,6 +208,7 @@ class Rules:
 
 #updating settings
 	def settings(self, data):
+		logprint("setting settings")
 		self.score_to_win = int(data['score'])
 		self.rounds_to_win =int (data['rounds'])
 		if "mirror" in data:
@@ -216,7 +219,14 @@ class Rules:
 		else:
 			self.player_1_name = data['player1']
 			self.player_2_name = data['player2']
+		self.rules = True
+		
 
+	def print_settings(self):
+		logprint("Score to win: ", self.score_to_win)
+		logprint("Rounds to win: ", self.rounds_to_win)
+		logprint("Player 1: ", self.player_1_name)
+		logprint("Player 2: ", self.player_2_name)
 
 
 
