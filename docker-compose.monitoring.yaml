@@ -13,6 +13,22 @@ volumes:
     driver: local
 
 services:
+  django:
+    container_name: django
+    depends_on:
+      es01:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:8000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 100
+      start_period: 60s
+
   prometheus:
     image: prom/prometheus:v2.45.6
     container_name: prometheus
@@ -39,6 +55,9 @@ services:
   grafana:
     image: grafana/grafana-oss:11.1.0-ubuntu
     container_name: grafana
+    depends_on:
+      django:
+        condition: service_healthy
     restart: unless-stopped
     environment:
       # increases the log level from info to debug
@@ -86,68 +105,40 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
+      - ./monitoring/setup/setup.sh:/root/setup.sh
     user: "0"
+    environment:
+    - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    - KIBANA_PASSWORD=${KIBANA_PASSWORD}
     command: >
-      bash -c '
-        if [ x${ELASTIC_PASSWORD} == x ]; then
-          echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
-          exit 1;
-        elif [ x${KIBANA_PASSWORD} == x ]; then
-          echo "Set the KIBANA_PASSWORD environment variable in the .env file";
-          exit 1;
-        fi;
-        if [ ! -f config/certs/ca.zip ]; then
-          echo "Creating CA";
-          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
-          unzip config/certs/ca.zip -d config/certs;
-        fi;
-        if [ ! -f config/certs/certs.zip ]; then
-          echo "Creating certs";
-          echo -ne \
-          "instances:\n"\
-          "  - name: es01\n"\
-          "    dns:\n"\
-          "      - es01\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          "  - name: es02\n"\
-          "    dns:\n"\
-          "      - es02\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          "  - name: es03\n"\
-          "    dns:\n"\
-          "      - es03\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          "  - name: kibana\n"\
-          "    dns:\n"\
-          "      - kibana\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          > config/certs/instances.yml;
-          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-          unzip config/certs/certs.zip -d config/certs;
-        fi;
-        echo "Setting file permissions"
-        chown -R root:root config/certs;
-        find . -type d -exec chmod 750 \{\} \;;
-        find . -type f -exec chmod 640 \{\} \;;
-        echo "Waiting for Elasticsearch availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es01:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
-        echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-        echo "All done!";
-      '
+      bash /root/setup.sh
     healthcheck:
       test: ["CMD-SHELL", "[ -f config/certs/es01/es01.crt ]"]
       interval: 1s
       timeout: 5s
       retries: 120
+    networks:
+      - t_network
+
+  provisioner:
+    container_name: provisioner
+    depends_on:
+      es01:
+        condition: service_healthy
+    build:
+      context: ./monitoring/provisioner
+      dockerfile: Dockerfile
+    user: "0"
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+      - ./monitoring/provisioner/provisioner.sh:/tmp/provisioner.sh
+    environment:
+      - ELASTIC_USER=${ELASTIC_USER}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST}
+    command:
+      - bash 
+      - /tmp/provisioner.sh
     networks:
       - t_network
 
@@ -202,8 +193,8 @@ services:
   kibana:
     container_name: kibana
     depends_on:
-      es01:
-        condition: service_healthy
+      provisioner:
+        condition: service_completed_successfully
     image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
     labels:
       co.elastic.logs/module: kibana
@@ -214,7 +205,7 @@ services:
       - ${KIBANA_PORT}:5601
     environment:
       - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=https://es01:9200
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOST}
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
@@ -254,7 +245,7 @@ services:
     environment:
       - NODE_NAME="logstash"
       - xpack.monitoring.enabled=false
-      - ELASTIC_USER=elastic
+      - ELASTIC_USER=${ELASTIC_USER}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ELASTIC_HOSTS=https://es01:9200
     command: logstash -f /usr/share/logstash/pipeline/logstash.conf
@@ -263,3 +254,12 @@ services:
     # mem_limit: ${LS_MEM_LIMIT}
     networks:
       - t_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "(curl --silent --fail -s -XGET localhost:9600 | grep -q 'green') || exit 1 ",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
