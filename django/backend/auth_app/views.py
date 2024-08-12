@@ -245,6 +245,7 @@ def getUserData_view(request):
 			'authenticated': True,
 			'email' : request.user.email,
 			'username' : request.user.username,
+
 			'profile_picture' : profilePic
 		}
 	else:
