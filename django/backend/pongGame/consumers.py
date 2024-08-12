@@ -457,11 +457,12 @@ class remote_lobby(AsyncWebsocketConsumer):
 					active_rooms[self.lobby] = [[data["user"]], 0]
 					await self.send(json.dumps({"url": "/match/lobby"}))
 				else:
+					await self.send(json.dumps({"type": "toast", "message": "Room already exists"}))
 					await self.channel_layer.group_discard(
 						self.room_group_name,
 						self.channel_name
 						)
-					self.disconnect(close_code=1000)
+					await self.disconnect(close_code=1000)
 			if data["request"] == "join":
 				if self.lobby in active_rooms:
 					logprint(active_rooms[self.lobby][0])
@@ -470,7 +471,8 @@ class remote_lobby(AsyncWebsocketConsumer):
 						await self.send(json.dumps({"url": "/match/lobby"}))
 						await self.channel_layer.group_send(self.room_group_name, {
 							"type": "chat_message",
-							"user": data["user"]
+							"user": data["user"],
+							"message": f"{data['user']} has joined"
 						})
 					else:
 						await self.send(json.dumps({"type": "toast", "message": "Cannot join room"}))
@@ -489,9 +491,11 @@ class remote_lobby(AsyncWebsocketConsumer):
 				await self.send(json.dumps({"url": "/match/lobby"}))
 			elif data["request"] == "status":
 				if data["status"] == "ready":
+					logprint(f"User {self.scope['user'].username} is ready")
 					await self.channel_layer.group_send(self.room_group_name, {
 						"type": "chat_message",
-						"user": self.scope["user"].username
+						"user": self.scope["user"].username,
+						"message": f"{self.scope['user'].username} is ready"
 					})
 					active_rooms[self.lobby][1] += 1
 					#await self.send(json.dumps({"status": "ready", "user": self.scope["user"].username}))
@@ -517,11 +521,13 @@ class remote_lobby(AsyncWebsocketConsumer):
 		await self.send(text_data=json.dumps({
 		"type": "toast",
 		"status" : "joined",
-		"user" :  user
+		"user" :  user,
+		"message" : event['message'],
 		}))
 
 	async def chat_match(self, event):
 		await self.send(text_data=json.dumps({
 		"type": "toast",
 		"status" : "playing",
+		"message" : "FIGHT!!!",
 		}))

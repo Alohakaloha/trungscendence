@@ -177,8 +177,10 @@ async function handleRouting() {
 						changeURL('/game', 'Game Page', {main : true});
 					break;
 				case '/profile':
-					if(user.authenticated)
+					if(user.authenticated){
 						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
+						openingChat();
+					}
 					else
 						changeURL('/login', 'Login Page', {main : true});
 					break;
@@ -378,7 +380,7 @@ async function getUidb_token(){
 //    \___|_| |_|\__,_|\__|
 // chat
 
-let debugMode = false; // Set to false to disable debug logs
+let debugMode = true; // Set to false to disable debug logs
 let openWindow = false;
 
 	function logMessage(type, message) {
@@ -1375,7 +1377,6 @@ function connectGame(settings, colors){
 			p2Color.style.boxShadow ="5px 0px 3px " + colors.p2Color;
 	}
 
-
 	let checkInput = setInterval(() => {
 		if (keysPressed['w']) {
 			player1up();
@@ -1555,7 +1556,6 @@ let tournamentRules;
 
 function bind_local_Tournament(localSettings){
  lobbySocket = new WebSocket('wss://' + window.location.host + '/ws/localTournament/'); //wss only
-
  lobbySocket.onopen = function(){
 	showPage('/game/localTournament.html');
 	lobbySocket.send(JSON.stringify(localSettings));
@@ -1573,7 +1573,6 @@ function bind_local_Tournament(localSettings){
 	else if('url' in data){
 		showPage(data["url"]);
 	}
-
  }
 
  lobbySocket.onclose = function(event){
@@ -1747,21 +1746,17 @@ async function join_lobby(requestType){
 	if(requestType === "join" || requestType === "created"){
 		lobbyID = document.getElementById('lobbyID').value.trim();
 		if(lobbyID === ""){
-			//todo change notification in toast not a valid lobby
-			console.log("lobbyID empty. return")
+			displayToastMessage("You need to enter a lobby name", "error");
 			return;
 		}
 	}
-	// else if(requestType === "invite"){
-
-	// }
 
 	if(!lobbySocket || lobbySocket.readyState === WebSocket.CLOSED)
 	{
-		console.log("no lobby socket");
+		console.log("creating lobby socket");
 		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_lobby/' + lobbyID);
 		inviteID = lobbyID;
-	}	
+	}
 
 	let settings = null;
 
@@ -1820,18 +1815,22 @@ async function join_lobby(requestType){
 		}
 		if ('type' in data){
 			if (data['type'] === 'toast'){
-				//TODO display toast message
-				console.log('wanna toast');
-				if (data['status'] === 'playing'){
-					// start remote match
+				if (data['status'] === 'joined'){
+					displayToastMessage(data['message'], "success");
+				}
+				else if (data['status'] === 'playing'){
+					displayToastMessage(data['message'], "warning");
 					startRemote(lobbyID);
 				}
+				else{
+					displayToastMessage(data['message'], "error");
+				}
 			}
-		}
-		if ('lobby_id' in data){
-			// inviteID = lobbyID
-			// inviteID = data['lobby_id'];
-			console.log('inviteID: ' + inviteID);
+			if (data['type'] === 'chat_message'){
+				if (data['status'] === 'ready'){
+					displayToastMessage(data['message'], "error");
+				}
+			}
 		}
 	}	
 }
