@@ -419,7 +419,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 				active_rooms[self.lobby]['rules'] = data['settings']
 			
 			elif data["request"] == "invite":
-				await self.send(json.dumps({self.lobby}))
+				await self.send(json.dumps(self.lobby))
 
 			elif data["request"] == "save":
 				#todo save game here
