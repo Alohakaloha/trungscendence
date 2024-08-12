@@ -1310,7 +1310,6 @@ function connectGame(settings, colors){
 	gameSocket.onopen = function(){
 		
 		gameSocket.send(JSON.stringify(settings));
-		frame = setInterval(()=> {})
 		requestUpdate = setInterval(() => {
 			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 20);
 			let p1Color = document.getElementById("player1");
@@ -1799,10 +1798,10 @@ function usermatchdown() {
 
 async function startRemote(lobby_id){
 	// Customisations
+	let updater;
+	const user = await fetchUserData();
 	sounds = document.getElementById('localSound').checked;
 	let color = document.querySelector('input[name="player1Color"]:checked').value;
-	let p1Color;
-	let p2Color;
 	fetch('/game/pong.html')
 	.then(response => response.text())
 	.then(data => {
@@ -1810,58 +1809,123 @@ async function startRemote(lobby_id){
 		const p1Color = document.getElementById("player1");
         const p2Color = document.getElementById("player2");
         
-        // Apply styles to the elements
-        const color = "#ff0000"; // Example color, replace with your variable
+        // Apply styles to the elements// Example color, replace with your variable
         p1Color.style.boxShadow = "-5px 0px 3px " + color;
         p2Color.style.boxShadow = "5px 0px 3px " + color;
 	})
 	.catch(error => console.log(error));
-
-
-	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/remote_match/' + lobby_id);
 	
+	if (!gameSocket || gameSocket.readyState === WebSocket.CLOSED)
+		gameSocket = new WebSocket('wss://' + window.location.host + '/ws/remote_match/' + lobby_id);
+	else{
+		console.log("???");
+		return;
+	}
 
 	gameSocket.onopen = function(){
-		
+		gameSocket.send(JSON.stringify({"type": "start"}));
+		checkInput = setInterval(() => {
+			console.log("check input");
+			if (keysPressed['w'])
+				remoteUp(user.user_id);
+			if (keysPressed['s'])
+				remoteDown(user.user_id);
+			}, 30);
 	}
+
+
+
+
 
 	gameSocket.onmessage = function(event){
 		data = JSON.parse(event.data);
-		console.log(data);
 		if (data["type"] === "start"){
-			console.log("game started");
-			gameSocket.send(JSON.stringify({"type": "start"}));
+			gameSocket.send(JSON.stringify({"update": "update"}));
+			updater = setInterval(() => {
+			gameSocket.send(JSON.stringify({ "update": "update"}))	}, 30);
+		}
+		else if (data["type"] === "coordinates"){
+			display_remote(data["coordinates"]);
+		}
+		else if (data["type"] === "end"){
+			let winner = document.getElementById('winner');
+			let winnerBtn = document.getElementById('winner-name');
+			winner.style.display = 'block';
+			winnerBtn.innerHTML = data. score.winner + " wins!";
+			let backBtn = document.getElementById('game-back');
+			backBtn.style.display = 'block';
+			playSound("game_over");
+			console.log(data.score);
+			if (lobbySocket.readyState === WebSocket.OPEN){
+				console.log("done");
+				lobbySocket.send(JSON.stringify(data.score));
+			}
+			if (updater)
+				clearInterval(updater);
+			if (checkInput)
+				clearInterval(checkInput);
+			gameSocket.close();
 		}
 	}
-
 	gameSocket.onclose = function(){
-		
+		if (updater) {
+			clearInterval(updater);
+			
+			updater = null;
+	
+		}
+		if (checkInput){
+			clearInterval(checkInput);
+		}
+	}
+	
+	gameSocket.onerror = function(error) {
+		console.log(`Error: ${error.message}`);};
+};
+
+
+async function remoteUp(id){
+	console.log(id);
+	console.log("pressed");
+}
+
+async function remoteDown(id){
+	console.log(id)
+	console.log("pressed");
+}
+
+function display_remote(data)
+{
+
+	let ball = document.getElementById('ball');
+	let game = document.getElementById('pongGame');
+	let headerbar = document.getElementById('header-bar');
+	let player1 = document.getElementById('player1');
+	let player2 = document.getElementById('player2');
+	
+
+	if ('p1Rounds' in data){
+		playSound("ring");
+		playerRounds(data.p1Rounds, data.p2Rounds);
 	}
 
-	gameSocket.onerror = function(error) {
-		console.log(`Error: ${error.message}`);
-	};
+	if("sounds" in data && sounds){
+		playSound(data.sound);
+	}
+	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
 
-	let checkInput = setInterval(() => {
-		if (keysPressed['w']) {
-			usermatchup();
-		}
-		if (keysPressed['s']) {
-			usermatchdown();
-		}
-		if(keysPressed['p']){
-			gameSocket.send(JSON.stringify({"pause": true}));
-			let pause = document.getElementById('pause-screen');
-			pause.innerHTML = 'Game Paused';
-			pause.style.display = 'block';
-			
-		}
-		if(keysPressed['k']){
-			let pause = document.getElementById('pause-screen');
-			pause.innerHTML = '';
-			pause.style.display = 'none';
-			gameSocket.send(JSON.stringify({"resume": true}));
-		}
-	}, 30);
+	ball.style.position = 'absolute';
+	ball.style.left = data.ballx + '%';
+	ball.style.top = data.bally + '%';
 
+
+	player1.style.position = 'absolute';
+	player1.style.left = data.x1 - 1 +'%';
+	player1.style.top = data.y1 + '%';
+	player1.style.transition = 'left 0.025s linear, top 0.025s linear';
+
+	player2.style.position = 'absolute';
+	player2.style.left = data.x2 + '%';
+	player2.style.top = data.y2 + '%';
+	player2.style.transition = 'left 0.025s linear, top 0.025s linear';
 }
