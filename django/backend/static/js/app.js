@@ -1002,14 +1002,8 @@ function createDropdownItem(text, onClickHandler) {
 			case 'lTournamentSetup':
 				index = 1; 
 				break;
-			case 'rTournamentSetup':
-				index = 2; 
-				break;
 			case 'versusSetup':
-				index = 3; 
-				break;
-			case 'spectatorMode':
-				index = 4; 
+				index = 2; 
 				break;
 			default:
 				index = 0; 
