@@ -4,6 +4,7 @@ const content = document.getElementById('content');
 const chat = document.getElementById('chat');
 let uidb64;
 let token;
+let inviteID;
 let jsFile;
 
 window.onpopstate = function(event) {
@@ -582,16 +583,22 @@ if (toastTrigger) {
 		}
 	}
 
-	function gameInvite(user, receiver) {
+async	function gameInvite(user, receiver) {
 		logMessage('info', `${receiver} got invited by ${user} to a game`);
 
-		let invite = {
-			"type": "invitation",
-			"sender": user,
-			"receiver": receiver,
-		};
-
+		
 		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+			if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN){
+				await lobbySocket.send(JSON.stringify({"request":"invite"}));
+			}
+				console.log("inviteID: " + inviteID);
+				const invite = {
+					"type": "invitation",
+					"sender": user,
+					"receiver": receiver,
+					"lobbyID": inviteID,
+				};
+				// inviteID = null;
 			logMessage('info', "Sending game invite:");
 			logMessage('info', JSON.stringify(invite));
 			chatSocket.send(JSON.stringify(invite));
@@ -974,6 +981,36 @@ function createDropdownItem(text, onClickHandler) {
 	
 	chat.addEventListener('click', openingChat);	
 
+	async function navigateToCarouselItem(setting) {
+		var carousel = document.getElementById('carouselExampleIndicators');
+		if (!carousel) {
+			console.error('Carousel not found');
+		}
+		var carouselInstance = new bootstrap.Carousel(carousel);
+	
+		var index;
+		switch(setting) {
+			case 'local':
+				index = 0; 
+				break;
+			case 'lTournamentSetup':
+				index = 1; 
+				break;
+			case 'rTournamentSetup':
+				index = 2; 
+				break;
+			case 'versusSetup':
+				index = 3; 
+				break;
+			case 'spectatorMode':
+				index = 4; 
+				break;
+			default:
+				index = 0; 
+		}
+	
+		carouselInstance.to(index);
+	}
 
 	function receiveMessage(messageData) {
 		logMessage('info', 'Received message');
@@ -988,9 +1025,10 @@ function createDropdownItem(text, onClickHandler) {
 			let sender = messageData.sender;
 			let message = messageData.message;
 			let directMessage = messageData.direct_message || false;
-	
+			let id;
 			// Create a button for invitation messages
 			if (messageData["type"] === 'invitation') {
+				id = messageData.lobbyID;
 				messageContainer = document.createElement('button');
 				messageContainer.className = 'invitation-container';
 			} else {
@@ -1018,7 +1056,14 @@ function createDropdownItem(text, onClickHandler) {
 			// Append the timestamp and content to the container
 			messageContainer.appendChild(messageTimestamp);
 			messageContainer.appendChild(messageContent);
-	
+			if (messageData["type"] === 'invitation') {
+				messageContainer.onclick = async function() {
+					await showPage(`game/setupGameMode.html`);
+					await callSettings('versusSetup')
+					const lobby = document.getElementById('lobbyID');
+					lobby.value = id;
+				}
+			}
 			// Append the message container to the chat text area
 			chatTextArea.appendChild(messageContainer);
 	
@@ -1035,7 +1080,7 @@ function createDropdownItem(text, onClickHandler) {
 		chatSocket.onmessage = function (event) {
 			let messageData = JSON.parse(event.data);
 			logMessage('info', 'Message received:', messageData);
-	
+			
 			switch (messageData["type"]) {
 				case "history":
 					logMessage('info', 'Processing chat history');
@@ -1053,6 +1098,7 @@ function createDropdownItem(text, onClickHandler) {
 					break;
 				case "invitation":
 					logMessage('info', 'Processing invitation type');
+					console.log(messageData);
 					receiveMessage(messageData);
 					break;
 				default:
@@ -1162,11 +1208,14 @@ function createDropdownItem(text, onClickHandler) {
 	async function callSettings(path) {
 		return await fetch("game/"+path+".html")
 		.then(response => response.text())
-		.then(data => {
+		.then(async data => {
 			let contentElement = document.getElementById('game-options');
-			if (contentElement)
-			contentElement.innerHTML = data;
-	})
+			if (contentElement){
+				contentElement.innerHTML = data;
+			}
+			console.log(path);
+			await navigateToCarouselItem(path);
+	} )
 	.catch(error => console.log(error));
 }
 
@@ -1703,12 +1752,16 @@ async function join_lobby(requestType){
 			return;
 		}
 	}
-	else if(requestType === "invite"){
+	// else if(requestType === "invite"){
 
-	}
+	// }
 
-	if(!lobbySocket)
+	if(!lobbySocket || lobbySocket.readyState === WebSocket.CLOSED)
+	{
+		console.log("no lobby socket");
 		lobbySocket =  new WebSocket('wss://' + window.location.host + '/ws/remote_lobby/' + lobbyID);
+		inviteID = lobbyID;
+	}	
 
 	let settings = null;
 
@@ -1729,6 +1782,7 @@ async function join_lobby(requestType){
 	}
 	lobbySocket.onclose = function(event){
 		console.log("remote closed ", event);
+		inviteID = null;
 	}
 
 	lobbySocket.onmessage = function(event){
@@ -1753,7 +1807,6 @@ async function join_lobby(requestType){
 				}
 			else if (data["status"] === "unready")
 			{
-			
 				fetchUserData().then(user => {
 				let player_list = document.getElementById("player-list");
 				let player_ready = document.getElementById(String(user.username));
@@ -1775,7 +1828,12 @@ async function join_lobby(requestType){
 				}
 			}
 		}
-	}
+		if ('lobby_id' in data){
+			// inviteID = lobbyID
+			// inviteID = data['lobby_id'];
+			console.log('inviteID: ' + inviteID);
+		}
+	}	
 }
 
 async function matchReady(){

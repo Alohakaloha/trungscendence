@@ -304,7 +304,6 @@ class localTournament(AsyncWebsocketConsumer):
 
 	async def receive(self, text_data):
 		data = json.loads(text_data)
-		logprint(data)
 		if "type" in data:
 			if data["type"] == "settings":
 				self.tournament.setRules(data)
@@ -444,13 +443,19 @@ class remote_lobby(AsyncWebsocketConsumer):
 			self.channel_name
 		)
 
+		if self.lobby in active_rooms:
+			active_rooms[self.lobby][0].remove(self.scope["user"].username)
+			if len(active_rooms[self.lobby][0]) == 0:
+				del active_rooms[self.lobby]
+		await self.close(close_code)
+
 	async def receive(self, text_data):
 		try:
 			data = json.loads(text_data)
 			if data["request"] == "created":
 				if self.lobby not in active_rooms:
-					active_rooms[self.lobby] = [data["users"], 0]
-					logprint(active_rooms[self.lobby])
+					active_rooms[self.lobby] = [[data["user"]], 0]
+					await self.send(json.dumps({"url": "/match/lobby"}))
 				else:
 					await self.channel_layer.group_discard(
 						self.room_group_name,
@@ -459,35 +464,31 @@ class remote_lobby(AsyncWebsocketConsumer):
 					self.disconnect(close_code=1000)
 			if data["request"] == "join":
 				if self.lobby in active_rooms:
+					logprint(active_rooms[self.lobby][0])
 					if len(active_rooms[self.lobby][0]) < 2:
 						active_rooms[self.lobby][0].append(data["user"])
-						logprint(active_rooms[self.lobby])
+						await self.send(json.dumps({"url": "/match/lobby"}))
 						await self.channel_layer.group_send(self.room_group_name, {
 							"type": "chat_message",
 							"user": data["user"]
 						})
 					else:
-						await self.send(json.dumps({"type": "toast", "message": "Room is full"}))
+						await self.send(json.dumps({"type": "toast", "message": "Cannot join room"}))
 						await self.channel_layer.group_discard(
 							self.room_group_name,
 							self.channel_name
 							)
-						self.disconnect(close_code=1000)
+						await self.disconnect(close_code=1000)
 				else:
 					await self.send(json.dumps({"type": "toast", "message": "Room does not exist"}))
-					await self.channel_layer.group_discard(
-						self.room_group_name,
-						self.channel_name
-						)
-					self.disconnect(close_code=1000)
+					await self.disconnect(close_code=1000)
+					logprint("Room does not exist")
 			
 			if data["request"] == "url":
 				logprint("url requested")
 				await self.send(json.dumps({"url": "/match/lobby"}))
 			elif data["request"] == "status":
 				if data["status"] == "ready":
-					logprint(self.room_group_name)
-					logprint("groupies")
 					await self.channel_layer.group_send(self.room_group_name, {
 						"type": "chat_message",
 						"user": self.scope["user"].username
@@ -497,12 +498,16 @@ class remote_lobby(AsyncWebsocketConsumer):
 			elif data["request"] == "created":
 				active_rooms[self.lobby].append(data['settings'])
 				logprint(active_rooms[self.lobby])
+			
+			elif data["request"] == "invite":
+				await self.send(json.dumps({"lobby_id":self.lobby}))
 			if self.lobby in active_rooms:	
 				if active_rooms[self.lobby][1] == 2:
 					# Start the game (sending message)
 					await self.channel_layer.group_send(self.room_group_name, {
 						"type": "chat_match",
 					})
+			
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data} 3")
 
@@ -511,7 +516,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 		user = event["user"]
 		await self.send(text_data=json.dumps({
 		"type": "toast",
-		"status" : "ready",
+		"status" : "joined",
 		"user" :  user
 		}))
 
