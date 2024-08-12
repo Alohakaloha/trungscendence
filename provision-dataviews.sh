@@ -10,8 +10,8 @@ docker exec -it es01 curl  --fail -s --cacert /usr/share/elasticsearch/config/ce
 -d'
 {
   "data_view": {
-     "title": "nginx4-*",
-     "name": "My nginx4 Data View"
+     "title": "nginx-*",
+     "name": "My nginx Data View"
   }
 }
 ' -v || exit 1
@@ -24,8 +24,8 @@ docker exec -it es01 curl  --fail -s --cacert /usr/share/elasticsearch/config/ce
 -d'
 {
   "data_view": {
-     "title": "django4-*",
-     "name": "My django4 Data View"
+     "title": "django-*",
+     "name": "My django Data View"
   }
 }
 ' -v || exit 1
