@@ -62,12 +62,10 @@ class tournamentHandler():
 			if(len(self.remaining) > 1):
 				self.nextUp = random.sample(self.remaining, 2)
 			elif(len(self.remaining) == 0 and len(self.nextStage) == 1):
-				logprint("winner set")
 				self.th_status = "finished"
 				self.winner = self.nextStage[0]
 				return
 			elif len(self.remaining) == 1 and len(self.nextStage) == 0:
-				logprint("winner set")
 				self.th_status = "finished"
 				self.winner = self.remaining
 				return

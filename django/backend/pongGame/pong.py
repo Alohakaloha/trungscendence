@@ -213,11 +213,9 @@ class Rules:
 		self.score_to_win = int(self.score_to_win)
 		
 		if self.player_1_rounds == self.rounds_to_win:
-			logprint("Player 1 wins")
 			self.winner = self.player_1_name
 			return True
 		elif self.player_2_rounds == self.rounds_to_win:
-			logprint("Player 2 wins")
 			self.winner = self.player_2_name
 			return True
 		return False
@@ -225,7 +223,6 @@ class Rules:
 
 #updating settings
 	def settings(self, data):
-		logprint("setting settings")
 		self.score_to_win = int(data['score'])
 		self.rounds_to_win =int (data['rounds'])
 		if "mirror" in data:
