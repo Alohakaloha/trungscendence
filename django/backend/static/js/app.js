@@ -1744,7 +1744,7 @@ async function tournamentMatch(){
 	}
 
 	gameSocket.onerror = function(error) {
-		logMessage(`Error: ${error.message}`);
+		logMessage('error',`Error: ${error.message}`);
 	};
 
 }

@@ -192,7 +192,6 @@ class localTournament(AsyncWebsocketConsumer):
 			elif data["type"] == 'match_result':
 				self.tournament.saveMatch(data)
 				self.tournament.nextMatch()
-				logprint(self.tournament.th_status)
 				if self.tournament.th_status == "finished":
 					await self.send(json.dumps(self.tournament.tournamentResults()))
 				else:
@@ -508,7 +507,6 @@ class remote_match(AsyncWebsocketConsumer):
 				active_rooms[self.lobby]['game'].score.next_round()
 				active_rooms[self.lobby]['game'].ball.reset_ball()
 				status = active_rooms[self.lobby]['game'].status()
-				logprint(status)
 				channel_layer = get_channel_layer()
 				await channel_layer.group_send(self.room_group_name,{
 						"type": "game.stats",
