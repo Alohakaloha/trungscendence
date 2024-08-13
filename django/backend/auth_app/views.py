@@ -133,8 +133,7 @@ def settings_view(request):
 		if all(value == '' for value in data.values()):
 			return JsonResponse({'status': 'error', 'message': 'No changes made'})
 		
-		user_id = request.user.user_id
-		user = AppUser.objects.get(user_id=user_id)
+		user = AppUser.objects.get(user_id=request.user.user_id)
 		try:
 			if 'email' in data:
 				new_email = data['email']
@@ -172,11 +171,13 @@ def settings_view(request):
 
 		if 'password' in data:
 			new_password = data['password']
-			
-		if not validatePassword(new_password):
+			if request.user.oauth_created:
+				return JsonResponse({'status': 'error', 'message': 'Password cannot be changed for OAuth users.'})
+			if not validatePassword(new_password):
 				return JsonResponse({'status': 'error', 'message': 'Invalid password.'})
-		
-		user.set_password(new_password)
+			if request.user.check_password(new_password):
+				return JsonResponse({'status': 'error', 'message': 'Password cannot be the same as current password.'})
+			user.set_password(new_password)
 		user.save()
 
 		return JsonResponse({'status':'success', 'message':'Settings updated successfully.'})
@@ -334,10 +335,9 @@ def resetPasswordForm(request, uidb64=None, token=None):
 			if not default_token_generator.check_token(user, token):
 				return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=400)
 
-			try:
-				validate_password(new_password)
-			except ValidationError as e:
-				return JsonResponse({'status': 'error', 'message': str(e)})
+
+			validatePassword(new_password)
+			
 			user.set_password(new_password)
 			user.save()
 			

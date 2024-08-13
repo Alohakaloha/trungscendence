@@ -146,6 +146,7 @@ async function settings(email, username, profile_picture, password, confirm_pass
 		if (responseData.status === "success") {
 			errorMsg.textContent = '';
 			successMsg.textContent = responseData.message;
+			changeURL('/login', 'login', {page: 'login'});
 		} else {
 			errorMsg.textContent = responseData.message;
 		}
