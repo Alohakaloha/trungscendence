@@ -1244,13 +1244,14 @@ function createDropdownItem(text, onClickHandler) {
 				contentElement.innerHTML = data;
 			}
 			console.log(path);
-			await navigateToCarouselItem(path);
+			//await navigateToCarouselItem(path);
 	} )
 	.catch(error => console.log(error));
 }
 
 // TODO check security concerns
 async function startLocal() {
+	console.log(document.querySelector('input[name="score"]:checked').value," and rounds", document.querySelector('input[name="roundsToWin"]:checked').value);
 	return await fetch("localmatch")
 	.then(response => response.text())
 	.then(data => {
@@ -1532,7 +1533,6 @@ function displayPong(data)
 	let headerbar = document.getElementById('header-bar');
 	let player1 = document.getElementById('player1');
 	let player2 = document.getElementById('player2');
-	
 	if('player_1_name' in data){
 		let name1 = document.getElementById('player1-name');
 		let name2 = document.getElementById('player2-name');
@@ -1549,12 +1549,13 @@ function displayPong(data)
 		playSound("ring");
 		playerRounds(data.p1Rounds, data.p2Rounds);
 	}
+	if (data['type'] === 'score')
+		return;
 	game.style.height = (window.innerHeight - headerbar.clientHeight) + 'px';
 
 	ball.style.position = 'absolute';
 	ball.style.left = data.ballx + '%';
 	ball.style.top = data.bally + '%';
-
 
 	player1.style.position = 'absolute';
 	player1.style.left = data.x1 - 1 +'%';
@@ -1870,6 +1871,12 @@ async function matchReady(){
 	}
 }
 
+async function leaveLobby(){
+	if(lobbySocket){
+		lobbySocket.send(JSON.stringify({"request":"leave"}))
+	}
+}
+
 async function matchUnready(){
 	if(lobbySocket){
 		lobbySocket.send(JSON.stringify({"request":"status", "status":"unready"}))
@@ -1916,6 +1923,7 @@ async function startRemote(lobby_id){
 
 	gameSocket.onopen = function(){
 		gameSocket.send(JSON.stringify({"type": "start"}));
+		gameSocket.send(JSON.stringify({"status": "status"}));
 		checkInput = setInterval(() => {
 			// console.log("check input");
 			if (keysPressed['w'])
@@ -1944,6 +1952,13 @@ async function startRemote(lobby_id){
 		}
 		else if (data["type"] === "coordinates"){
 			display_remote(data["coordinates"]);
+		}
+		else if (data["type"] === "rules"){
+			displayPong(data);
+		}
+		else if (data["type"] === "score"){
+			console.log("we are here");
+			displayPong(data);
 		}
 		else if (data["type"] === "end"){
 			let winner = document.getElementById('winner');

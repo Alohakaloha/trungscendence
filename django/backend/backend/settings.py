@@ -229,7 +229,7 @@ LOGGING = {
     },
     "loggers": {
         "root": {
-            "level": "DEBUG", 
+            "level": "CRITICAL", 
             "handlers": ["stdout", "file"],
         },
     },
