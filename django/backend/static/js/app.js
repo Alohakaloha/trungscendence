@@ -213,11 +213,11 @@ async function handleRouting() {
 					break;
 
 				case '/settings':
-					if (user.authenticated && !lobbySocket){
+					if (user.authenticated && (!lobbySocket || lobbySocket.readyState === WebSocket.CLOSED)){
 						jsFile='./settings.js';
 						showPage(`${page.slice(1)}/${page.slice(1)}.html`);
 					} 
-					else if(user.authenticated && lobbySocket){
+					else if(user.authenticated && lobbySocket ){
 						displayToastMessage("Game running, cannot change settings", "info");
 						changeURL('/game', 'Game Page', {main : true});
 					}

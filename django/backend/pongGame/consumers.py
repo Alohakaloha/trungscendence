@@ -28,6 +28,37 @@ def registerScore(data):
 	except Exception as e:
 		logprint(e)
 		raise e
+	
+def registerScoreRemote(data):
+	from .models import RemoteMatch
+	from auth_app.models import AppUser
+	table = {
+		'player_1' : AppUser.objects.get(username=data.get('player_1_name')),
+		'player_2' : AppUser.objects.get(username=data.get('player_2_name')),
+		'score_1' : data.get('player1_rounds'),
+		'score_2' : data.get('player2_rounds'),
+		'winner' : AppUser.objects.get(username=data.get('winner')),
+	}
+
+	table['player_1'].games += 1
+	table['player_2'].games += 1
+
+	if data.get('winner') == data.get('player_1_name'):
+		table['player_1'].wins += 1
+		table['player_2'].losses += 1
+	else:
+		table['player_1'].losses += 1
+		table['player_2'].wins += 1
+	
+	table["player_1"].save()
+	table["player_2"].save()
+
+	try:
+		local_match = RemoteMatch.objects.create(**table)
+		return local_match
+	except Exception as e:
+		logprint(e)
+		raise e
 
 #map users to the lobby 
 # class multimap:
@@ -548,6 +579,7 @@ class remote_match(AsyncWebsocketConsumer):
 						"request": "end",
 						"score": active_rooms[self.lobby]['game'].score.final_score(),
 					})
+				await sync_to_async(registerScoreRemote)(active_rooms[self.lobby]['game'].score.final_score())
 				return
 			await asyncio.sleep(self.fps)
 

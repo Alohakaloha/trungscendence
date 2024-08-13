@@ -43,7 +43,6 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     games = models.IntegerField(blank=True, null=True, default=0)
     wins = models.IntegerField(blank=True, null=True, default=0)
     losses = models.IntegerField(blank=True, null=True, default=0)
-    draws = models.IntegerField(blank=True, null=True, default=0)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     last_online = models.DateTimeField(blank=True, null=True)
