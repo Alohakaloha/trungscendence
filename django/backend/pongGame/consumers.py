@@ -330,7 +330,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 			data = json.loads(text_data)
 			if data["request"] == "created":
 				if self.lobby not in active_rooms:
-					active_rooms[self.lobby] = {'users': [data["user"]], 'active_users': []}
+					active_rooms[self.lobby] = {'users': [data["user"]], 'active_users': set()}
 					await self.send(json.dumps({"url": "/match/lobby"}))
 				else:
 					await self.send(json.dumps({"type": "toast", "message": "Room already exists"}))
@@ -369,7 +369,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 						"user": self.scope["user"].username,
 						"message": f"{self.scope['user'].username} is ready"
 					})
-					active_rooms[self.lobby]['active_users'].append(self.scope["user"].username)
+					active_rooms[self.lobby]['active_users'].add(self.scope["user"].username)
 					#await self.send(json.dumps({"status": "ready", "user": self.scope["user"].username}))
 			elif data["request"] == "created":
 				active_rooms[self.lobby]['rules'] = data['settings']
@@ -389,6 +389,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 				if self.lobby in active_rooms:
 					if self.scope["user"].username in active_rooms[self.lobby]['users']:
 						active_rooms[self.lobby]['users'].remove(self.scope["user"].username)
+						active_rooms[self.lobby]['active_users'].remove(self.scope["user"].username)
 					if len(active_rooms[self.lobby]['users']) == 0:
 						del active_rooms[self.lobby]
 					await self.disconnect(close_code=1000)

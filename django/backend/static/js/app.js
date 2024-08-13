@@ -99,6 +99,10 @@ async function handleRouting() {
 		gameSocket.close();
 	}
 
+	if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN){
+		lobbySocket.close();
+	}
+
 	if(page.startsWith("/details/")){
 		const parts = page.split("/");
 		unique_id = parts[2]; // Extract the unique ID from the URL
@@ -1797,22 +1801,8 @@ async function join_lobby(requestType){
 					if (user.username === data["user"]){
 						let readyBtn = document.getElementById('vs_ready');
 						readyBtn.style.display = "none";
-						let unready = document.getElementById('vs_unready');
-						unready.style.display = "block";
 					}
 				}
-			else if (data["status"] === "unready")
-			{
-				fetchUserData().then(user => {
-				let player_list = document.getElementById("player-list");
-				let player_ready = document.getElementById(String(user.username));
-				player_list.removeChild(player_ready);
-				;})
-				let readyBtn = document.getElementById('vs_ready');
-				readyBtn.style.display = "block";
-				let unready = document.getElementById('vs_unready');
-				unready.style.display = "none";
-			}
 		}
 		if (data.hasOwnProperty('type')){
 			if (data['type'] === 'toast'){
@@ -1821,7 +1811,9 @@ async function join_lobby(requestType){
 				}
 				else if (data['status'] === 'playing'){
 					displayToastMessage(data['message'], "warning");
-					startRemote(lobbyID);
+					if (lobbyID) {
+						startRemote(lobbyID);
+					}
 				}
 				else{
 					displayToastMessage(data['message'], "error");
@@ -1847,18 +1839,9 @@ async function matchReady(){
 }
 
 async function leaveLobby(){
-	if(lobbySocket){
+	if(lobbySocket && lobbySocket.readyState === WebSocket.OPEN){
 		lobbySocket.send(JSON.stringify({"request":"leave"}))
-	}
-}
-
-async function matchUnready(){
-	if(lobbySocket){
-		lobbySocket.send(JSON.stringify({"request":"status", "status":"unready"}))
-		logMessage('info', "request status change")
-	}
-	else{
-		changeURL("/game");
+		changeURL("/")
 	}
 }
 
