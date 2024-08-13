@@ -103,8 +103,8 @@ class Ball:
 		self.x = 50
 		self.y = 50
 		self.radius = 1.5
-		# change back to 0.4
-		self.speed = 2
+		# change back to 0.5
+		self.speed = 0.5
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
 

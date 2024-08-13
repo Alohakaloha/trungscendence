@@ -102,7 +102,7 @@ class localPongGameConsumer(AsyncWebsocketConsumer):
 			if self.player.ball.collision(self.player):
 				if self.player.ball.speed < 1.2:
 					# change back to 0.03 after testing
-					self.player.ball.speed += 1
+					self.player.ball.speed += 0.03
 				self.player.ball.direction_x = -self.player.ball.direction_x
 				await self.send(json.dumps(self.player.Player_Sound()))
 			if self.player.ball.wall_collision():
