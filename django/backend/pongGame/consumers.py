@@ -415,7 +415,6 @@ class remote_lobby(AsyncWebsocketConsumer):
 		}))
 
 	async def ready_message(self, event):
-		logprint(f'{event}')
 		user = event["user"]
 		await self.send(text_data=json.dumps({
 		"type": "toast",
