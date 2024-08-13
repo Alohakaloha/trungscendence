@@ -16,5 +16,6 @@ def validatePassword(password):
 	return False
 
 def validateUsername(username):
-	return len(username) >= 3 and len(username) <= 25 and ' ' not in username
+	return username.isalnum() and len(username) >= 3 and len(username) <= 25
+
 

@@ -52,13 +52,13 @@ def profile(request, **kwargs):
 						'winner': winner,
 						'tie': tie
 					})
+				print('friendUser: ', friendUser, file=sys.stderr)
 				friendUserStats = {
 					'username': friendUser.username,
-					'profile_picture': friendUser.profile_picture.url,
+					'profile_picture': friendUser.profile_picture.url if not friendUser.oauth_created else friendUser.oauth_pic_url,
 					'games_played': friendUser.games,
 					'wins': friendUser.wins,
 					'losses': friendUser.losses,
-					'draws': friendUser.draws,
 					'games_history': games_history
 					}
 				return JsonResponse({"status": "success", 'stats': friendUserStats})
@@ -126,6 +126,13 @@ def settings_view(request):
 	
 	elif request.method == 'POST':
 		data = json.loads(request.body)
+
+		if not data:
+			return JsonResponse({'status': 'error', 'message': 'No data provided'})
+		
+		if all(value == '' for value in data.values()):
+			return JsonResponse({'status': 'error', 'message': 'No changes made'})
+		
 		user_id = request.user.user_id
 		user = AppUser.objects.get(user_id=user_id)
 		try:
@@ -157,7 +164,10 @@ def settings_view(request):
 			image_data = base64.b64decode(imgstr)
 			
 			filename = "{}.{}".format(uuid.uuid4(), 'jpg')
+
 			user.profile_picture.save(filename, ContentFile(image_data), save=True)
+			if user.oauth_created:
+				user.oauth_pic_url = user.profile_picture.url
 			user.save()
 
 		if 'password' in data:

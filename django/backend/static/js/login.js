@@ -4,7 +4,6 @@ let loginBtn;
 
 
  function loginBtnClickHandler(event){
-	console.log("login button clicked");
 	event.preventDefault();
 	let email = document.getElementById("email").value;
 	let password = document.getElementById("password").value;
@@ -15,13 +14,11 @@ export function init() {
 	return new Promise((resolve, reject) => {
 		loginBtn = document.getElementById('loginBtn');
 		if (loginBtn) {
-			console.log("login button found");
 			loginBtn.addEventListener('click', (event) => loginBtnClickHandler(event));
 			// Resolve the promise if everything is successful
 			resolve();
 		} else {;
 			// Reject the promise if the login button is not found
-			console.log("login button not found");
 			reject(new Error("Login button not found"))
 		}
 	});
@@ -32,7 +29,6 @@ export function unload() {
 		loginBtn = document.getElementById('loginBtn');
 		if (loginBtn) {
 			loginBtn.removeEventListener('click', loginBtnClickHandler);
-			console.log("login button unloaded");
 			// Resolve the promise if everything is successful
 			resolve();
 		} else {

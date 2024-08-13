@@ -60,82 +60,10 @@ def registerScoreRemote(data):
 		logprint(e)
 		raise e
 
-#map users to the lobby 
-# class multimap:
-# 	def __init__(self):
-# 		self.map = {}
-
-# 	def add(self, key, value):
-# 		if key not in self.map:
-# 			self.map[key] = []
-# 		self.map[key].append(value)
-
-# 	def remove(self, key, value=None):
-# 		if key in self.map:
-# 			if value is None:
-# 				del self.map[key]
-# 		elif value in self.map[key]:
-# 			self.map[key].remove(value)
-# 			if not self.map[key]:
-# 				del self.map[key]
-
-# 	def lobby_exist(self, id):
-# 		for item in self.map.values():
-# 			if isinstance(item, list):
-# 				for sub_item in item:
-# 					if isinstance(sub_item, dict) and 'lobby' in sub_item:
-# 						if sub_item['lobby'] == id:
-# 							return True
-# 		return False
-
-
-# 	def find_lobby(self, user_id):
-# 		for item in self.get(user_id):
-# 			if isinstance(item, dict) and 'lobby' in item:
-# 				return item['lobby']
-# 		return None
-
-# 	def remove_all(self, key):
-# 		if key in self.map:
-# 			del self.map[key]
-
-
-# 	def get(self, key):
-# 		return self.map.get(key, [])
-
-# 	def get_all(self):
-# 		return self.map
-
-# 	def print_multimap(self):
-# 		for key, values in self.map.items():
-# 			logprint(f"{key}: {values}")
-
-
 def logprint(*args, **kwargs):
 	print(*args, file=sys.stderr, **kwargs)
 
-# user_mapping = multimap()
 active_rooms = {}
-
-
-# def find_channel(lobby_id):
-# 	user_channels = {}
-# 	if lobby_id in active_rooms:
-# 		users_in_lobby = active_rooms[lobby_id][0]  # Get the list of user IDs in the lobby
-
-# 		for user_id in users_in_lobby:
-# 			user_details = user_mapping.get(user_id)
-# 			if user_details:
-# 				for detail in user_details:
-# 					if 'channel' in detail:
-# 						user_channels[user_id] = detail['channel']
-# 						break  # Assuming each user has only one channel
-# 	return user_channels
-
-
-# def generate_random_string(length=5):
-# 	letters = string.ascii_lowercase
-# 	return ''.join(random.choice(letters) for i in range(length))
 
 class localPongGameConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
@@ -431,14 +359,11 @@ class remote_lobby(AsyncWebsocketConsumer):
 				else:
 					await self.send(json.dumps({"type": "toast", "message": "Room does not exist"}))
 					await self.disconnect(close_code=1000)
-					logprint("Room does not exist")
 			
 			if data["request"] == "url":
-				logprint("url requested")
 				await self.send(json.dumps({"url": "/match/lobby"}))
 			elif data["request"] == "status":
 				if data["status"] == "ready":
-					logprint(f"User {self.scope['user'].username} is ready")
 					await self.channel_layer.group_send(self.room_group_name, {
 						"type": "ready.message",
 						"user": self.scope["user"].username,
@@ -454,11 +379,9 @@ class remote_lobby(AsyncWebsocketConsumer):
 
 			elif data["request"] == "save":
 				#todo save game here
-				logprint("Game saved")		
 				if self.lobby in active_rooms:
 					if self.scope["user"].username in active_rooms[self.lobby]['users']:
 						active_rooms[self.lobby]['users'].remove(self.scope["user"].username)
-						logprint(active_rooms[self.lobby])
 					if len(active_rooms[self.lobby]['users']) == 0:
 						del active_rooms[self.lobby]
 					await self.disconnect(close_code=1000)
@@ -482,7 +405,6 @@ class remote_lobby(AsyncWebsocketConsumer):
 			logprint(f"Invalid JSON: {text_data} 3")
 
 	async def chat_message(self, event):
-		logprint(f'{event}')
 		user = event["user"]
 		await self.send(text_data=json.dumps({
 		"type": "toast",
@@ -523,7 +445,6 @@ class remote_lobby(AsyncWebsocketConsumer):
 class remote_match(AsyncWebsocketConsumer):
 	async def connect(self):
 		# player_class
-		logprint("connected")
 		self.lobby = self.scope['url_route']['kwargs']['room_name']
 		self.room_group_name = self.lobby
 
@@ -598,7 +519,6 @@ class remote_match(AsyncWebsocketConsumer):
 					})
 			if active_rooms[self.lobby]['game'].score.game_end():
 				game_task = active_rooms[self.lobby]['game']
-				logprint("game_end")
 				active_rooms[self.lobby]['ongoing'] = False
 				channel_layer = get_channel_layer()
 				await channel_layer.group_send(self.room_group_name,{
@@ -654,8 +574,6 @@ class remote_match(AsyncWebsocketConsumer):
 			logprint(f"Invalid JSON: {text_data}")
 
 	async def match_start(self, event):
-		logprint("inside match_start")
-		logprint(f'{event}')
 		message = event["message"]
 		request = event["request"]
 

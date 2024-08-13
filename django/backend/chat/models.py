@@ -43,15 +43,6 @@ class Chat(models.Model):
         except Exception as e:
             logprint(e)
             return None
-        # if chat.exists():
-        #  logprint("Chat found")
-        #  return chat.first()
-        # else:
-        #     logprint("Creating a new chat")
-        #     new_chat = Chat(participant1=participant1, participant2=participant2)
-        #     new_chat.save()
-        #     return new_chat
-
 
     def load_history(self, sender, receiver):
         try:
@@ -60,7 +51,6 @@ class Chat(models.Model):
                 Q(participant1=receiver, participant2=sender)
             ).first()
             if chat is None:
-                logprint("Creating a new chat")
                 chat = Chat.objects.create(participant1=sender, participant2=receiver)
             # Fetch the newest 5 messages by ordering them in descending order of timestamp
             newest_messages = Message.objects.filter(chat=chat).order_by('-timestamp')[:5]
@@ -76,7 +66,7 @@ class Chat(models.Model):
             "type": "history",
             "conversation": [
                 {
-                    "sender": message.sender.username,
+                 "sender": message.sender.username,
                     "message": message.content,
                     "timestamp": timezone.localtime(message.timestamp).strftime("%d.%m.%Y %H:%M"),
                     'direct_message': True

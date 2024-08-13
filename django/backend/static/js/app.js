@@ -6,6 +6,8 @@ let uidb64;
 let token;
 let inviteID = null;
 let jsFile;
+let debugMode = false; // Set to false to disable debug logs
+
 
 window.onpopstate = function(event) {
 	handleRouting();
@@ -66,8 +68,7 @@ function unloadEvents(str) {
 		})
 		.catch((err) => {
 			// Handle the error
-			console.log(str);
-			console.error('=Failed to unload module', err);
+			console.error('Failed to unload module', err);
 		});
 }
 
@@ -93,6 +94,11 @@ function resetPwd(){
 async function handleRouting() {
 	let page = window.location.pathname;
 	let unique_id;
+
+	if (gameSocket && gameSocket.readyState === WebSocket.OPEN){
+		gameSocket.close();
+	}
+
 	if(page.startsWith("/details/")){
 		const parts = page.split("/");
 		unique_id = parts[2]; // Extract the unique ID from the URL
@@ -175,7 +181,7 @@ async function handleRouting() {
 						displayToastMessage("Please login first", "info");
 						break;
 					}
-					if(gameSocket)
+					if(gameSocket && gameSocket.readyState === WebSocket.OPEN)
 						showPage(`game/pong.html`);
 					else
 						changeURL('/game', 'Game Page', {main : true});
@@ -284,8 +290,8 @@ async function handleRouting() {
 					break;
 
 				default:
-					console.log('Page not found');
-					console.log(window.location.pathname);
+					logMessage('error','Page not found');
+					logMessage('error',window.location.pathname);
 					break;
 			}
 		}
@@ -357,24 +363,13 @@ async function currentJS() {
 			.then(data => {
 				document.getElementById('content').innerHTML = data;
 			})
-			.catch(error => console.log(error));
+			.catch(error => logMessage('error',error));
 		}
 	
 	// part for background change in settings
 	let background = ["none", "/staticstuff/images/background.jpg", "/staticstuff/images/black.jpg" ];
 	let i = 0;
 	
-	function changeBg() {
-		i = (i + 1) % background.length; 
-		if (background[i] === "none") {
-			document.body.style.backgroundImage = background[i];
-		} else {
-			document.body.style.backgroundImage = `url(${background[i]})`;
-		}
-		console.log(document.body.style.backgroundImage);
-	}
-
-
 	const observer = new MutationObserver(() => {
 		if (jsFile) {
 			loadModule(jsFile);
@@ -407,10 +402,9 @@ async function getUidb_token(){
 //    \___|_| |_|\__,_|\__|
 // chat
 
-let debugMode = true; // Set to false to disable debug logs
 let openWindow = false;
 
-	function logMessage(type, message) {
+	function logMessage(type , message) {
 		const timestamp = new Date().toLocaleString('en-GB', { 
 			day: '2-digit', 
 			month: '2-digit', 
@@ -419,6 +413,7 @@ let openWindow = false;
 			minute: '2-digit', 
 			second: '2-digit' 
 		}).replace(',', '');
+
 
 		if (debugMode) {
 			switch(type) {
@@ -475,7 +470,6 @@ if (toastTrigger) {
 	
 		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
 			logMessage('info', "Sending chat message:");
-			logMessage('info', JSON.stringify(chatRoom));
 			chatSocket.send(JSON.stringify(chatRoom));
 		} else {
 			logMessage('error', "Unable to send message: WebSocket not open or not initialized.");
@@ -521,7 +515,6 @@ if (toastTrigger) {
 	
 		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
 			logMessage('info', "Sending block request:");
-			logMessage('info', JSON.stringify(block));
 			chatSocket.send(JSON.stringify(block));
 		} else {
 			logMessage('error', "Unable to send block request: WebSocket not open or not initialized.");
@@ -538,7 +531,6 @@ if (toastTrigger) {
 
 		if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
 			logMessage('info', "Sending unblock request:");
-			logMessage('info', JSON.stringify(unblock));
 			chatSocket.send(JSON.stringify(unblock));
 		} else {
 			logMessage('error', "Unable to send unblock request: WebSocket not open or not initialized.");
@@ -575,7 +567,6 @@ if (toastTrigger) {
 		div = document.createElement('div');
 		let stats = data.stats;
 		let games_history = stats.games_history;
-		console.log(data);
 		div.innerHTML = `
 			<h1> ${stats.username}</h1>
 			<img src="${stats.profile_picture}" class="rounded-circle" width="100" height="100">
@@ -583,7 +574,6 @@ if (toastTrigger) {
 				<li> games played: ${stats.games_played}</li>
 				<li> wins: ${stats.wins} </li>
 				<li> losses: ${stats.losses} </li>
-				<li> draws: ${stats.draws} </li>
 				<h5> Recent Games: </h5>
 				${stats.games_played > 0 ? games_history.slice(0, 5).map(game => 
 						`<ul>
@@ -632,9 +622,7 @@ async	function gameInvite(user, receiver) {
 					"receiver": receiver,
 					"lobbyID": inviteID,
 				};
-				// inviteID = null;
 			logMessage('info', "Sending game invite:");
-			logMessage('info', JSON.stringify(invite));
 			chatSocket.send(JSON.stringify(invite));
 		} else {
 			logMessage('error', "Unable to send game invite: WebSocket not open or not initialized.");
@@ -730,14 +718,10 @@ async function showSideChat() {
 
         let list = await fetchUserFriends();
 		let allUsers = await fetchAllUser();
-        logMessage('info', 'User friends fetched successfully: ' + JSON.stringify(list.friends));
-
         // Render UI components
         renderAllChat();
         renderNotifications();
         renderFriendList(user, list);
-		// console.log(list);
-		// console.log(allUsers);
 
 		renderAllUsersList(user, allUsers);
 
@@ -809,7 +793,6 @@ function renderFriendList(user, list) {
     }
 
     for (let friend of list.friends) {
-		console.log(friend)
         let friendDiv = document.createElement('div');
         friendDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
@@ -850,9 +833,7 @@ function renderAllUsersList(user, allUsers) {
     friendList.appendChild(allUsersContainer);
 
     allUsersHeader.onclick = function() {
-        logMessage('info', 'AllUserHeader clicked');
         allUsersContainer.classList.toggle('hidden');
-        logMessage('info', 'Toggled Alluser list visibility');
     };
 
     if (allUsers.length === 0) {
@@ -864,7 +845,6 @@ function renderAllUsersList(user, allUsers) {
     }
 
     for (let otherUser of allUsers.users) {
-		console.log(otherUser)
         let userDiv = document.createElement('div');
         userDiv.className = 'friend-window friends-window d-flex align-items-center justify-content-between';
 
@@ -1109,7 +1089,7 @@ function createDropdownItem(text, onClickHandler) {
 	
 		chatSocket.onmessage = function (event) {
 			let messageData = JSON.parse(event.data);
-			logMessage('info', 'Message received:', messageData);
+			logMessage('info', `Message received: ${messageData}`);
 			
 			switch (messageData["type"]) {
 				case "history":
@@ -1128,7 +1108,6 @@ function createDropdownItem(text, onClickHandler) {
 					break;
 				case "invitation":
 					logMessage('info', 'Processing invitation type');
-					console.log(messageData);
 					receiveMessage(messageData);
 					break;
 				default:
@@ -1193,7 +1172,6 @@ function createDropdownItem(text, onClickHandler) {
 		};
 	
 		logMessage('info', "Sending message:");
-		logMessage('info', message);
 	
 		if (chatSocket.readyState === WebSocket.OPEN) {
 			chatSocket.send(JSON.stringify(message));
@@ -1243,10 +1221,10 @@ function createDropdownItem(text, onClickHandler) {
 			if (contentElement){
 				contentElement.innerHTML = data;
 			}
-			console.log(path);
-			//await navigateToCarouselItem(path);
+			logMessage('info', path);
+			await navigateToCarouselItem(path);
 	} )
-	.catch(error => console.log(error));
+	.catch(error => logMessage('error', error));
 }
 
 // TODO check security concerns
@@ -1275,7 +1253,7 @@ async function startLocal() {
 	
 		initializeGame(localSettings, localColors);
 	})
-	.catch(error => console.log(error));
+	.catch(error => logMessage('error', error));
 }
 
 async function enterLocalTournament(){
@@ -1293,7 +1271,7 @@ async function enterLocalTournament(){
 		document.getElementById('lt-rounds').innerHTML = localSettings.rounds;
 		
 })
-.catch(error => console.log(error));
+.catch(error => logMessage('error', error));
 
 }
 
@@ -1369,7 +1347,7 @@ function initializeGame(settings, colors) {
 		document.getElementById('content').innerHTML = data;
 		connectGame(settings, colors);
 	})
-	.catch(error => console.log(error));
+	.catch(error => logMessage('error', error));
 }
 
 function playSound(sound){
@@ -1452,7 +1430,7 @@ function connectGame(settings, colors){
 			winnerBtn.innerHTML = data.winner + " wins!";
 			let backBtn = document.getElementById('game-back');
 			backBtn.style.display = 'block';
-			console.log("game over");
+			logMessage('info', "game over");
 			gameSocket.close();
 			playSound("game_over");
 			return;
@@ -1471,18 +1449,18 @@ function connectGame(settings, colors){
 
 	gameSocket.onclose = function(event){
 
-		console.log(event);
+		logMessage('info', event);
 		clearInterval(checkInput);
 		clearInterval(requestUpdate);
 		if (event.code === 1000) {
-			console.log(`Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+			logMessage('info', `Connection closed cleanly, code=${event.code} reason=${event.reason}`);
 		} else {
-			console.log('Connection died');
+			logMessage('error', 'Connection died');
 		}
 	}
 
 	gameSocket.onerror = function(error) {
-		console.log(`Error: ${error.message}`);
+		logMessage('error', `Error: ${error.message}`);
 	};
 }
 
@@ -1591,8 +1569,7 @@ function bind_local_Tournament(localSettings){
 
  lobbySocket.onmessage = function(event){
 	 let data = JSON.parse(event.data);
-	 console.log("tournament lobby")
-	 console.log(data);
+	 logMessage('info',"tournament lobby")
 	if(data.type === 'rules'){
 		 tournamentRules = data;
 	}
@@ -1605,9 +1582,9 @@ function bind_local_Tournament(localSettings){
 
  lobbySocket.onclose = function(event){
 	 if (event.code === 1000) {
-		 console.log(`Connection of LocalTournament closed cleanly, code=${event.code} reason=${event.reason}`);
+		 logMessage('info',`Connection of LocalTournament closed cleanly, code=${event.code} reason=${event.reason}`);
 	 } else {
-		 console.log('tournament closed ', event);
+		 logMessage('info','tournament closed ', event);
 	 }
 	lobbySocket = null;
  }
@@ -1637,7 +1614,7 @@ function updateTournament(data){
 }
 
 function localTournament(){
-	console.log("local tournament entered");
+	logMessage('info', "local tournament entered");
 	document.getElementById('stage').style.display = 'block';
 	document.getElementById('th-begin').style.display = 'none';
 	document.getElementById('th-cancel').style.display = 'none';
@@ -1656,7 +1633,7 @@ function tournamentMatch(){
 			document.getElementById('content').innerHTML = data;
 			
 		})
-		.catch(error => console.log(error));
+		.catch(error => logMessage('error',error));
 
 
 	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/');
@@ -1733,7 +1710,6 @@ function tournamentMatch(){
 			gameSocket.close();
 			sounds = false;
 			if (lobbySocket.readyState === WebSocket.OPEN){
-				console.log(data);
 				lobbySocket.send(JSON.stringify(data));
 			}
 			return;
@@ -1751,7 +1727,7 @@ function tournamentMatch(){
 	}
 
 	gameSocket.onerror = function(error) {
-		console.log(`Error: ${error.message}`);
+		logMessage(`Error: ${error.message}`);
 	};
 
 }
@@ -1802,16 +1778,15 @@ async function join_lobby(requestType){
 		}
 	}
 	lobbySocket.onclose = function(event){
-		console.log("remote closed ", event);
+		logMessage('info', "remote closed ", event);
 		inviteID = null;
 	}
 
 	lobbySocket.onmessage = function(event){
 		const data = JSON.parse(event.data);
-		console.log(data);
-		if('url' in data)
+		if(data.hasOwnProperty('url'))
 			showPage(data["url"]);
-		else if ('status' in data){
+		else if (data.hasOwnProperty("status")){
 			if (data["status"] === "ready"){
 				fetchUserData().then(user => {
 					let player_list = document.getElementById("player-list");
@@ -1839,7 +1814,7 @@ async function join_lobby(requestType){
 				unready.style.display = "none";
 			}
 		}
-		if ('type' in data){
+		if (data.hasOwnProperty('type')){
 			if (data['type'] === 'toast'){
 				if (data['status'] === 'joined'){
 					displayToastMessage(data['message'], "success");
@@ -1864,7 +1839,7 @@ async function join_lobby(requestType){
 async function matchReady(){
 	if(lobbySocket){
 		lobbySocket.send(JSON.stringify({"request":"status", "status":"ready"}))
-		console.log("request status change")
+		logMessage('info',"request status change")
 	}
 	else{
 		changeURL("/game");
@@ -1880,7 +1855,7 @@ async function leaveLobby(){
 async function matchUnready(){
 	if(lobbySocket){
 		lobbySocket.send(JSON.stringify({"request":"status", "status":"unready"}))
-		console.log("request status change")
+		logMessage('info', "request status change")
 	}
 	else{
 		changeURL("/game");
@@ -1900,6 +1875,7 @@ async function startRemote(lobby_id){
 	let updater;
 	const user = await fetchUserData();
 	sounds = document.getElementById('localSound').checked;
+
 	let color = document.querySelector('input[name="player1Color"]:checked').value;
 	fetch('/game/pong.html')
 	.then(response => response.text())
@@ -1912,12 +1888,12 @@ async function startRemote(lobby_id){
         p1Color.style.boxShadow = "-5px 0px 3px " + color;
         p2Color.style.boxShadow = "5px 0px 3px " + color;
 	})
-	.catch(error => console.log(error));
+	.catch(error => logMessage('error', error));
 	
 	if (!gameSocket || gameSocket.readyState === WebSocket.CLOSED)
 		gameSocket = new WebSocket('wss://' + window.location.host + '/ws/remote_match/' + lobby_id);
 	else{
-		console.log("???");
+		logMessage('info', "already connected");
 		return;
 	}
 
@@ -1925,7 +1901,6 @@ async function startRemote(lobby_id){
 		gameSocket.send(JSON.stringify({"type": "start"}));
 		gameSocket.send(JSON.stringify({"status": "status"}));
 		checkInput = setInterval(() => {
-			// console.log("check input");
 			if (keysPressed['w'])
 				remoteUp(user.username);
 			if (keysPressed['s'])
@@ -1968,9 +1943,8 @@ async function startRemote(lobby_id){
 			let backBtn = document.getElementById('game-back');
 			backBtn.style.display = 'block';
 			playSound("game_over");
-			console.log(data.score);
+			logMessage('info', data.score);
 			if (lobbySocket.readyState === WebSocket.OPEN){
-				console.log("done");
 				lobbySocket.send(JSON.stringify(data.score));
 			}
 			if (updater)
@@ -1993,19 +1967,19 @@ async function startRemote(lobby_id){
 	}
 	
 	gameSocket.onerror = function(error) {
-		console.log(`Error: ${error.message}`);};
+		logMessage('error', `${error.message}`);
 };
 
 
 async function remoteUp(id){
-	console.log(id);
-	console.log("pressed up");
+	logMessage('info', id);
+	logMessage('info', "pressed up");
 	gameSocket.send(JSON.stringify({"movement": "up", "player": id}));
 }
 
 async function remoteDown(id){
-	console.log(id)
-	console.log("pressed down");
+	logMessage('info', id)
+	logMessage('info', "pressed down");
 	gameSocket.send(JSON.stringify({"movement": "down", "player": id}));
 }
 
@@ -2041,4 +2015,5 @@ function display_remote(data)
 	player2.style.left = data.x2 + '%';
 	player2.style.top = data.y2 + '%';
 	player2.style.transition = 'left 0.025s linear, top 0.025s linear';
+}
 }
