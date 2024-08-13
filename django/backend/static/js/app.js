@@ -1240,7 +1240,6 @@ function createDropdownItem(text, onClickHandler) {
 
 // TODO check security concerns
 async function startLocal() {
-	// console.log(document.querySelector('input[name="score"]:checked').value," and rounds", document.querySelector('input[name="roundsToWin"]:checked').value);
 	return await fetch("localmatch")
 	.then(response => response.text())
 	.then(data => {
@@ -1940,7 +1939,6 @@ async function startRemote(lobby_id){
 			displayPong(data);
 		}
 		else if (data["type"] === "score"){
-			// console.log("we are here");
 			displayPong(data);
 		}
 		else if (data["type"] === "end"){
