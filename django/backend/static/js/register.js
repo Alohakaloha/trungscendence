@@ -81,6 +81,7 @@ function register(email, username, password, confirm){
 				errormsg.textContent = '';
 				successmsg.textContent = data.message;
 			} else {
+				console.log(data.message);
 				successmsg.textContent = '';
 				errormsg.textContent = 'Email or username already exists.';
 			}

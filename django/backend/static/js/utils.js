@@ -27,8 +27,7 @@ export function validatePassword(password){
 }
 
 export function validateUsername(username) {
-	const minLength = 3;
-	const maxLength = 25;
-
-	return username.length >= minLength && username.length <= maxLength && !/\s/.test(username);
+	console.log('Username:', username);
+	console.log('Regex result:', /^[a-zA-Z0-9]+$/.test(username));
+	return /^[a-zA-Z0-9]+$/.test(username) && username.length >= 3 && username.length <= 25;
 }
