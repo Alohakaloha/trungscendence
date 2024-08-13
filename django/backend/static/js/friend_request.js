@@ -52,21 +52,18 @@ export function init() {
 
 	const userDetailsList = document.querySelectorAll('.user-details');
 
-	clickEvent = userDetailsList.forEach(function(userDetails){
+		userDetailsList.forEach(function(userDetails){
 		const user_id = userDetails.querySelector('.user_id').getAttribute('data-user-id');
-		userDetails.addEventListener('click', function(event) {
-			const userInfo = userDetails.querySelector('.user-info');
-			if (userInfo.style.display === 'none') {
-					fetchUserData(user_id).then(responseData => {
-					userInfo.textContent = '';
-					userInfo.appendChild(friend_details(responseData));
-					userInfo.style.display = 'block';
-				})
-			} else {
+		const userInfo = userDetails.querySelector('.user-info');
+		if (userInfo.style.display === 'none') {
+				fetchUserData(user_id).then(responseData => {
+				userInfo.textContent = '';
+				userInfo.style.display = 'block';
+			})
+		} else {
 
-				userInfo.style.display = 'none';
-			}
-		});
+			userInfo.style.display = 'none';
+		}
 	});
 };
 
@@ -95,10 +92,7 @@ export function unload(){
 			unfriendButtons.forEach(function(button){
 				button.removeEventListener('click', handleSubmit);
 			})};
-		if (clickEvent){
-			clickEvent.forEach(function(clickEvent){
-				clickEvent.removeEventListener('click')});
-		}
+		
 		acceptButtons = null;
 		declineButtons = null;
 		addFriendButtons = null;

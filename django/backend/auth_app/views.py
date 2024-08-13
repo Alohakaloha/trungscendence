@@ -52,9 +52,10 @@ def profile(request, **kwargs):
 						'winner': winner,
 						'tie': tie
 					})
+				print('friendUser: ', friendUser, file=sys.stderr)
 				friendUserStats = {
 					'username': friendUser.username,
-					'profile_picture': friendUser.profile_picture.url,
+					'profile_picture': friendUser.profile_picture.url if not friendUser.oauth_created else friendUser.oauth_pic_url,
 					'games_played': friendUser.games,
 					'wins': friendUser.wins,
 					'losses': friendUser.losses,
@@ -163,7 +164,10 @@ def settings_view(request):
 			image_data = base64.b64decode(imgstr)
 			
 			filename = "{}.{}".format(uuid.uuid4(), 'jpg')
+
 			user.profile_picture.save(filename, ContentFile(image_data), save=True)
+			if user.oauth_created:
+				user.oauth_pic_url = user.profile_picture.url
 			user.save()
 
 		if 'password' in data:

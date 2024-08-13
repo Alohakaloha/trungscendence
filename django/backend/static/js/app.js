@@ -6,7 +6,7 @@ let uidb64;
 let token;
 let inviteID = null;
 let jsFile;
-let debugMode = true; // Set to false to disable debug logs
+let debugMode = false; // Set to false to disable debug logs
 
 
 window.onpopstate = function(event) {
