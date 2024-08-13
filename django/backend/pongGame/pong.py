@@ -31,6 +31,7 @@ class Player:
 			"p1Rounds" : self.score.player_1_rounds,
 			"score2": self.score.player_2_score,
 			"p2Rounds" : self.score.player_2_rounds,
+			'type': 'score',
 		}
 		return status_data
 
