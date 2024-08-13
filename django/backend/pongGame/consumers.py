@@ -402,7 +402,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 			data = json.loads(text_data)
 			if data["request"] == "created":
 				if self.lobby not in active_rooms:
-					active_rooms[self.lobby] = {'users': [data["user"]], 'num_active': 0}
+					active_rooms[self.lobby] = {'users': [data["user"]], 'active_users': []}
 					await self.send(json.dumps({"url": "/match/lobby"}))
 				else:
 					await self.send(json.dumps({"type": "toast", "message": "Room already exists"}))
@@ -417,7 +417,7 @@ class remote_lobby(AsyncWebsocketConsumer):
 						active_rooms[self.lobby]['users'].append(data["user"])
 						await self.send(json.dumps({"url": "/match/lobby"}))
 						await self.channel_layer.group_send(self.room_group_name, {
-							"type": "chat_message",
+							"type": "chat.message",
 							"user": data["user"],
 							"message": f"{data['user']} has joined"
 						})
@@ -440,11 +440,11 @@ class remote_lobby(AsyncWebsocketConsumer):
 				if data["status"] == "ready":
 					logprint(f"User {self.scope['user'].username} is ready")
 					await self.channel_layer.group_send(self.room_group_name, {
-						"type": "chat_message",
+						"type": "ready.message",
 						"user": self.scope["user"].username,
 						"message": f"{self.scope['user'].username} is ready"
 					})
-					active_rooms[self.lobby]['num_active'] += 1
+					active_rooms[self.lobby]['active_users'].append(self.scope["user"].username)
 					#await self.send(json.dumps({"status": "ready", "user": self.scope["user"].username}))
 			elif data["request"] == "created":
 				active_rooms[self.lobby]['rules'] = data['settings']
@@ -462,9 +462,16 @@ class remote_lobby(AsyncWebsocketConsumer):
 					if len(active_rooms[self.lobby]['users']) == 0:
 						del active_rooms[self.lobby]
 					await self.disconnect(close_code=1000)
+			elif data["request"] == 'leave':
+				if self.lobby in active_rooms:
+					if self.scope["user"].username in active_rooms[self.lobby]['users']:
+						active_rooms[self.lobby]['users'].remove(self.scope["user"].username)
+					if len(active_rooms[self.lobby]['users']) == 0:
+						del active_rooms[self.lobby]
+					await self.disconnect(close_code=1000)
 
 			if self.lobby in active_rooms:	
-				if active_rooms[self.lobby]['num_active'] == 2:
+				if len(active_rooms[self.lobby]['active_users']) == 2:
 					# Start the game (sending message)
 					channel_layer = get_channel_layer()
 					await channel_layer.group_send(self.room_group_name, {
@@ -480,6 +487,16 @@ class remote_lobby(AsyncWebsocketConsumer):
 		await self.send(text_data=json.dumps({
 		"type": "toast",
 		"status" : "joined",
+		"user" :  user,
+		"message" : event['message'],
+		}))
+
+	async def ready_message(self, event):
+		logprint(f'{event}')
+		user = event["user"]
+		await self.send(text_data=json.dumps({
+		"type": "toast",
+		"status" : "ready",
 		"user" :  user,
 		"message" : event['message'],
 		}))
@@ -500,7 +517,8 @@ class remote_lobby(AsyncWebsocketConsumer):
 	async def end_game(self, event):
 		pass
 
-
+	async def game_stats(self, event):
+		pass
 
 class remote_match(AsyncWebsocketConsumer):
 	async def connect(self):
@@ -540,12 +558,12 @@ class remote_match(AsyncWebsocketConsumer):
 		# 	else:
 		# 		self.game_resource[self.lobby][1] += 1
 
-		if active_rooms[self.lobby]['num_active'] == 2:
+		if len(active_rooms[self.lobby]['active_users']) == 2:
 			active_rooms[self.lobby]['loop'] = asyncio.create_task(self.game_loop())
 			active_rooms[self.lobby]['ongoing'] = True
 
 	# 0 - 'game'
-	# 1 - 'num_active'
+	# 1 - 'active_users'
 	# 2 - 'loop'
 	# 3 - 'ongoing'
 	# 4 - 'users'
@@ -553,7 +571,7 @@ class remote_match(AsyncWebsocketConsumer):
 
 	async def game_loop(self):
 		while active_rooms[self.lobby]['ongoing']:
-			if active_rooms[self.lobby]['num_active'] != 2:
+			if len(active_rooms[self.lobby]['active_users']) != 2:
 				# TODO: quit game
 				pass
 			if active_rooms[self.lobby]['game'].ball.collision(active_rooms[self.lobby]['game']):
@@ -568,7 +586,16 @@ class remote_match(AsyncWebsocketConsumer):
 				active_rooms[self.lobby]['game'].score.scoring(active_rooms[self.lobby]['game'].gamePos())
 				active_rooms[self.lobby]['game'].score.next_round()
 				active_rooms[self.lobby]['game'].ball.reset_ball()
-				await self.send(json.dumps(active_rooms[self.lobby]['game'].status()))
+				status = active_rooms[self.lobby]['game'].status()
+				logprint(status)
+				channel_layer = get_channel_layer()
+				await channel_layer.group_send(self.room_group_name,{
+						"type": "game.stats",
+						"score1": status['score1'],
+						"score2": status['score2'],
+						"p1Rounds": status['p1Rounds'],
+						"p2Rounds": status['p2Rounds'],
+					})
 			if active_rooms[self.lobby]['game'].score.game_end():
 				game_task = active_rooms[self.lobby]['game']
 				logprint("game_end")
@@ -585,8 +612,8 @@ class remote_match(AsyncWebsocketConsumer):
 
 	async def disconnect(self, close_code):
 		if self.lobby in active_rooms:
-			active_rooms[self.lobby]['num_active'] -= 1
-			if active_rooms[self.lobby]['num_active'] == 0:
+			active_rooms[self.lobby]['active_users'].remove(self.scope["user"].username)
+			if len(active_rooms[self.lobby]['active_users']) == 0:
 				del active_rooms[self.lobby]
 
 		await self.channel_layer.group_discard(
@@ -597,7 +624,6 @@ class remote_match(AsyncWebsocketConsumer):
 	async def receive(self, text_data):
 		try:
 			action = json.loads(text_data) 
-
 			if "settings" in action:
 				active_rooms[self.lobby]['game'].score.settings(action)
 				await self.send(json.dumps(active_rooms[self.lobby]['game'].score.current_rules()))
@@ -612,7 +638,6 @@ class remote_match(AsyncWebsocketConsumer):
 							"request": "update",
 							"score": active_rooms[self.lobby]['game'].gamePos(),
 						})
-
 			elif "status" in action:
 				await self.send(json.dumps(active_rooms[self.lobby]['game'].score.current_rules()))
 			elif "type" in action:
@@ -624,7 +649,6 @@ class remote_match(AsyncWebsocketConsumer):
 						"request": "start"
 					})
 			return
-
 
 		except json.JSONDecodeError:
 			logprint(f"Invalid JSON: {text_data}")
@@ -640,12 +664,20 @@ class remote_match(AsyncWebsocketConsumer):
 		"request": request,
 		"message": message
 		}))
-		logprint("sent message ---------------")
 
 	async def game_xy(self, event):
 		await self.send(json.dumps({
 		"type": "coordinates",
 		"coordinates": event['score']
+		}))
+
+	async def game_stats(self, event):
+		await self.send(json.dumps({
+			"type": "score",
+			'score1': event['score1'],
+			'score2': event['score2'],
+			'p1Rounds': event['p1Rounds'],
+			'p2Rounds': event['p2Rounds'],
 		}))
 
 	async def end_game(self, event):
