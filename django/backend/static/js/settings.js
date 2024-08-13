@@ -65,6 +65,8 @@ async function settings(email, username, profile_picture, password, confirm_pass
 	let errorMsg = document.getElementById("errorMsg");
 	let data = {};
 
+	errorMsg.textContent = '';
+	successMsg.textContent = '';
 	if (email === '' && username === '' && password === '' && !profile_picture) {
 		errorMsg.textContent = 'No changes made.';
 		return;
@@ -93,17 +95,21 @@ async function settings(email, username, profile_picture, password, confirm_pass
 	  }
 	}
 	
-	if (password !== "") {
-		if (!validatePassword(password)) {
-			errorMsg.textContent = 'Password must be 8 characters long and have at least 1 capital letter and 1 special character.';
-			return;
-		}
-		if (password !== confirm_password) {
-			errorMsg.textContent = 'Passwords do not match.';
-			return;
-		}
-		data.password = password;
+	if (password === ""){
+		errorMsg.textContent = 
+		errorMsg.textContent = 'Password must be 8 characters long and have at least 1 capital letter and 1 special character.';
+
+		return;
 	}
+	if (!validatePassword(password)) {
+		errorMsg.textContent = 'Password must be 8 characters long and have at least 1 capital letter and 1 special character.';
+		return;
+	}
+	if (password !== confirm_password) {
+		errorMsg.textContent = 'Passwords do not match.';
+		return;
+	}
+	data.password = password;
 	
 	if (profile_picture) {
 		const validImageExtensions = ['jpg', 'jpeg', 'png', 'bmp'];

@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.contrib.auth.password_validation import validate_password, ValidationError
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
-from utils import validateEmail, validateUsername
+from utils import validateEmail, validateUsername, validatePassword
 from .models import AppUser, FriendRequest
 import base64
 import uuid
@@ -173,10 +173,11 @@ def settings_view(request):
 		if 'password' in data:
 			new_password = data['password']
 			
-			if not validate_password(new_password):
-				return JsonResponse({'status': 'success', 'message': 'Invalid password.'})
-			user.set_password(new_password)
-			user.save()
+		if not validatePassword(new_password):
+				return JsonResponse({'status': 'error', 'message': 'Invalid password.'})
+		
+		user.set_password(new_password)
+		user.save()
 
 		return JsonResponse({'status':'success', 'message':'Settings updated successfully.'})
 
@@ -267,7 +268,6 @@ def friends_list_view(request):
 		friends = request.user.friends.all()
 		friends_list = []
 		for friend in friends:
-			print(f"friend: {friend} ", file=sys.stderr)
 			profilePic = friend.profile_picture.url
 			if friend.oauth_created:
 				profilePic = friend.oauth_pic_url
