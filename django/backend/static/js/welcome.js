@@ -44,34 +44,11 @@ export function init() {
 		}
 		setDrop = setInterval(moveDrop, 100);
 		interval = setInterval(draw,50);
-		console.log('welcome.js loaded');
 		resolve();
 	}
 	);
 
 };
-
-
-
-
-// function unload() {
-// 	return new Promise((resolve, reject) => {
-// 		if (chatWindow) {
-// 			chatWindow = null;
-// 			chatMessage = null;
-// 			sendBtn = null;
-
-// 			console.log("chat unloaded");
-// 			// Resolve the promise if everything is successful
-// 			resolve();
-// 		} else {
-// 			// Reject the promise if the login button is not found
-// 			reject(new Error("chat not found"));
-// 		}
-// 	});
-// }
-
-
 
 export function unload(){
 	return new Promise((resolve, reject) => {

@@ -57,7 +57,6 @@ export function unload(){
 		acceptButtons = null;
 		declineButtons = null;
 		addFriendButtons = null;
-		console.log("settings unload");
 	})};
 
 async function settings(email, username, profile_picture, password, confirm_password) {
@@ -65,6 +64,11 @@ async function settings(email, username, profile_picture, password, confirm_pass
 	let successMsg = document.getElementById("successMsg");
 	let errorMsg = document.getElementById("errorMsg");
 	let data = {};
+
+	if (email === '' && username === '' && password === '' && !profile_picture) {
+		errorMsg.textContent = 'No changes made.';
+		return;
+	}
 
 	if (email !== "") {
 	  if (!validateEmail(email)) {

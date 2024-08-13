@@ -199,7 +199,6 @@ export async function fetchUserDataById(user_id){
 
 export function friend_details(data){
 	div = document.createElement('div');
-	console.log('friend_details function called');
 	let stats = data.stats;
 	let games_history = stats.games_history;
 	div.innerHTML = `

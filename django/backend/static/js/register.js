@@ -1,11 +1,8 @@
 import { validateEmail, validatePassword, getCookie, validateUsername } from "./utils.js";
 
-console.log("register.js loaded");
-
 let registerBtn;
 
 let registerBtnClickHandler = function(e) {
-	console.log("register button clicked");
 	let email = document.getElementById("email").value;
 	let username = document.getElementById("username").value;
 	let password = document.getElementById("password").value;
@@ -16,13 +13,12 @@ export function init() {
 	return new Promise((resolve, reject) => {
 		registerBtn = document.getElementById('registerBtn');
 		if (registerBtn) {
-			console.log("login button found");
 			registerBtn.addEventListener('click', registerBtnClickHandler);
 			// Resolve the promise if everything is successful
 			resolve();
 		} else {
 			// Reject the promise if the login button is not found
-			console.log("login button not found");
+			reject(new Error("Register button not found"))
 		}
 	});
 }
@@ -32,7 +28,6 @@ export function unload(){
 		registerBtn = document.getElementById('registerBtn');
 		if (registerBtn) {
 			registerBtn.removeEventListener('click', registerBtnClickHandler);
-			console.log("login button unloaded");
 			// Resolve the promise if everything is successful
 			resolve();
 		} else {

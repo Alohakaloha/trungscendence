@@ -58,7 +58,6 @@ def profile(request, **kwargs):
 					'games_played': friendUser.games,
 					'wins': friendUser.wins,
 					'losses': friendUser.losses,
-					'draws': friendUser.draws,
 					'games_history': games_history
 					}
 				return JsonResponse({"status": "success", 'stats': friendUserStats})
@@ -126,6 +125,13 @@ def settings_view(request):
 	
 	elif request.method == 'POST':
 		data = json.loads(request.body)
+
+		if not data:
+			return JsonResponse({'status': 'error', 'message': 'No data provided'})
+		
+		if all(value == '' for value in data.values()):
+			return JsonResponse({'status': 'error', 'message': 'No changes made'})
+		
 		user_id = request.user.user_id
 		user = AppUser.objects.get(user_id=user_id)
 		try:
