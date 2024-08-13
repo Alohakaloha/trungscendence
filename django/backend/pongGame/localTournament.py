@@ -54,6 +54,7 @@ class tournamentHandler():
 			self.th_status = "idle"
 
 	def saveMatch(self, match):
+		logprint(self.remaining)
 		self.remaining.remove(self.nextUp[0])
 		self.remaining.remove(self.nextUp[1])
 		self.nextStage.append(match["winner"])
@@ -61,17 +62,20 @@ class tournamentHandler():
 	def nextMatch(self):
 			if(len(self.remaining) > 1):
 				self.nextUp = random.sample(self.remaining, 2)
-			elif(len(self.remaining) == 0 and len(self.nextStage) == 1):
-				self.th_status = "finished"
-				self.winner = self.nextStage[0]
-				return
+			elif len(self.remaining) == 0 and (len(self.nextStage) == 1):
+					self.th_status = "finished"
+					self.winner = self.nextStage[0]
 			elif len(self.remaining) == 1 and len(self.nextStage) == 0:
-				self.th_status = "finished"
-				self.winner = self.remaining
-				return
+					self.th_status = "finished"
+					self.winner = self.remaining
 			else:
-				self.nextStage.append([copy.deepcopy(item) for item in self.remaining])
+				if len(self.remaining) == 1:
+					logprint("lucky winner ", self.remaining)
+					self.nextStage.append([copy.deepcopy(item) for item in self.remaining])
+				logprint(self.nextStage)
 				self.remaining  = copy.deepcopy(self.nextStage)
+				logprint("next stage")
+				logprint(self.remaining)
 				self.stage += 1
 				self.nextStage = []
 				self.nextUp = random.sample(self.remaining, 2)
@@ -82,6 +86,7 @@ class tournamentHandler():
 			"status": self.th_status,
 			"winner": self.winner,
 			"participants": self.players,
+			'unique': 'finished',
 		}
 		return winner
 

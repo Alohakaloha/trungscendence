@@ -191,10 +191,10 @@ class localTournament(AsyncWebsocketConsumer):
 
 			elif data["type"] == 'match_result':
 				self.tournament.saveMatch(data)
-				self.tournament.setReady()
 				self.tournament.nextMatch()
+				logprint(self.tournament.th_status)
 				if self.tournament.th_status == "finished":
-					await self.send(self.tournament.tournamentResults())
+					await self.send(json.dumps(self.tournament.tournamentResults()))
 				else:
 					await self.send(json.dumps(self.tournament.currentRules()))
 		if "request" in data:

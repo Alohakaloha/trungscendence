@@ -7,6 +7,7 @@ let token;
 let inviteID = null;
 let jsFile;
 let debugMode = false; // Set to false to disable debug logs
+let localT = false;
 
 
 window.onpopstate = function(event) {
@@ -17,6 +18,10 @@ window.onload = function() {
 	handleRouting();
 };
 
+function isOnlyLetters(str) {
+    const lettersRegex = /^[A-Za-z0-9]+$/;
+    return lettersRegex.test(str);
+}
 
 async function fetchUserData(){
 	try {
@@ -98,10 +103,11 @@ async function handleRouting() {
 	if (gameSocket && gameSocket.readyState === WebSocket.OPEN){
 		gameSocket.close();
 	}
-
 	if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN){
-		lobbySocket.close();
+		if (localT === false)
+			lobbySocket.close();
 	}
+
 
 	if(page.startsWith("/details/")){
 		const parts = page.split("/");
@@ -306,6 +312,7 @@ async function handleRouting() {
 
 async function currentJS() {
 	let page = window.location.pathname;
+
 	const user = await fetchUserData();
 	switch (page) {
 		case '/':
@@ -1074,7 +1081,7 @@ function createDropdownItem(text, onClickHandler) {
 				messageContainer.onclick = async function() {
 					await showPage(`game/setupGameMode.html`);
 					await callSettings('versusSetup')
-					const lobby = document.getElementById('lobbyID');
+					const lobby = document.getElementById('lobbyID'); // lick my tits
 					lobby.value = id;
 				}
 			}
@@ -1261,7 +1268,7 @@ async function startLocal() {
 }
 
 async function enterLocalTournament(){
-	return fetch("game/enterLocalTournament.html")
+	return await fetch("game/enterLocalTournament.html")
 	.then(response => response.text())
 	.then(data => {
 		let localSettings = {
@@ -1318,7 +1325,7 @@ async function startLocalTournament(){
 
 
 function cancelTH(){
-	if(lobbySocket)
+	if(lobbySocket && lobbySocket.readyState == WebSocket.OPEN)
 		lobbySocket.close();
 	changeURL('/game', 'Game Page', {main : true});
 }
@@ -1344,8 +1351,8 @@ let sounds = false;
 let requestUpdate;
 let keysPressed = {};
 
-function initializeGame(settings, colors) {
-	fetch('/game/pong.html')
+async function initializeGame(settings, colors) {
+	await fetch('/game/pong.html')
 	.then(response => response.text())
 	.then(data => {
 		document.getElementById('content').innerHTML = data;
@@ -1428,6 +1435,8 @@ function connectGame(settings, colors){
 	gameSocket.onmessage = function(event){
 		let data = JSON.parse(event.data);
 		if (data.type === "match_result"){
+			if (lobbySocket && lobbySocket.readyState == WebSocket.OPEN)
+				lobbySocket.send(data);
 			let winner = document.getElementById('winner');
 			let winnerBtn = document.getElementById('winner-name');
 			winner.style.display = 'block';
@@ -1569,11 +1578,17 @@ function bind_local_Tournament(localSettings){
  lobbySocket.onopen = function(){
 	showPage('/game/localTournament.html');
 	lobbySocket.send(JSON.stringify(localSettings));
+	localT = true;
  }
 
  lobbySocket.onmessage = function(event){
 	 let data = JSON.parse(event.data);
 	 logMessage('info',"tournament lobby")
+	if ('unique' in data){
+		displayToastMessage(`Winner of the Tournament is ${data['winner']}!`);
+		lobbySocket.close()
+		return;
+	}
 	if(data.type === 'rules'){
 		 tournamentRules = data;
 	}
@@ -1590,6 +1605,7 @@ function bind_local_Tournament(localSettings){
 	 } else {
 		 logMessage('info','tournament closed ', event);
 	 }
+	 localT = false;
 	lobbySocket = null;
  }
 
@@ -1598,7 +1614,6 @@ function bind_local_Tournament(localSettings){
 function tournamentStatus(){
 	lobbySocket.send(JSON.stringify({"type": "status"}));
 }
-
 
 function updateTournament(data){
 	let participants = data['participants']
@@ -1625,30 +1640,29 @@ function localTournament(){
 	tournamentStatus();
 }
 
-function tournamentMatch(){
+async function tournamentMatch(){
 	sounds = document.getElementById('localSound').checked;
-	let colors = {
-		"p1Color": document.querySelector('input[name="player1Color"]:checked').value,
-		"p2Color": document.querySelector('input[name="player2Color"]:checked').value,
-	}
-	fetch('/game/pong.html')
+	let colorP1 = document.querySelector('input[name="player1Color"]:checked').value;
+	let colorP2 = document.querySelector('input[name="player2Color"]:checked').value;
+	let p1Color;
+	let p2Color;
+
+	await fetch('/game/pong.html')
 		.then(response => response.text())
 		.then(data => {
 			document.getElementById('content').innerHTML = data;
-			
 		})
 		.catch(error => logMessage('error',error));
-
-
-	gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/');
-
-	gameSocket.onopen = function(){
-		if(lobbySocket){
-			gameSocket.send(JSON.stringify(tournamentRules))
-			p1Color = document.getElementById("player1");
-			p2Color = document.getElementById("player2");
-			p1Color.style.boxShadow = "-5px 0px 3px "+ colors.p1Color;
-			p2Color.style.boxShadow ="5px 0px 3px " + colors.p2Color;
+		p1Color = document.getElementById("player1");
+		p2Color = document.getElementById("player2");
+		
+		gameSocket = new WebSocket('wss://' + window.location.host + '/ws/tournament_match/');
+		
+		gameSocket.onopen = function(){
+			if(lobbySocket && lobbySocket.readyState === WebSocket.OPEN){
+				gameSocket.send(JSON.stringify(tournamentRules))
+			p1Color.style.boxShadow = "-5px 0px 3px "+ colorP1;
+			p2Color.style.boxShadow ="5px 0px 3px " + colorP2;
 		}
 		else{
 			gameSocket.close();
@@ -1757,6 +1771,10 @@ async function join_lobby(requestType){
 			displayToastMessage("You need to enter a lobby name", "error");
 			return;
 		}
+		if (!isOnlyLetters(lobbyID)){
+			displayToastMessage("Only alphanumerical characters allowed!", "error");
+			return;
+		}
 	}
 	if(!lobbySocket || lobbySocket.readyState === WebSocket.CLOSED)
 	{
@@ -1856,11 +1874,18 @@ function usermatchdown() {
 async function startRemote(lobby_id){
 	// Customisations
 	let updater;
+	
+	sounds = document.getElementById('localSound');
+	if (sounds){
+		sounds.checked;
+	}
 	const user = await fetchUserData();
-	sounds = document.getElementById('localSound').checked;
 
-	let color = document.querySelector('input[name="player1Color"]:checked').value;
-	fetch('/game/pong.html')
+	let color = document.querySelector('input[name="player1Color"]:checked');
+	if (color){
+		color.value;
+	}
+	await fetch('/game/pong.html')
 	.then(response => response.text())
 	.then(data => {
 		document.getElementById('content').innerHTML = data;

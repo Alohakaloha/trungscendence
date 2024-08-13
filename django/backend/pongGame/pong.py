@@ -104,7 +104,7 @@ class Ball:
 		self.y = 50
 		self.radius = 1.5
 		# change back to 0.4
-		self.speed = 0.4
+		self.speed = 2
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
 
@@ -165,7 +165,7 @@ class Ball:
 		self.direction_x = random.choice([-1, 1])
 		self.direction_y = random.choice([-1,0, 1])
 		# change back to 0.4 
-		self.speed = 0.4
+		self.speed = 2
 	
 
 class Rules:
