@@ -580,7 +580,7 @@ if (toastTrigger) {
 		let games_history = stats.games_history;
 		div.innerHTML = `
 			<h1> ${stats.username}</h1>
-			<img src="${stats.profile_picture.url}" class="rounded-circle" width="100" height="100">
+			<img src="${stats.profile_picture}" class="rounded-circle" width="100" height="100">
 			<ul>
 				<li> games played: ${stats.games_played}</li>
 				<li> wins: ${stats.wins} </li>
